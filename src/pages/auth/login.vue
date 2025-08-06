@@ -28,6 +28,10 @@
 </template>
 
 <script>
+import {
+  apiLogin, apiCheckUser
+} from '@/apis/auth'
+
 export default {
   name: 'Login',
   data() {
@@ -37,16 +41,33 @@ export default {
       error: '',
     };
   },
+  mounted(){
+    this.checkLogin();
+  },
   methods: {
-    login() {
-      // Mock authentication logic
-      if (this.username === 'user' && this.password === 'password') {
-        localStorage.setItem('auth', 'true');
-        this.$router.push('/dashboard');
-      } else {
-        this.error = 'Invalid credentials';
-      }
+    checkLogin() {
+      apiCheckUser().then(({data}) => {
+        if(data.result){
+          this.$router.push('/dashboard')
+        }
+      })
     },
+    handleLogin(){
+      apiLogin({
+        email: this.email,
+        password: this.password
+      })
+      .then(({data}) => {
+        console.log(data, 'data')
+        if(data && data.token) {
+          localStorage.setItem('token', data.token)
+          this.$router.push({name: 'dashboard'})
+        }
+      })
+      .catch((error) => {
+        this._catchErrors(error)
+      })
+    }
   },
 };
 </script>

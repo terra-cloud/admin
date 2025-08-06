@@ -2,9 +2,10 @@ import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router
 import axios from "axios";
 
 import auth from './auth'
-
+import dashboard from './dashboard';
 const routes = [
     ...auth,
+    ...dashboard
 ]
 
 const router = createRouter({
@@ -15,11 +16,11 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const baseURL = import.meta.env.VITE_API_SUPPORT_URL;
-    // axios.interceptors.request.use(function(config) {
-    //   const token = localStorage.getItem('token')
-    //   if (token) config.headers.Authorization='Bearer '+token
-    //   return config;
-    // });
+    axios.interceptors.request.use(function(config) {
+      const token = localStorage.getItem('token')
+      if (token) config.headers.Authorization='Bearer '+token
+      return config;
+    });
     const excludeRoutes = ['login', 'signup']
     if(excludeRoutes.some(item => item == to.name)) next();
     axios.get(`${baseURL}/api/auth/check-user`).then(({ data }) => {

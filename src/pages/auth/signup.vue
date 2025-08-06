@@ -7,7 +7,7 @@
             <h3 class="text-center">Sign Up</h3>
           </div>
           <div class="card-body">
-            <div v-if="error" class="alert alert-danger">{{ error }}tsts</div>
+            <div v-if="error" class="alert alert-danger">{{ error }}</div>
             <div v-if="success" class="alert alert-success">{{ success }}</div>
             
             <div class="mb-3">
@@ -66,12 +66,16 @@
 <script>
 // Uncomment the following line if using axios for API calls
 // import axios from 'axios';
+import {
+  apiRegister,
+  apiLogin
+} from '@/apis/auth'
 
 export default {
   name: 'Signup',
   data() {
     return {
-      username: '',
+      name: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -88,7 +92,7 @@ export default {
       this.success = '';
 
       // Basic validation
-      if (!this.username || !this.email || !this.password || !this.confirmPassword) {
+      if (!this.name || !this.email || !this.password || !this.confirmPassword) {
         this.error = 'All fields are required';
         return;
       }
@@ -99,44 +103,40 @@ export default {
         return;
       }
 
-      // Mock registration logic
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      if (users.some(user => user.username === this.username)) {
-        this.error = 'Username already exists';
-        return;
-      }
-
-      // Store user data
-      users.push({ username: this.username, email: this.email, password: this.password });
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // Auto-login after signup
-      localStorage.setItem('auth', 'true');
-      this.success = 'Registration successful! Redirecting to dashboard...';
-      
-      // Redirect to dashboard after a short delay
-      setTimeout(() => {
-        this.$router.push('/dashboard');
-      }, 1500);
-
       // Optional: Example API call with axios (uncomment to use)
-      /*
       try {
-        const response = await axios.post('https://api.example.com/signup', {
-          username: this.username,
+        const response = await apiRegister({
+          name: this.name,
           email: this.email,
           password: this.password,
+          password_confirmation: this.confirmPassword,
         });
-        localStorage.setItem('auth', 'true');
         this.success = 'Registration successful! Redirecting to dashboard...';
-        setTimeout(() => {
-          this.$router.push('/dashboard');
-        }, 1500);
+        if(response.status == 200){
+          setTimeout(() => {
+            this.handleLogin()
+          }, 1500);
+        }
       } catch (error) {
         this.error = error.response?.data?.message || 'Registration failed';
       }
-      */
     },
+    handleLogin(){
+      apiLogin({
+        email: this.email,
+        password: this.password
+      })
+      .then(({data}) => {
+        console.log(data, 'data')
+        if(data && data.token) {
+          localStorage.setItem('token', data.token)
+          this.$router.push({name: 'dashboard'})
+        }
+      })
+      .catch((error) => {
+        this._catchErrors(error)
+      })
+    }
   },
 };
 </script>
