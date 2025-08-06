@@ -1,8 +1,8 @@
 <template>
   <div>
     <!-- Main Content -->
-    <div :class="{ collapsed: !sidebarOpen }">
-      <div>
+    <div>
+      <div class="page-container">
         <h1 class="mb-4">Users</h1>
         <!-- Summary Metrics -->
         <div class="row mb-4">
@@ -434,9 +434,6 @@ export default {
     closeDeleteModal() {
       this.showDeleteModal = false;
       this.selectedDeleteUserId = null;
-    },
-    logout() {
-      alert('Logging out...');
     },
   },
   mounted() {
