@@ -99,7 +99,7 @@
                     <option value="2">Employer</option>
                   </select>
                 </div>
-                <div class="mb-3">
+                <!-- <div class="mb-3">
                   <label for="editKycStatus" class="form-label">KYC Status</label>
                   <select
                     class="form-select"
@@ -111,7 +111,7 @@
                     <option value="1">Approved</option>
                     <option value="-1">Not Approved</option>
                   </select>
-                </div>
+                </div> -->
               </form>
             </div>
           </div>

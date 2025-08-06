@@ -66,9 +66,9 @@
               </table>
             </div>
             <!-- Pagination Controls -->
-            <div class="d-flex justify-content-center align-items-center mt-3 flex-column">
-              <div class="pagination-count mb-2">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
-              <nav>
+            <div class="d-flex justify-content-center align-items-center mt-3">
+              <div class="pagination-count mx-4">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
+              <nav class="mt-3">
                 <ul class="pagination">
                   <li class="page-item" :class="{ disabled: currentPage === 1 }">
                     <button class="page-link" @click="prevPage">Previous</button>
@@ -282,8 +282,8 @@ export default {
           birthdate: updatedUser.birthdate,
           gender: updatedUser.gender,
           account_type: parseInt(updatedUser.account_type),
-          kyc_validated: parseInt(updatedUser.kyc_validated),
-          photo_url: updatedUser.photo_url || '',
+          // kyc_validated: parseInt(updatedUser.kyc_validated),
+          // photo_url: updatedUser.photo_url || '',
         }, { merge: true });
         this.closeEditModal();
         this.fetchUsers(); // Refresh current page
