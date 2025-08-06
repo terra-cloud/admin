@@ -9,14 +9,16 @@
           <div class="card-body">
             <div v-if="error" class="alert alert-danger">{{ error }}</div>
             <div class="mb-3">
-              <label for="username" class="form-label">Username</label>
-              <input v-model="username" type="text" class="form-control" id="username" placeholder="Enter username">
+              <label for="username" class="form-label">Email</label>
+              <input v-model="email" type="text" class="form-control" id="username" placeholder="Enter username">
             </div>
             <div class="mb-3">
               <label for="password" class="form-label">Password</label>
-              <input v-model="password" type="password" class="form-control" id="password" placeholder="Enter password">
+              <input v-model="password" type="password" class="form-control" id="password" placeholder="Enter password"
+              @keyup.enter="handleLogin"
+              >
             </div>
-            <button @click="login" class="btn btn-primary w-100">Login</button>
+            <button @click="handleLogin" class="btn btn-primary w-100">Login</button>
             <p class="mt-3 text-center">
               Don't have an account? <router-link to="/signup">Sign Up</router-link>
             </p>
@@ -36,7 +38,7 @@ export default {
   name: 'Login',
   data() {
     return {
-      username: '',
+      email: '',
       password: '',
       error: '',
     };
