@@ -21,8 +21,6 @@
                     <th class="text-center">Photo</th>
                     <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
                     <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
-                    <th @click="sort('birthdate')">Birthdate <i class="fas" :class="sortIcon('birthdate')"></i></th>
-                    <th @click="sort('gender')">Gender <i class="fas" :class="sortIcon('gender')"></i></th>
                     <th @click="sort('account_type')">Type <i class="fas" :class="sortIcon('account_type')"></i></th>
                     <th @click="sort('kyc_validated')">
                       Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i>
@@ -43,8 +41,6 @@
                     </td>
                     <td>{{ user.name }} {{ user.last_name }}</td>
                     <td>{{ user.email }}</td>
-                    <td>{{ formatDate(user.birthdate) }}</td>
-                    <td>{{ user.gender || 'N/A' }}</td>
                     <td>{{ user.type }}</td>
                     <td>{{ displayStatus(user.kyc_validated) }}</td>
                     <td>
