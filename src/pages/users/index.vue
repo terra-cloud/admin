@@ -6,13 +6,44 @@
         <h1 class="mb-4">Users</h1>
         <div class="card">
           <div class="card-body">
-            <div class="mb-3">
-              <input
-                type="text"
-                class="form-control"
-                v-model="searchQuery"
-                placeholder="Search users..."
-              />
+            <div class="mb-3 row">
+              <div class="col-md-4">
+                <label for="searchQuery" class="form-label">Search Users</label>
+                <input
+                  id="searchQuery"
+                  type="text"
+                  class="form-control"
+                  v-model="searchQuery"
+                  placeholder="Search by name, email, type, or KYC status..."
+                />
+              </div>
+              <div class="col-md-4">
+                <label for="filterType" class="form-label">Filter by Type</label>
+                <select
+                  id="filterType"
+                  class="form-select"
+                  multiple
+                  v-model="filterTypes"
+                >
+                  <option value="All">All</option>
+                  <option value="User">User</option>
+                  <option value="Employer">Employer</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="filterKycStatus" class="form-label">Filter by KYC Status</label>
+                <select
+                  id="filterKycStatus"
+                  class="form-select"
+                  multiple
+                  v-model="filterKycStatuses"
+                >
+                  <option value="All">All</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Not Approved">Not Approved</option>
+                </select>
+              </div>
             </div>
             <div class="table-responsive">
               <table class="table table-hover">
@@ -104,6 +135,8 @@ export default {
       mobileSidebarOpen: false,
       darkMode: false,
       searchQuery: '',
+      filterTypes: [],
+      filterKycStatuses: [],
       sortKey: 'name',
       sortOrder: 'asc',
       currentPage: 1,
@@ -131,14 +164,22 @@ export default {
         const email = user.email ? user.email.toLowerCase() : '';
         const gender = user.gender ? user.gender.toLowerCase() : '';
         const birthdate = user.birthdate ? user.birthdate.toLowerCase() : '';
+        const userType = this.mapAccountType(user.account_type).toLowerCase();
+        const kycStatus = this.displayStatus(user.kyc_validated).toLowerCase();
         const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
-        return (
+        const matchesText = searchQuery === '' ||
           name.includes(searchQuery) ||
           lastName.includes(searchQuery) ||
           email.includes(searchQuery) ||
           gender.includes(searchQuery) ||
-          birthdate.includes(searchQuery)
-        );
+          birthdate.includes(searchQuery) ||
+          userType.includes(searchQuery) ||
+          kycStatus.includes(searchQuery);
+        const effectiveTypes = this.filterTypes.includes('All') ? ['User', 'Employer'] : this.filterTypes;
+        const effectiveKycStatuses = this.filterKycStatuses.includes('All') ? ['Pending', 'Approved', 'Not Approved'] : this.filterKycStatuses;
+        const matchesType = effectiveTypes.length === 0 || effectiveTypes.includes(this.mapAccountType(user.account_type));
+        const matchesKycStatus = effectiveKycStatuses.length === 0 || effectiveKycStatuses.includes(this.displayStatus(user.kyc_validated));
+        return matchesText && matchesType && matchesKycStatus;
       });
     },
     paginatedUsers() {
@@ -322,20 +363,16 @@ export default {
       this.lastVisible = null;
       this.fetchUsers();
     },
+    filterTypes() {
+      this.currentPage = 1;
+      this.lastVisible = null;
+      this.fetchUsers();
+    },
+    filterKycStatuses() {
+      this.currentPage = 1;
+      this.lastVisible = null;
+      this.fetchUsers();
+    },
   },
 };
 </script>
-
-<style scoped>
-.user-photo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-  margin: 0 auto;
-}
-.pagination-count {
-  text-align: center;
-}
-</style>
