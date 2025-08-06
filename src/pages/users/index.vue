@@ -14,7 +14,7 @@
                   type="text"
                   class="form-control"
                   v-model="searchQuery"
-                  placeholder="Search by name, email, type, or KYC status..."
+                  placeholder="Search by name or email..."
                 />
               </div>
               <div class="col-md-4">

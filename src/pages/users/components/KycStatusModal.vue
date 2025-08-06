@@ -1,5 +1,13 @@
 <template>
-  <div class="modal fade" :id="'kycModal-' + user.id" tabindex="-1" aria-labelledby="kycModalLabel" aria-hidden="true" ref="modalRef">
+  <div
+    class="modal fade"
+    :id="'kycModal-' + user.id"
+    tabindex="-1"
+    aria-labelledby="kycModalLabel"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+  >
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -61,6 +69,7 @@ export default {
         kyc_validated: this.user.kyc_validated || 0,
         kyc_rejection_reason: this.user.kyc_rejection_reason || '',
       },
+      modal: null,
     };
   },
   computed: {
@@ -79,25 +88,30 @@ export default {
     },
     closeModal() {
       this.$emit('close');
-      const modalElement = this.$refs.modalRef;
-      modalElement.classList.remove('show');
-      modalElement.style.display = 'none';
-      document.body.classList.remove('modal-open');
-      const backdrop = document.querySelector('.modal-backdrop');
-      if (backdrop) backdrop.remove();
+      if (this.modal) {
+        this.modal.classList.remove('show');
+        this.modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
+      }
     },
   },
   mounted() {
-    const modalElement = this.$refs.modalRef;
-    modalElement.classList.add('show');
-    modalElement.style.display = 'block';
-    document.body.classList.add('modal-open');
-    const backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop fade show';
-    document.body.appendChild(backdrop);
-    this.$nextTick(() => {
-      this.$el.querySelector('select').focus();
-    });
+    this.modal = document.getElementById(`kycModal-${this.user.id}`);
+    if (this.modal) {
+      this.modal.classList.add('show');
+      this.modal.style.display = 'block';
+      document.body.classList.add('modal-open');
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+      this.$nextTick(() => {
+        this.$el.querySelector('select').focus();
+      });
+    } else {
+      console.error('Modal element not found');
+    }
   },
 };
 </script>
