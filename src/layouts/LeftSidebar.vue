@@ -12,7 +12,7 @@
     <hr class="text-white" />
     <ul class="nav nav-pills flex-column mb-auto">
       <li class="nav-item">
-        <router-link to="/" class="nav-link" active-class="active">
+        <router-link to="/dashboard" class="nav-link" active-class="active">
           <i class="fas fa-home me-2"></i>
           <span class="nav-text">Dashboard</span>
         </router-link>

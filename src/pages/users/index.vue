@@ -3,28 +3,43 @@
 
   <!-- Main Content -->
   <div :class="{ collapsed: !sidebarOpen }">
-    <!-- Dashboard Page -->
+
     <div>
-      <h1 class="mb-4">Dashboard</h1>
-      <div class="row">
-        <div class="col-md-4" v-for="metric in metrics" :key="metric.id">
-          <div class="card mb-4">
-            <div class="card-body">
-              <h5 class="card-title">{{ metric.title }}</h5>
-              <h2 class="card-text">{{ metric.value }}</h2>
-              <p class="text-muted">{{ metric.description }}</p>
-            </div>
+      <h1 class="mb-4">User Management</h1>
+      <div class="card">
+        <div class="card-body">
+          <div class="mb-3">
+            <input type="text" class="form-control" v-model="searchQuery" placeholder="Search users...">
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th @click="sort('id')">ID <i class="fas" :class="sortIcon('id')"></i></th>
+                  <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
+                  <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
+                  <th @click="sort('role')">Role <i class="fas" :class="sortIcon('role')"></i></th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="user in filteredUsers" :key="user.id">
+                  <td>{{ user.id }}</td>
+                  <td>{{ user.name }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.role }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary me-2" @click="editUser(user)">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @click="deleteUser(user.id)">Delete</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-      <div class="card mb-4">
-        <div class="card-body">
-          <h5 class="card-title">User Activity</h5>
-          <!-- <canvas id="activityChart"></canvas> -->
-        </div>
-      </div>
     </div>
-
+    
   </div>
 </div>
 </template>

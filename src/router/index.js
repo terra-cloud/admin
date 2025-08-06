@@ -3,9 +3,11 @@ import axios from "axios";
 
 import auth from './auth'
 import dashboard from './dashboard';
+import users from './users';
 const routes = [
     ...auth,
-    ...dashboard
+    ...dashboard,
+    ...users
 ]
 
 const router = createRouter({
