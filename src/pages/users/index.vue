@@ -35,7 +35,6 @@
                         v-if="user.photo_url"
                         :src="user.photo_url"
                         class="user-photo"
-                        alt="User Photo"
                       />
                       <span v-else>No Photo</span>
                     </td>
@@ -62,28 +61,26 @@
               </table>
             </div>
             <!-- Pagination Controls -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <div>{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
-              <div class="d-flex justify-content-center">
-                <nav>
-                  <ul class="pagination">
-                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                      <button class="page-link" @click="prevPage">Previous</button>
-                    </li>
-                    <li
-                      class="page-item"
-                      v-for="page in totalPages"
-                      :key="page"
-                      :class="{ active: currentPage === page }"
-                    >
-                      <button class="page-link" @click="setPage(page)">{{ page }}</button>
-                    </li>
-                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                      <button class="page-link" @click="nextPage">Next</button>
-                    </li>
-                  </ul>
-                </nav>
-              </div>
+            <div class="d-flex justify-content-center align-items-center mt-3">
+              <div class="pagination-count mx-4">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
+              <nav class="mt-2">
+                <ul class="pagination">
+                  <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                    <button class="page-link" @click="prevPage">Previous</button>
+                  </li>
+                  <li
+                    class="page-item"
+                    v-for="page in totalPages"
+                    :key="page"
+                    :class="{ active: currentPage === page }"
+                  >
+                    <button class="page-link" @click="setPage(page)">{{ page }}</button>
+                  </li>
+                  <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                    <button class="page-link" @click="nextPage">Next</button>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -165,7 +162,7 @@ export default {
         this.users = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          type: this.displayAccountType(doc.data().account_type),
+          type: this.mapAccountType(doc.data().account_type),
         }));
         this.lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
         this.metrics[0].value = this.totalUsers.toString();
@@ -184,12 +181,12 @@ export default {
       const index = this.statusSet.findIndex(item => item.value === status);
       return index !== -1 ? this.statusSet[index].message : 'Unknown';
     },
-    displayAccountType(accountType) {
-      const roles = {
+    mapAccountType(accountType) {
+      const types = {
         1: 'User',
         2: 'Employer',
       };
-      return roles[accountType] || 'Unknown';
+      return types[accountType] || 'Unknown';
     },
     setPage(page) {
       if (page >= 1 && page <= this.totalPages) {
