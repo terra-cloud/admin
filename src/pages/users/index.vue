@@ -34,7 +34,7 @@
                   </td>
                   <td>{{ user.name }} {{ user.last_name }}</td>
                   <td>{{ user.email }} </td>
-                  <td>{{ user.kyc_validated }}</td>
+                  <td>{{ displayStatus(user.kyc_validated) }}</td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-2" @click="editUser(user)">Edit</button>
                     <button class="btn btn-sm btn-outline-danger" @click="deleteUser(user.id)">Delete</button>
@@ -94,6 +94,13 @@ export default {
     }
   },
   methods: {
+    displayStatus(status){
+      let index = this.statusSet.findIndex(item => item.value == status)
+      if(index != -1){
+        return this.statusSet[index]['message']
+      }
+      return 'Unknown'
+    },
     mapAccountTypeToRole(accountType) {
       const roles = {
         1: 'User',
