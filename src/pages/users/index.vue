@@ -4,6 +4,18 @@
     <div :class="{ collapsed: !sidebarOpen }">
       <div>
         <h1 class="mb-4">Users</h1>
+        <!-- Summary Metrics -->
+        <div class="row mb-4">
+          <div class="col-md-4 col-lg-2 mb-3" v-for="metric in metrics" :key="metric.id">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <h5 class="card-title">{{ metric.title }}</h5>
+                <p class="card-text display-6">{{ metric.value }}</p>
+                <p class="card-text text-muted">{{ metric.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-body">
             <div class="mb-3 row">
@@ -169,6 +181,11 @@ export default {
       usersPerPage: 20,
       metrics: [
         { id: 1, title: 'Total Users', value: '0', description: 'Active users in the system' },
+        { id: 2, title: 'Pending KYC', value: '0', description: 'Users with pending KYC status' },
+        { id: 3, title: 'Approved KYC', value: '0', description: 'Users with approved KYC status' },
+        { id: 4, title: 'Rejected KYC', value: '0', description: 'Users with rejected KYC status' },
+        { id: 5, title: 'Employers', value: '0', description: 'Users with Employer account type' },
+        { id: 6, title: 'Users', value: '0', description: 'Users with User account type' },
       ],
       users: [],
       totalUsers: 0,
@@ -229,8 +246,26 @@ export default {
         totalItems: this.totalUsers,
       };
     },
+    userMetrics() {
+      return {
+        totalUsers: this.totalUsers,
+        pendingKyc: this.users.filter(user => user.kyc_validated === 0).length,
+        approvedKyc: this.users.filter(user => user.kyc_validated === 1).length,
+        rejectedKyc: this.users.filter(user => user.kyc_validated === -1).length,
+        employerCount: this.users.filter(user => this.mapAccountType(user.account_type) === 'Employer').length,
+        userCount: this.users.filter(user => this.mapAccountType(user.account_type) === 'User').length,
+      };
+    },
   },
   methods: {
+    updateMetrics() {
+      this.metrics[0].value = this.userMetrics.totalUsers.toString();
+      this.metrics[1].value = this.userMetrics.pendingKyc.toString();
+      this.metrics[2].value = this.userMetrics.approvedKyc.toString();
+      this.metrics[3].value = this.userMetrics.rejectedKyc.toString();
+      this.metrics[4].value = this.userMetrics.employerCount.toString();
+      this.metrics[5].value = this.userMetrics.userCount.toString();
+    },
     async fetchUsers() {
       let usersQuery = query(
         collection(db, 'users'),
@@ -255,7 +290,7 @@ export default {
           kyc_rejection_reason: doc.data().kyc_rejection_reason || '',
         }));
         this.lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
-        this.metrics[0].value = this.totalUsers.toString();
+        this.updateMetrics();
       }, (error) => {
         console.error('Error fetching users:', error);
         alert('Failed to load users');
@@ -265,7 +300,7 @@ export default {
       const coll = collection(db, 'users');
       const snapshot = await getCountFromServer(coll);
       this.totalUsers = snapshot.data().count;
-      this.metrics[0].value = this.totalUsers.toString();
+      this.updateMetrics();
     },
     displayStatus(status) {
       const index = this.statusSet.findIndex(item => item.value === status);

@@ -125,9 +125,20 @@ body {
 }
 
 .pagination-count {
-  top:-1px;
+  text-align: center;
 }
-
-// .form-select[multiple] {
-//   height: 100px;
-// }
+.form-select[multiple] {
+  height: 100px;
+}
+.card.h-100 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.card-body {
+  padding: 1rem;
+}
+.display-6 {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
