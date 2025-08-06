@@ -5,7 +5,7 @@
   <div :class="{ collapsed: !sidebarOpen }">
 
     <div>
-      <h1 class="mb-4">User Management</h1>
+      <h1 class="mb-4">Users</h1>
       <div class="card">
         <div class="card-body">
           <div class="mb-3">
@@ -15,19 +15,26 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th @click="sort('id')">ID <i class="fas" :class="sortIcon('id')"></i></th>
+                  <th class="text-center">Photo</th>
                   <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
                   <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
-                  <th @click="sort('role')">Role <i class="fas" :class="sortIcon('role')"></i></th>
+                  <th @click="sort('role')">Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i></th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="user in filteredUsers" :key="user.id">
-                  <td>{{ user.id }}</td>
-                  <td>{{ user.name }}</td>
-                  <td>{{ user.email }}</td>
-                  <td>{{ user.role }}</td>
+                  <td class="text-center">
+                    <img
+                      v-if="user.photo_url"
+                      :src="user.photo_url"
+                      class="user-photo"
+                    />
+                    <span v-else>No Photo</span>
+                  </td>
+                  <td>{{ user.name }} {{ user.last_name }}</td>
+                  <td>{{ user.email }} </td>
+                  <td>{{ user.kyc_validated }}</td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-2" @click="editUser(user)">Edit</button>
                     <button class="btn btn-sm btn-outline-danger" @click="deleteUser(user.id)">Delete</button>
@@ -44,6 +51,8 @@
 </div>
 </template>
 <script>
+import { db } from '@/firebase'; // Adjust path to your firebase.js file
+import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 
 export default {
   data() {
@@ -51,42 +60,49 @@ export default {
       sidebarOpen: true,
       mobileSidebarOpen: false,
       darkMode: false,
-      emailNotifications: true,
       searchQuery: '',
       sortKey: 'id',
       sortOrder: 'asc',
       metrics: [
-        { id: 1, title: 'Total Users', value: '2,456', description: 'Active users in the system' },
-        { id: 2, title: 'Revenue', value: '$24,789', description: 'Monthly revenue' },
-        { id: 3, title: 'Active Sessions', value: '1,123', description: 'Current active sessions' },
+        { id: 1, title: 'Total Users', value: '0', description: 'Active users in the system' },
       ],
-      users: [
-        { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User' },
-        { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'Editor' },
-        { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'User' },
+      users: [], // Initialize as empty; will be populated from Firestore
+      statusSet: [
+        { value: 0, message: 'Pending' },
+        { value: 1, message: 'Approved' },
+        { value: -1, message: 'Not Approved' },
       ],
-      notifications: [
-        { id: 1, message: 'New user registered' },
-        { id: 2, message: 'System update available' },
-      ],
-      chart: null,
     };
   },
   computed: {
     filteredUsers() {
       return this.users
-        .filter(user =>
-          user.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          user.email.toLowerCase().includes(this.searchQuery.toLowerCase())
-        )
+        .filter(user => {
+          // Safely convert name and email to strings, defaulting to empty string if undefined/null
+          const name = user.name ? user.name.toLowerCase() : '';
+          const email = user.email ? user.email.toLowerCase() : '';
+          const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
+          return name.includes(searchQuery) || email.includes(searchQuery);
+        })
         .sort((a, b) => {
           const modifier = this.sortOrder === 'asc' ? 1 : -1;
-          return a[this.sortKey] < b[this.sortKey] ? -1 * modifier : 1 * modifier;
+          // Handle undefined/null in sortKey as well
+          const valueA = a[this.sortKey] || '';
+          const valueB = b[this.sortKey] || '';
+          return valueA < valueB ? -1 * modifier : 1 * modifier;
         });
-    },
+    }
   },
   methods: {
+    mapAccountTypeToRole(accountType) {
+      const roles = {
+        1: 'User',
+        2: 'Admin',
+        3: 'Editor',
+        // Add more mappings as needed
+      };
+      return roles[accountType] || 'Unknown';
+    },
     setPage(page) {
       this.mobileSidebarOpen = false;
     },
@@ -121,40 +137,36 @@ export default {
     editUser(user) {
       alert(`Editing user: ${user.name}`);
     },
-    deleteUser(id) {
+    async deleteUser(id) {
       if (confirm('Are you sure you want to delete this user?')) {
-        this.users = this.users.filter(user => user.id !== id);
+        try {
+          await deleteDoc(doc(db, 'users', id));
+          // No need to manually update this.users; onSnapshot will handle it
+        } catch (error) {
+          console.error('Error deleting user:', error);
+          alert('Failed to delete user');
+        }
       }
     },
     logout() {
       alert('Logging out...');
     },
-    initChart() {
-      const ctx = document.getElementById('activityChart').getContext('2d');
-      this.chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          datasets: [{
-            label: 'User Activity',
-            data: [65, 59, 80, 81, 56, 55],
-            borderColor: '#3b82f6',
-            fill: false,
-          }],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
-    },
   },
   mounted() {
-    // this.initChart();
+    // Fetch users from Firestore in real-time
+    const usersCollection = collection(db, 'users');
+    onSnapshot(usersCollection, (snapshot) => {
+      this.users = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        role: this.mapAccountTypeToRole(doc.data().account_type) // Map account_type to role
+      }));
+      // Update Total Users metric
+      this.metrics[0].value = this.users.length.toString();
+    }, (error) => {
+      console.error('Error fetching users:', error);
+      alert('Failed to load users');
+    });
   },
   watch: {
     mobileSidebarOpen(newVal) {
@@ -169,5 +181,5 @@ export default {
       this.toggleTheme();
     },
   },
-}
+};
 </script>

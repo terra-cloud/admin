@@ -106,3 +106,12 @@ body {
 .red {
   color: red;
 }
+
+.user-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block; /* Ensures the image is treated as a block element for centering */
+  margin: 0 auto; /* Centers the image horizontally */
+}
