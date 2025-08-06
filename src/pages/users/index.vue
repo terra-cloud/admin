@@ -150,7 +150,7 @@ export default {
       statusSet: [
         { value: 0, message: 'Pending' },
         { value: 1, message: 'Approved' },
-        { value: -1, message: 'Not Approved' },
+        { value: -1, message: 'Rejected' },
       ],
       showEditModal: false,
       selectedUser: null,
