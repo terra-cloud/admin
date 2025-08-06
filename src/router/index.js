@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
+import axios from "axios";
+
 import auth from './auth'
 
 const routes = [
@@ -20,24 +22,24 @@ router.beforeEach((to, from, next) => {
     // });
     const excludeRoutes = ['login', 'signup']
     if(excludeRoutes.some(item => item == to.name)) next();
-    // axios.get(`${baseURL}/api/admin/auth/check-user`).then(({ data }) => {
-    //   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    //     if (!data) {
-    //       next({
-    //         name: "login",
-    //         query: { redirect: to.fullPath },
-    //       });
-    //     } else {
-    //       next();
-    //     }
-    //   } 
-    // })
-    // .catch(error => {
-    //   next({
-    //     name: "login",
-    //     query: { redirect: to.fullPath },
-    //   });
-    // });
+    axios.get(`${baseURL}/api/auth/check-user`).then(({ data }) => {
+      if (to.matched.some((record) => record.meta.requiresAuth)) {
+        if (!data) {
+          next({
+            name: "login",
+            query: { redirect: to.fullPath },
+          });
+        } else {
+          next();
+        }
+      } 
+    })
+    .catch(error => {
+      next({
+        name: "login",
+        query: { redirect: to.fullPath },
+      });
+    });
 });
 
 export default router
