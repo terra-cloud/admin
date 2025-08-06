@@ -41,7 +41,7 @@
                   <option value="All">All</option>
                   <option value="Pending">Pending</option>
                   <option value="Approved">Approved</option>
-                  <option value="Not Approved">Not Approved</option>
+                  <option value="Rejected">Rejected</option>
                 </select>
               </div>
             </div>
@@ -82,6 +82,12 @@
                         Edit
                       </button>
                       <button
+                        class="btn btn-sm btn-outline-warning me-2"
+                        @click="openKycModal(user)"
+                      >
+                        KYC
+                      </button>
+                      <button
                         class="btn btn-sm btn-outline-danger"
                         @click="deleteUser(user.id)"
                       >
@@ -115,6 +121,14 @@
       @save="saveUser"
       @close="closeEditModal"
     />
+    <!-- KYC Status Modal Component -->
+    <KycStatusModal
+      v-if="showKycModal"
+      :user="selectedKycUser"
+      :key="'kyc-' + selectedKycUser?.id"
+      @save="saveKycStatus"
+      @close="closeKycModal"
+    />
   </div>
 </template>
 
@@ -122,11 +136,13 @@
 import { db } from '@/firebase'; // Adjust path to your firebase.js file
 import { collection, query, orderBy, limit, startAfter, onSnapshot, deleteDoc, doc, setDoc, getCountFromServer } from 'firebase/firestore';
 import UserModal from './components/UserModal.vue';
+import KycStatusModal from '@/pages/users/components/KycStatusModal.vue';
 import Pagination from '@/components/Pagination.vue';
 
 export default {
   components: {
     UserModal,
+    KycStatusModal,
     Pagination,
   },
   data() {
@@ -154,6 +170,8 @@ export default {
       ],
       showEditModal: false,
       selectedUser: null,
+      showKycModal: false,
+      selectedKycUser: null,
     };
   },
   computed: {
@@ -166,6 +184,7 @@ export default {
         const birthdate = user.birthdate ? user.birthdate.toLowerCase() : '';
         const userType = this.mapAccountType(user.account_type).toLowerCase();
         const kycStatus = this.displayStatus(user.kyc_validated).toLowerCase();
+        const kycRejectionReason = user.kyc_rejection_reason ? user.kyc_rejection_reason.toLowerCase() : '';
         const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
         const matchesText = searchQuery === '' ||
           name.includes(searchQuery) ||
@@ -174,9 +193,10 @@ export default {
           gender.includes(searchQuery) ||
           birthdate.includes(searchQuery) ||
           userType.includes(searchQuery) ||
-          kycStatus.includes(searchQuery);
+          kycStatus.includes(searchQuery) ||
+          kycRejectionReason.includes(searchQuery);
         const effectiveTypes = this.filterTypes.includes('All') ? ['User', 'Employer'] : this.filterTypes;
-        const effectiveKycStatuses = this.filterKycStatuses.includes('All') ? ['Pending', 'Approved', 'Not Approved'] : this.filterKycStatuses;
+        const effectiveKycStatuses = this.filterKycStatuses.includes('All') ? ['Pending', 'Approved', 'Rejected'] : this.filterKycStatuses;
         const matchesType = effectiveTypes.length === 0 || effectiveTypes.includes(this.mapAccountType(user.account_type));
         const matchesKycStatus = effectiveKycStatuses.length === 0 || effectiveKycStatuses.includes(this.displayStatus(user.kyc_validated));
         return matchesText && matchesType && matchesKycStatus;
@@ -220,6 +240,7 @@ export default {
           type: this.mapAccountType(doc.data().account_type),
           birthdate: doc.data().birthdate ? new Date(doc.data().birthdate).toISOString().split('T')[0] : '',
           gender: doc.data().gender || '',
+          kyc_rejection_reason: doc.data().kyc_rejection_reason || '',
         }));
         this.lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
         this.metrics[0].value = this.totalUsers.toString();
@@ -313,6 +334,7 @@ export default {
           gender: updatedUser.gender,
           account_type: parseInt(updatedUser.account_type),
           kyc_validated: parseInt(updatedUser.kyc_validated),
+          kyc_rejection_reason: updatedUser.kyc_rejection_reason || '',
           photo_url: updatedUser.photo_url || '',
         }, { merge: true });
         this.closeEditModal();
@@ -325,6 +347,27 @@ export default {
     closeEditModal() {
       this.showEditModal = false;
       this.selectedUser = null;
+    },
+    openKycModal(user) {
+      this.selectedKycUser = { ...user }; // Create a copy to avoid mutating original
+      this.showKycModal = true;
+    },
+    async saveKycStatus({ id, kyc_validated, kyc_rejection_reason }) {
+      try {
+        await setDoc(doc(db, 'users', id), {
+          kyc_validated: parseInt(kyc_validated),
+          kyc_rejection_reason: kyc_validated === -1 ? kyc_rejection_reason || '' : '',
+        }, { merge: true });
+        this.closeKycModal();
+        this.fetchUsers(); // Refresh current page
+      } catch (error) {
+        console.error('Error updating KYC status:', error);
+        alert('Failed to update KYC status');
+      }
+    },
+    closeKycModal() {
+      this.showKycModal = false;
+      this.selectedKycUser = null;
     },
     async deleteUser(id) {
       if (confirm('Are you sure you want to delete this user?')) {
