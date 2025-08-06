@@ -21,6 +21,8 @@
                     <th class="text-center">Photo</th>
                     <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
                     <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
+                    <!-- <th @click="sort('birthdate')">Birthdate <i class="fas" :class="sortIcon('birthdate')"></i></th>
+                    <th @click="sort('gender')">Gender <i class="fas" :class="sortIcon('gender')"></i></th> -->
                     <th @click="sort('account_type')">Type <i class="fas" :class="sortIcon('account_type')"></i></th>
                     <th @click="sort('kyc_validated')">
                       Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i>
@@ -35,17 +37,20 @@
                         v-if="user.photo_url"
                         :src="user.photo_url"
                         class="user-photo"
+                        alt="User Photo"
                       />
                       <span v-else>No Photo</span>
                     </td>
                     <td>{{ user.name }} {{ user.last_name }}</td>
                     <td>{{ user.email }}</td>
+                    <!-- <td>{{ formatDate(user.birthdate) }}</td>
+                    <td>{{ user.gender || 'N/A' }}</td> -->
                     <td>{{ user.type }}</td>
                     <td>{{ displayStatus(user.kyc_validated) }}</td>
                     <td>
                       <button
                         class="btn btn-sm btn-outline-primary me-2"
-                        @click="editUser(user)"
+                        @click="openEditModal(user)"
                       >
                         Edit
                       </button>
@@ -61,9 +66,9 @@
               </table>
             </div>
             <!-- Pagination Controls -->
-            <div class="d-flex justify-content-center align-items-center mt-3">
-              <div class="pagination-count mx-4">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
-              <nav class="mt-2">
+            <div class="d-flex justify-content-center align-items-center mt-3 flex-column">
+              <div class="pagination-count mb-2">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
+              <nav>
                 <ul class="pagination">
                   <li class="page-item" :class="{ disabled: currentPage === 1 }">
                     <button class="page-link" @click="prevPage">Previous</button>
@@ -86,14 +91,26 @@
         </div>
       </div>
     </div>
+    <!-- Edit User Modal Component -->
+    <UserModal
+      v-if="showEditModal"
+      :user="selectedUser"
+      :key="selectedUser?.id"
+      @save="saveUser"
+      @close="closeEditModal"
+    />
   </div>
 </template>
 
 <script>
 import { db } from '@/firebase'; // Adjust path to your firebase.js file
-import { collection, query, orderBy, limit, startAfter, onSnapshot, deleteDoc, doc, getCountFromServer } from 'firebase/firestore';
+import { collection, query, orderBy, limit, startAfter, onSnapshot, deleteDoc, doc, setDoc, getCountFromServer } from 'firebase/firestore';
+import UserModal from './components/UserModal.vue';
 
 export default {
+  components: {
+    UserModal,
+  },
   data() {
     return {
       sidebarOpen: true,
@@ -115,6 +132,8 @@ export default {
         { value: 1, message: 'Approved' },
         { value: -1, message: 'Not Approved' },
       ],
+      showEditModal: false,
+      selectedUser: null,
     };
   },
   computed: {
@@ -123,8 +142,14 @@ export default {
         const name = user.name ? user.name.toLowerCase() : '';
         const lastName = user.last_name ? user.last_name.toLowerCase() : '';
         const email = user.email ? user.email.toLowerCase() : '';
+        const gender = user.gender ? user.gender.toLowerCase() : '';
         const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
-        return name.includes(searchQuery) || lastName.includes(searchQuery) || email.includes(searchQuery);
+        return (
+          name.includes(searchQuery) ||
+          lastName.includes(searchQuery) ||
+          email.includes(searchQuery) ||
+          gender.includes(searchQuery)
+        );
       });
     },
     paginatedUsers() {
@@ -163,6 +188,8 @@ export default {
           id: doc.id,
           ...doc.data(),
           type: this.mapAccountType(doc.data().account_type),
+          birthdate: doc.data().birthdate ? new Date(doc.data().birthdate).toISOString().split('T')[0] : '',
+          gender: doc.data().gender || '',
         }));
         this.lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
         this.metrics[0].value = this.totalUsers.toString();
@@ -187,6 +214,11 @@ export default {
         2: 'Employer',
       };
       return types[accountType] || 'Unknown';
+    },
+    formatDate(date) {
+      if (!date) return 'N/A';
+      const d = new Date(date);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     },
     setPage(page) {
       if (page >= 1 && page <= this.totalPages) {
@@ -237,8 +269,32 @@ export default {
       }
       return 'fa-sort';
     },
-    editUser(user) {
-      alert(`Editing user: ${user.name}`);
+    openEditModal(user) {
+      this.selectedUser = { ...user }; // Create a copy to avoid mutating original
+      this.showEditModal = true;
+    },
+    async saveUser(updatedUser) {
+      try {
+        await setDoc(doc(db, 'users', updatedUser.id), {
+          name: updatedUser.name,
+          last_name: updatedUser.last_name,
+          email: updatedUser.email,
+          birthdate: updatedUser.birthdate,
+          gender: updatedUser.gender,
+          account_type: parseInt(updatedUser.account_type),
+          kyc_validated: parseInt(updatedUser.kyc_validated),
+          photo_url: updatedUser.photo_url || '',
+        }, { merge: true });
+        this.closeEditModal();
+        this.fetchUsers(); // Refresh current page
+      } catch (error) {
+        console.error('Error updating user:', error);
+        alert('Failed to update user');
+      }
+    },
+    closeEditModal() {
+      this.showEditModal = false;
+      this.selectedUser = null;
     },
     async deleteUser(id) {
       if (confirm('Are you sure you want to delete this user?')) {
