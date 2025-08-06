@@ -89,7 +89,7 @@
                       </button>
                       <button
                         class="btn btn-sm btn-outline-danger"
-                        @click="deleteUser(user.id)"
+                        @click="openDeleteModal(user.id)"
                       >
                         Delete
                       </button>
@@ -129,20 +129,30 @@
       @save="saveKycStatus"
       @close="closeKycModal"
     />
+    <!-- Delete Confirmation Modal Component -->
+    <ConfirmDialog
+      v-if="showDeleteModal"
+      :currentId="selectedDeleteUserId"
+      :key="'delete-' + selectedDeleteUserId"
+      @confirm="deleteUser"
+      @close="closeDeleteModal"
+    />
   </div>
 </template>
 
 <script>
-import { db } from '@/firebase'; // Adjust path to your firebase.js file
+import { db } from '@/firebase';
 import { collection, query, orderBy, limit, startAfter, onSnapshot, deleteDoc, doc, setDoc, getCountFromServer } from 'firebase/firestore';
-import UserModal from './components/UserModal.vue';
+import UserModal from '@/pages/users/components/UserModal.vue';
 import KycStatusModal from '@/pages/users/components/KycStatusModal.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
 
 export default {
   components: {
     UserModal,
     KycStatusModal,
+    ConfirmDialog,
     Pagination,
   },
   data() {
@@ -172,6 +182,8 @@ export default {
       selectedUser: null,
       showKycModal: false,
       selectedKycUser: null,
+      showDeleteModal: false,
+      selectedDeleteUserId: null,
     };
   },
   computed: {
@@ -321,7 +333,7 @@ export default {
       return 'fa-sort';
     },
     openEditModal(user) {
-      this.selectedUser = { ...user }; // Create a copy to avoid mutating original
+      this.selectedUser = { ...user };
       this.showEditModal = true;
     },
     async saveUser(updatedUser) {
@@ -338,7 +350,7 @@ export default {
           photo_url: updatedUser.photo_url || '',
         }, { merge: true });
         this.closeEditModal();
-        this.fetchUsers(); // Refresh current page
+        this.fetchUsers();
       } catch (error) {
         console.error('Error updating user:', error);
         alert('Failed to update user');
@@ -349,7 +361,7 @@ export default {
       this.selectedUser = null;
     },
     openKycModal(user) {
-      this.selectedKycUser = { ...user }; // Create a copy to avoid mutating original
+      this.selectedKycUser = { ...user };
       this.showKycModal = true;
     },
     async saveKycStatus({ id, kyc_validated, kyc_rejection_reason }) {
@@ -359,7 +371,7 @@ export default {
           kyc_rejection_reason: kyc_validated === -1 ? kyc_rejection_reason || '' : '',
         }, { merge: true });
         this.closeKycModal();
-        this.fetchUsers(); // Refresh current page
+        this.fetchUsers();
       } catch (error) {
         console.error('Error updating KYC status:', error);
         alert('Failed to update KYC status');
@@ -369,17 +381,24 @@ export default {
       this.showKycModal = false;
       this.selectedKycUser = null;
     },
-    async deleteUser(id) {
-      if (confirm('Are you sure you want to delete this user?')) {
-        try {
-          await deleteDoc(doc(db, 'users', id));
-          await this.fetchTotalUsers();
-          this.fetchUsers();
-        } catch (error) {
-          console.error('Error deleting user:', error);
-          alert('Failed to delete user');
-        }
+    openDeleteModal(userId) {
+      this.selectedDeleteUserId = userId;
+      this.showDeleteModal = true;
+    },
+    async deleteUser(userId) {
+      try {
+        await deleteDoc(doc(db, 'users', userId));
+        await this.fetchTotalUsers();
+        this.fetchUsers();
+        this.closeDeleteModal();
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Failed to delete user');
       }
+    },
+    closeDeleteModal() {
+      this.showDeleteModal = false;
+      this.selectedDeleteUserId = null;
     },
     logout() {
       alert('Logging out...');
