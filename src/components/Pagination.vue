@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex justify-content-center align-items-center mt-3 flex-column">
-    <div class="pagination-count mb-2">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
+    <!-- <div class="pagination-count mb-2">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div> -->
     <nav>
       <ul class="pagination">
         <li class="page-item" :class="{ disabled: currentPage === 1 }">
