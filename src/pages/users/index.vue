@@ -21,8 +21,8 @@
                     <th class="text-center">Photo</th>
                     <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
                     <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
-                    <!-- <th @click="sort('birthdate')">Birthdate <i class="fas" :class="sortIcon('birthdate')"></i></th>
-                    <th @click="sort('gender')">Gender <i class="fas" :class="sortIcon('gender')"></i></th> -->
+                    <th @click="sort('birthdate')">Birthdate <i class="fas" :class="sortIcon('birthdate')"></i></th>
+                    <th @click="sort('gender')">Gender <i class="fas" :class="sortIcon('gender')"></i></th>
                     <th @click="sort('account_type')">Type <i class="fas" :class="sortIcon('account_type')"></i></th>
                     <th @click="sort('kyc_validated')">
                       Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i>
@@ -43,8 +43,8 @@
                     </td>
                     <td>{{ user.name }} {{ user.last_name }}</td>
                     <td>{{ user.email }}</td>
-                    <!-- <td>{{ formatDate(user.birthdate) }}</td>
-                    <td>{{ user.gender || 'N/A' }}</td> -->
+                    <td>{{ formatDate(user.birthdate) }}</td>
+                    <td>{{ user.gender || 'N/A' }}</td>
                     <td>{{ user.type }}</td>
                     <td>{{ displayStatus(user.kyc_validated) }}</td>
                     <td>
@@ -66,27 +66,16 @@
               </table>
             </div>
             <!-- Pagination Controls -->
-            <div class="d-flex justify-content-center align-items-center mt-3">
-              <div class="pagination-count mx-4">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
-              <nav class="mt-3">
-                <ul class="pagination">
-                  <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                    <button class="page-link" @click="prevPage">Previous</button>
-                  </li>
-                  <li
-                    class="page-item"
-                    v-for="page in totalPages"
-                    :key="page"
-                    :class="{ active: currentPage === page }"
-                  >
-                    <button class="page-link" @click="setPage(page)">{{ page }}</button>
-                  </li>
-                  <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                    <button class="page-link" @click="nextPage">Next</button>
-                  </li>
-                </ul>
-              </nav>
-            </div>
+            <Pagination
+              :currentPage="currentPage"
+              :totalPages="totalPages"
+              :tableData="tableData"
+              @setPage="setPage"
+              @prevPage="prevPage"
+              @nextPage="nextPage"
+              @firstPage="setPage(1)"
+              @lastPage="setPage(totalPages)"
+            />
           </div>
         </div>
       </div>
@@ -106,10 +95,12 @@
 import { db } from '@/firebase'; // Adjust path to your firebase.js file
 import { collection, query, orderBy, limit, startAfter, onSnapshot, deleteDoc, doc, setDoc, getCountFromServer } from 'firebase/firestore';
 import UserModal from './components/UserModal.vue';
+import Pagination from '@/components/Pagination.vue';
 
 export default {
   components: {
     UserModal,
+    Pagination,
   },
   data() {
     return {
@@ -143,12 +134,14 @@ export default {
         const lastName = user.last_name ? user.last_name.toLowerCase() : '';
         const email = user.email ? user.email.toLowerCase() : '';
         const gender = user.gender ? user.gender.toLowerCase() : '';
+        const birthdate = user.birthdate ? user.birthdate.toLowerCase() : '';
         const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
         return (
           name.includes(searchQuery) ||
           lastName.includes(searchQuery) ||
           email.includes(searchQuery) ||
-          gender.includes(searchQuery)
+          gender.includes(searchQuery) ||
+          birthdate.includes(searchQuery)
         );
       });
     },
@@ -282,8 +275,8 @@ export default {
           birthdate: updatedUser.birthdate,
           gender: updatedUser.gender,
           account_type: parseInt(updatedUser.account_type),
-          // kyc_validated: parseInt(updatedUser.kyc_validated),
-          // photo_url: updatedUser.photo_url || '',
+          kyc_validated: parseInt(updatedUser.kyc_validated),
+          photo_url: updatedUser.photo_url || '',
         }, { merge: true });
         this.closeEditModal();
         this.fetchUsers(); // Refresh current page
@@ -336,3 +329,17 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.user-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+.pagination-count {
+  text-align: center;
+}
+</style>
