@@ -1,58 +1,100 @@
 <template>
-<div>
-
-  <!-- Main Content -->
-  <div :class="{ collapsed: !sidebarOpen }">
-
-    <div>
-      <h1 class="mb-4">Users</h1>
-      <div class="card">
-        <div class="card-body">
-          <div class="mb-3">
-            <input type="text" class="form-control" v-model="searchQuery" placeholder="Search users...">
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th class="text-center">Photo</th>
-                  <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
-                  <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
-                  <th @click="sort('role')">Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i></th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="user in filteredUsers" :key="user.id">
-                  <td class="text-center">
-                    <img
-                      v-if="user.photo_url"
-                      :src="user.photo_url"
-                      class="user-photo"
-                    />
-                    <span v-else>No Photo</span>
-                  </td>
-                  <td>{{ user.name }} {{ user.last_name }}</td>
-                  <td>{{ user.email }} </td>
-                  <td>{{ displayStatus(user.kyc_validated) }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-primary me-2" @click="editUser(user)">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger" @click="deleteUser(user.id)">Delete</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+  <div>
+    <!-- Main Content -->
+    <div :class="{ collapsed: !sidebarOpen }">
+      <div>
+        <h1 class="mb-4">Users</h1>
+        <div class="card">
+          <div class="card-body">
+            <div class="mb-3">
+              <input
+                type="text"
+                class="form-control"
+                v-model="searchQuery"
+                placeholder="Search users..."
+              />
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th class="text-center">Photo</th>
+                    <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
+                    <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
+                    <th @click="sort('account_type')">Type <i class="fas" :class="sortIcon('account_type')"></i></th>
+                    <th @click="sort('kyc_validated')">
+                      Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i>
+                    </th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="user in paginatedUsers" :key="user.id">
+                    <td class="text-center">
+                      <img
+                        v-if="user.photo_url"
+                        :src="user.photo_url"
+                        class="user-photo"
+                        alt="User Photo"
+                      />
+                      <span v-else>No Photo</span>
+                    </td>
+                    <td>{{ user.name }} {{ user.last_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.type }}</td>
+                    <td>{{ displayStatus(user.kyc_validated) }}</td>
+                    <td>
+                      <button
+                        class="btn btn-sm btn-outline-primary me-2"
+                        @click="editUser(user)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-danger"
+                        @click="deleteUser(user.id)"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination Controls -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div>{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div>
+              <div class="d-flex justify-content-center">
+                <nav>
+                  <ul class="pagination">
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                      <button class="page-link" @click="prevPage">Previous</button>
+                    </li>
+                    <li
+                      class="page-item"
+                      v-for="page in totalPages"
+                      :key="page"
+                      :class="{ active: currentPage === page }"
+                    >
+                      <button class="page-link" @click="setPage(page)">{{ page }}</button>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                      <button class="page-link" @click="nextPage">Next</button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    
   </div>
-</div>
 </template>
+
 <script>
 import { db } from '@/firebase'; // Adjust path to your firebase.js file
-import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, startAfter, onSnapshot, deleteDoc, doc, getCountFromServer } from 'firebase/firestore';
 
 export default {
   data() {
@@ -61,12 +103,16 @@ export default {
       mobileSidebarOpen: false,
       darkMode: false,
       searchQuery: '',
-      sortKey: 'id',
+      sortKey: 'name',
       sortOrder: 'asc',
+      currentPage: 1,
+      usersPerPage: 20,
       metrics: [
         { id: 1, title: 'Total Users', value: '0', description: 'Active users in the system' },
       ],
-      users: [], // Initialize as empty; will be populated from Firestore
+      users: [],
+      totalUsers: 0,
+      lastVisible: null,
       statusSet: [
         { value: 0, message: 'Pending' },
         { value: 1, message: 'Approved' },
@@ -76,42 +122,92 @@ export default {
   },
   computed: {
     filteredUsers() {
-      return this.users
-        .filter(user => {
-          // Safely convert name and email to strings, defaulting to empty string if undefined/null
-          const name = user.name ? user.name.toLowerCase() : '';
-          const email = user.email ? user.email.toLowerCase() : '';
-          const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
-          return name.includes(searchQuery) || email.includes(searchQuery);
-        })
-        .sort((a, b) => {
-          const modifier = this.sortOrder === 'asc' ? 1 : -1;
-          // Handle undefined/null in sortKey as well
-          const valueA = a[this.sortKey] || '';
-          const valueB = b[this.sortKey] || '';
-          return valueA < valueB ? -1 * modifier : 1 * modifier;
-        });
-    }
+      return this.users.filter(user => {
+        const name = user.name ? user.name.toLowerCase() : '';
+        const lastName = user.last_name ? user.last_name.toLowerCase() : '';
+        const email = user.email ? user.email.toLowerCase() : '';
+        const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
+        return name.includes(searchQuery) || lastName.includes(searchQuery) || email.includes(searchQuery);
+      });
+    },
+    paginatedUsers() {
+      return this.filteredUsers;
+    },
+    totalPages() {
+      return Math.ceil(this.totalUsers / this.usersPerPage);
+    },
+    tableData() {
+      const from = this.totalUsers === 0 ? 0 : (this.currentPage - 1) * this.usersPerPage + 1;
+      const to = Math.min(from + this.paginatedUsers.length - 1, this.totalUsers);
+      return {
+        from,
+        to,
+        totalItems: this.totalUsers,
+      };
+    },
   },
   methods: {
-    displayStatus(status){
-      let index = this.statusSet.findIndex(item => item.value == status)
-      if(index != -1){
-        return this.statusSet[index]['message']
+    async fetchUsers() {
+      let usersQuery = query(
+        collection(db, 'users'),
+        orderBy(this.sortKey, this.sortOrder),
+        limit(this.usersPerPage)
+      );
+      if (this.currentPage > 1 && this.lastVisible) {
+        usersQuery = query(
+          collection(db, 'users'),
+          orderBy(this.sortKey, this.sortOrder),
+          startAfter(this.lastVisible),
+          limit(this.usersPerPage)
+        );
       }
-      return 'Unknown'
+      onSnapshot(usersQuery, (snapshot) => {
+        this.users = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          type: this.displayAccountType(doc.data().account_type),
+        }));
+        this.lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
+        this.metrics[0].value = this.totalUsers.toString();
+      }, (error) => {
+        console.error('Error fetching users:', error);
+        alert('Failed to load users');
+      });
     },
-    mapAccountTypeToRole(accountType) {
+    async fetchTotalUsers() {
+      const coll = collection(db, 'users');
+      const snapshot = await getCountFromServer(coll);
+      this.totalUsers = snapshot.data().count;
+      this.metrics[0].value = this.totalUsers.toString();
+    },
+    displayStatus(status) {
+      const index = this.statusSet.findIndex(item => item.value === status);
+      return index !== -1 ? this.statusSet[index].message : 'Unknown';
+    },
+    displayAccountType(accountType) {
       const roles = {
         1: 'User',
-        2: 'Admin',
-        3: 'Editor',
-        // Add more mappings as needed
+        2: 'Employer',
       };
       return roles[accountType] || 'Unknown';
     },
     setPage(page) {
-      this.mobileSidebarOpen = false;
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+        this.fetchUsers();
+      }
+    },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.fetchUsers();
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.fetchUsers();
+      }
     },
     toggleSidebar() {
       this.sidebarOpen = !this.sidebarOpen;
@@ -134,6 +230,9 @@ export default {
         this.sortKey = key;
         this.sortOrder = 'asc';
       }
+      this.currentPage = 1;
+      this.lastVisible = null;
+      this.fetchUsers();
     },
     sortIcon(key) {
       if (this.sortKey === key) {
@@ -148,7 +247,8 @@ export default {
       if (confirm('Are you sure you want to delete this user?')) {
         try {
           await deleteDoc(doc(db, 'users', id));
-          // No need to manually update this.users; onSnapshot will handle it
+          await this.fetchTotalUsers();
+          this.fetchUsers();
         } catch (error) {
           console.error('Error deleting user:', error);
           alert('Failed to delete user');
@@ -160,20 +260,8 @@ export default {
     },
   },
   mounted() {
-    // Fetch users from Firestore in real-time
-    const usersCollection = collection(db, 'users');
-    onSnapshot(usersCollection, (snapshot) => {
-      this.users = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        role: this.mapAccountTypeToRole(doc.data().account_type) // Map account_type to role
-      }));
-      // Update Total Users metric
-      this.metrics[0].value = this.users.length.toString();
-    }, (error) => {
-      console.error('Error fetching users:', error);
-      alert('Failed to load users');
-    });
+    this.fetchTotalUsers();
+    this.fetchUsers();
   },
   watch: {
     mobileSidebarOpen(newVal) {
@@ -186,6 +274,11 @@ export default {
     },
     darkMode() {
       this.toggleTheme();
+    },
+    searchQuery() {
+      this.currentPage = 1;
+      this.lastVisible = null;
+      this.fetchUsers();
     },
   },
 };
