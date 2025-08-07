@@ -43,7 +43,7 @@
         </select>
       </div>
       <div class="col-md-4 mb-3">
-        <label class="form-label">Schedule Date Range</label>
+        <label class="form-label">Created Date Range</label>
         <div class="input-group">
           <input
             type="date"
@@ -183,12 +183,12 @@ export default {
         const effectiveWorkStyles = this.filterWorkStyles.includes('All') ? ['Full time', 'Contract', 'Part time'] : this.filterWorkStyles;
         const matchesWorkStyle = !this.filterWorkStyles.length || effectiveWorkStyles.includes(workStyle);
 
-        // Schedule Date Range Filter
-        const jobDate = job.schedule?.date ? new Date(job.schedule.date).getTime() : null;
-        const startDate = this.startDate ? new Date(this.startDate).getTime() : null;
-        const endDate = this.endDate ? new Date(this.endDate).getTime() : null;
+        // Created Date Range Filter
+        const jobDate = job.created_at ? new Date(job.created_at).toISOString().split('T')[0] : null;
+        const startDate = this.startDate || null;
+        const endDate = this.endDate ? new Date(new Date(this.endDate).setDate(new Date(this.endDate).getDate() + 1)).toISOString().split('T')[0] : null;
         const matchesDate = (!startDate || !jobDate || jobDate >= startDate) &&
-                           (!endDate || !jobDate || jobDate <= endDate);
+                           (!endDate || !jobDate || jobDate < endDate);
 
         // Job Status Filter
         const jobStatus = this.mapJobStatus(job.job_status);
