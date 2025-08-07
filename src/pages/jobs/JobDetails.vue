@@ -18,6 +18,7 @@
           <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">Poster Information</h6>
             <p>
+              <strong>Photo:</strong>
               <span v-if="job.author?.photo_url">
                 <img :src="job.author?.photo_url" class="user-photo" alt="Poster Photo" />
               </span>
@@ -25,7 +26,7 @@
             </p>
             <p><strong>Posted By:</strong> {{ job.author?.display_name || 'N/A' }}</p>
             <p><strong>Email:</strong> {{ job.author?.email || 'N/A' }}</p>
-            <p><strong>Name:</strong> {{ job.author?.name || 'N/A' }} {{ job.last_name || '' }}</p>
+            <p><strong>Name:</strong> {{ job.author?.name || 'N/A' }} {{ job.author?.last_name || '' }}</p>
             <p><strong>Account Type:</strong> {{ mapAccountType(job.author?.account_type) }}</p>
             <p><strong>KYC Status:</strong> {{ displayStatus(job.author?.kyc_validated) }}</p>
             <p><strong>Birthdate:</strong> {{ formatDate(job.author?.birthdate) }}</p>
@@ -52,6 +53,33 @@
               </span>
               <span v-else>N/A</span>
             </p>
+            <hr>
+            <h6 class="card-subtitle mb-2 text-muted">Job Offers</h6>
+            <div v-if="jobOffers.length">
+              <div v-for="offer in jobOffers" :key="offer.id" class="mb-3">
+                <h6 class="card-subtitle mb-2 text-muted">Offer {{ offer.id }}</h6>
+                <p>
+                  <strong>Offerer Photo:</strong>
+                  <span v-if="offer.author?.photo_url">
+                    <img :src="offer.author?.photo_url" class="user-photo" alt="Offerer Photo" />
+                  </span>
+                  <span v-else>N/A</span>
+                </p>
+                <p><strong>Offerer:</strong> {{ offer.author?.display_name || 'N/A' }}</p>
+                <p><strong>Email:</strong> {{ offer.author?.email || 'N/A' }}</p>
+                <p><strong>Name:</strong> {{ offer.author?.name || 'N/A' }} {{ offer.author?.last_name || '' }}</p>
+                <p><strong>Account Type:</strong> {{ mapAccountType(offer.author?.account_type) }}</p>
+                <p><strong>KYC Status:</strong> {{ displayStatus(offer.author?.kyc_validated) }}</p>
+                <p><strong>Birthdate:</strong> {{ formatDate(offer.author?.birthdate) }}</p>
+                <p><strong>Gender:</strong> {{ offer.author?.gender || 'N/A' }}</p>
+                <p><strong>Phone Number:</strong> {{ offer.author?.phone_number || 'N/A' }}</p>
+                <p><strong>Counter Offer:</strong> ₱{{ offer.counter_offer || 'N/A' }}</p>
+                <p><strong>Offer Created At:</strong> {{ formatDate(offer.created_at) }}</p>
+                <p><strong>Offer Details:</strong> {{ offer.details || 'N/A' }}</p>
+                <p><strong>Offer ID:</strong> <span class="badge bg-info">{{ offer.id }}</span></p>
+              </div>
+            </div>
+            <p v-else>No offers available for this job.</p>
           </div>
         </div>
       </div>
@@ -61,12 +89,13 @@
 
 <script>
 import { db } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 export default {
   data() {
     return {
       job: {},
+      jobOffers: [],
     };
   },
   methods: {
@@ -76,6 +105,7 @@ export default {
         const jobDoc = await getDoc(doc(db, 'job-posting', jobId));
         if (jobDoc.exists()) {
           this.job = { id: jobDoc.id, ...jobDoc.data() };
+          await this.fetchJobOffers(jobId);
         } else {
           alert('Job not found');
           this.$router.push('/job-postings');
@@ -83,6 +113,22 @@ export default {
       } catch (error) {
         console.error('Error fetching job:', error);
         alert('Failed to load job details');
+      }
+    },
+    async fetchJobOffers(jobId) {
+      try {
+        const offersQuery = query(
+          collection(db, 'job-offers'),
+          where('job_id', '==', jobId)
+        );
+        const querySnapshot = await getDocs(offersQuery);
+        this.jobOffers = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      } catch (error) {
+        console.error('Error fetching job offers:', error);
+        alert('Failed to load job offers');
       }
     },
     mapAccountType(accountType) {
