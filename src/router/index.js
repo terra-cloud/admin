@@ -4,10 +4,12 @@ import axios from "axios";
 import auth from './auth'
 import dashboard from './dashboard';
 import users from './users';
+import jobs from './jobs';
 const routes = [
     ...auth,
     ...dashboard,
-    ...users
+    ...users,
+    ...jobs
 ]
 
 const router = createRouter({

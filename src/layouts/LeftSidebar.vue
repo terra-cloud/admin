@@ -18,6 +18,12 @@
         </router-link>
       </li>
       <li>
+        <router-link to="/job-postings" class="nav-link" active-class="active">
+          <i class="fas fa-briefcase me-2"></i>
+          <span class="nav-text">Job Posting</span>
+        </router-link>
+      </li>
+      <li>
         <router-link to="/users" class="nav-link" active-class="active">
           <i class="fas fa-users me-2"></i>
           <span class="nav-text">Users</span>
