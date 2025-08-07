@@ -110,11 +110,18 @@
                   <button
                     v-if="job.job_status === 0 || job.job_status === 1"
                     class="btn btn-sm btn-outline-danger"
-                    @click="dropJob(job.id, job.title)"
+                    @click="showDropDialog(job.id, job.title)"
                   >
                     Drop
                   </button>
                 </div>
+                <DropJobModal
+                  v-if="showDialog && selectedJobId === job.id"
+                  :job-id="job.id"
+                  :job-title="job.title"
+                  @confirm="confirmDrop"
+                  @close="cancelDrop"
+                />
               </div>
             </div>
           </div>
@@ -139,10 +146,12 @@
 import { db } from '@/firebase';
 import { collection, query, orderBy, limit, startAfter, onSnapshot, getCountFromServer, doc, setDoc } from 'firebase/firestore';
 import Pagination from '@/components/Pagination.vue';
+import DropJobModal from './components/DropJobModal.vue';
 
 export default {
   components: {
     Pagination,
+    DropJobModal,
   },
   data() {
     return {
@@ -164,12 +173,14 @@ export default {
         { value: 1, message: 'Approved' },
         { value: -1, message: 'Rejected' },
       ],
+      showDialog: false,
+      selectedJobId: null,
+      selectedJobTitle: '',
     };
   },
   computed: {
     filteredJobs() {
       return this.jobs.filter(job => {
-        // Search Filter
         const searchQuery = this.searchQuery.toLowerCase();
         const displayName = job.author?.display_name?.toLowerCase() || '';
         const email = job.author?.email?.toLowerCase() || '';
@@ -183,29 +194,24 @@ export default {
           details.includes(searchQuery) ||
           keywords.includes(searchQuery);
 
-        // Budget Range Filter
         const budget = job.budget?.budget || 0;
         const matchesBudget = (!this.budgetMin || budget >= this.budgetMin) &&
                              (!this.budgetMax || budget <= this.budgetMax);
 
-        // Work Style Filter
         const workStyle = this.mapWorkStyle(job.details?.work_style);
         const effectiveWorkStyles = this.filterWorkStyles.includes('All') ? ['Full time', 'Contract', 'Part time'] : this.filterWorkStyles;
         const matchesWorkStyle = !this.filterWorkStyles.length || effectiveWorkStyles.includes(workStyle);
 
-        // Created Date Range Filter
         const jobDate = job.created_at ? new Date(job.created_at).toISOString().split('T')[0] : null;
         const startDate = this.startDate || null;
         const endDate = this.endDate ? new Date(new Date(this.endDate).setDate(new Date(this.endDate).getDate() + 1)).toISOString().split('T')[0] : null;
         const matchesDate = (!startDate || !jobDate || jobDate >= startDate) &&
                            (!endDate || !jobDate || jobDate < endDate);
 
-        // Job Status Filter
         const jobStatus = this.mapJobStatus(job.job_status);
         const effectiveJobStatuses = this.filterJobStatuses.includes('All') ? ['Open', 'In Progress', 'Completed', 'Cancelled', 'Dropped'] : this.filterJobStatuses;
         const matchesJobStatus = !this.filterJobStatuses.length || effectiveJobStatuses.includes(jobStatus);
 
-        // Location Type Filter
         const locationType = this.mapLocationType(job.location?.type);
         const effectiveLocationTypes = this.filterLocationTypes.includes('All') ? ['Unknown', 'In person', 'Remote'] : this.filterLocationTypes;
         const matchesLocationType = !this.filterLocationTypes.length || effectiveLocationTypes.includes(locationType);
@@ -256,18 +262,28 @@ export default {
       const snapshot = await getCountFromServer(coll);
       this.totalJobs = snapshot.data().count;
     },
-    async dropJob(jobId, jobTitle) {
-      if (window.confirm(`Are you sure you want to drop the job posting "${jobTitle || 'Untitled'}"? This will set its status to Dropped.`)) {
-        try {
-          const jobRef = doc(db, 'job-posting', jobId);
-          await setDoc(jobRef, { job_status: 4  }, { merge: true });
-          console.log(`Job ${jobId} dropped (status set to Dropped)`);
-          // Note: onSnapshot will automatically update this.jobs with the new status
-        } catch (error) {
-          console.error('Error dropping job:', error);
-          alert('Failed to drop job posting');
-        }
+    showDropDialog(jobId, jobTitle) {
+      this.selectedJobId = jobId;
+      this.selectedJobTitle = jobTitle;
+      this.showDialog = true;
+    },
+    async confirmDrop(jobId) {
+      try {
+        const jobRef = doc(db, 'job-posting', jobId);
+        await setDoc(jobRef, { job_status: 4 }, { merge: true });
+        console.log(`Job ${jobId} dropped (status set to Dropped)`);
+        this.showDialog = false;
+        this.selectedJobId = null;
+        this.selectedJobTitle = '';
+      } catch (error) {
+        console.error('Error dropping job:', error);
+        alert('Failed to drop job posting');
       }
+    },
+    cancelDrop() {
+      this.showDialog = false;
+      this.selectedJobId = null;
+      this.selectedJobTitle = '';
     },
     mapAccountType(accountType) {
       const types = {
