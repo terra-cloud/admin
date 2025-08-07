@@ -68,6 +68,7 @@
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
           <option value="Cancelled">Cancelled</option>
+          <option value="Dropped">Dropped</option>
         </select>
       </div>
       <div class="col-md-4 mb-3">
@@ -104,7 +105,16 @@
                   </span>
                   <span v-else>N/A</span>
                 </p>
-                <router-link :to="'/jobs/' + job.id" class="btn btn-sm btn-outline-info mt-2">View Full Details</router-link>
+                <div class="mt-2">
+                  <router-link :to="'/jobs/' + job.id" class="btn btn-sm btn-outline-info me-2">View Full Details</router-link>
+                  <button
+                    v-if="job.job_status === 0 || job.job_status === 1"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="dropJob(job.id, job.title)"
+                  >
+                    Drop
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -127,7 +137,7 @@
 
 <script>
 import { db } from '@/firebase';
-import { collection, query, orderBy, limit, startAfter, onSnapshot, getCountFromServer } from 'firebase/firestore';
+import { collection, query, orderBy, limit, startAfter, onSnapshot, getCountFromServer, doc, setDoc } from 'firebase/firestore';
 import Pagination from '@/components/Pagination.vue';
 
 export default {
@@ -192,7 +202,7 @@ export default {
 
         // Job Status Filter
         const jobStatus = this.mapJobStatus(job.job_status);
-        const effectiveJobStatuses = this.filterJobStatuses.includes('All') ? ['Open', 'In Progress', 'Completed', 'Cancelled'] : this.filterJobStatuses;
+        const effectiveJobStatuses = this.filterJobStatuses.includes('All') ? ['Open', 'In Progress', 'Completed', 'Cancelled', 'Dropped'] : this.filterJobStatuses;
         const matchesJobStatus = !this.filterJobStatuses.length || effectiveJobStatuses.includes(jobStatus);
 
         // Location Type Filter
@@ -223,7 +233,6 @@ export default {
   },
   methods: {
     async fetchJobs() {
-      // Fetch all jobs for client-side filtering
       const jobsQuery = query(
         collection(db, 'job-posting'),
         orderBy('created_at', 'desc')
@@ -234,7 +243,7 @@ export default {
           ...doc.data(),
           schedule: doc.data().job_request?.schedule || {},
           title: doc.data().job_request?.title || 'N/A',
-          job_status: doc.data().job_request?.job_status || 0,
+          job_status: doc.data().job_status || 0,
         }));
         this.lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
       }, (error) => {
@@ -246,6 +255,19 @@ export default {
       const coll = collection(db, 'job-posting');
       const snapshot = await getCountFromServer(coll);
       this.totalJobs = snapshot.data().count;
+    },
+    async dropJob(jobId, jobTitle) {
+      if (window.confirm(`Are you sure you want to drop the job posting "${jobTitle || 'Untitled'}"? This will set its status to Dropped.`)) {
+        try {
+          const jobRef = doc(db, 'job-posting', jobId);
+          await setDoc(jobRef, { job_status: 4  }, { merge: true });
+          console.log(`Job ${jobId} dropped (status set to Dropped)`);
+          // Note: onSnapshot will automatically update this.jobs with the new status
+        } catch (error) {
+          console.error('Error dropping job:', error);
+          alert('Failed to drop job posting');
+        }
+      }
     },
     mapAccountType(accountType) {
       const types = {
@@ -272,6 +294,7 @@ export default {
         1: 'In Progress',
         2: 'Completed',
         3: 'Cancelled',
+        4: 'Dropped',
       };
       return statuses[status] || 'Unknown';
     },
@@ -366,5 +389,8 @@ export default {
 }
 .form-select[multiple] {
   height: 100px;
+}
+.btn-sm.me-2 {
+  margin-right: 0.5rem;
 }
 </style>
