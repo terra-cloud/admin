@@ -24,7 +24,7 @@
                 <button class="nav-link" id="job-tab" data-bs-toggle="tab" data-bs-target="#job" type="button" role="tab" aria-controls="job" aria-selected="false">Job Information</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="offers-tab" data-bs-toggle="tab" data-bs-target="#offers" type="button" role="tab" aria-controls="offers" aria-selected="false">Job Offers</button>
+                <button class="nav-link" id="offers-tab" data-bs-toggle="tab" data-bs-target="#offers" type="button" role="tab" aria-controls="offers" aria-selected="false">Offers and Counter-Offers</button>
               </li>
             </ul>
             <!-- Tab Content -->
@@ -71,26 +71,65 @@
                   <span v-else>N/A</span>
                 </p>
               </div>
-              <!-- Job Offers Tab -->
+              <!-- Offers and Counter-Offers Tab -->
               <div class="tab-pane fade" id="offers" role="tabpanel" aria-labelledby="offers-tab">
-                <h6 class="card-subtitle mb-2 text-muted">Job Offers</h6>
+                <h6 class="card-subtitle mb-2 text-muted">Offers and Counter-Offers</h6>
                 <div v-if="jobOffers.length">
-                  <div v-for="offer in jobOffers" :key="offer.id" class="mb-3">
+                  <div v-for="offer in jobOffers" :key="offer.id" class="mb-4 offer-section">
+                    <h6 class="card-subtitle mb-2 text-muted">Offer {{ offer.id }}</h6>
                     <p>
-                      <strong></strong>
+                      <strong>Offerer Photo:</strong>
                       <span v-if="offer.author?.photo_url">
                         <img :src="offer.author?.photo_url" class="user-photo" alt="Offerer Photo" />
                       </span>
                       <span v-else>N/A</span>
                     </p>
-                    <p><strong>Offer ID:</strong> <span class="badge bg-info">{{ offer.id }}</span></p>
                     <p><strong>Offerer:</strong> {{ offer.author?.display_name || 'N/A' }}</p>
                     <p><strong>Email:</strong> {{ offer.author?.email || 'N/A' }}</p>
-                    <p><strong>Phone Number:</strong> {{ offer.author?.phone_number || 'N/A' }}</p>
                     <p><strong>Name:</strong> {{ offer.author?.name || 'N/A' }} {{ offer.author?.last_name || '' }}</p>
+                    <p><strong>Account Type:</strong> {{ mapAccountType(offer.author?.account_type) }}</p>
+                    <p><strong>KYC Status:</strong> {{ displayStatus(offer.author?.kyc_validated) }}</p>
+                    <p><strong>Birthdate:</strong> {{ formatDate(offer.author?.birthdate) }}</p>
+                    <p><strong>Gender:</strong> {{ offer.author?.gender || 'N/A' }}</p>
+                    <p><strong>Phone Number:</strong> {{ offer.author?.phone_number || 'N/A' }}</p>
                     <p><strong>Counter Offer:</strong> ₱{{ offer.counter_offer || 'N/A' }}</p>
-                    <p><strong>Offer Details:</strong> {{ offer.details || 'N/A' }}</p>
                     <p><strong>Offer Created At:</strong> {{ formatDate(offer.created_at) }}</p>
+                    <p><strong>Offer Details:</strong> {{ offer.details || 'N/A' }}</p>
+                    <p><strong>Offer ID:</strong>
+                      <router-link :to="`/offer/${offer.id}`" class="badge bg-info">{{ offer.id }}</router-link>
+                    </p>
+                    <p v-if="offer.doc_id !== offer.id"><strong>Internal Offer ID:</strong> {{ offer.doc_id || 'N/A' }}</p>
+                    <p><strong>Job ID:</strong> {{ offer.job_id || 'N/A' }}</p>
+                    <!-- Counter-Offers -->
+                    <div v-if="offer.counterOffers && offer.counterOffers.length" class="counter-offer-section">
+                      <h6 class="card-subtitle mb-2 text-muted">Counter-Offers</h6>
+                      <div v-for="counterOffer in offer.counterOffers" :key="counterOffer.id" class="mb-3">
+                        <h6 class="card-subtitle mb-2 text-muted">Counter-Offer {{ counterOffer.id }}</h6>
+                        <p>
+                          <strong>Counter-Offerer Photo:</strong>
+                          <span v-if="counterOffer.author?.photo_url">
+                            <img :src="counterOffer.author?.photo_url" class="user-photo" alt="Counter-Offerer Photo" />
+                          </span>
+                          <span v-else>N/A</span>
+                        </p>
+                        <p><strong>Counter-Offerer:</strong> {{ counterOffer.author?.display_name || 'N/A' }}</p>
+                        <p><strong>Email:</strong> {{ counterOffer.author?.email || 'N/A' }}</p>
+                        <p><strong>Name:</strong> {{ counterOffer.author?.name || 'N/A' }} {{ counterOffer.author?.last_name || '' }}</p>
+                        <p><strong>Account Type:</strong> {{ mapAccountType(counterOffer.author?.account_type) }}</p>
+                        <p><strong>KYC Status:</strong> {{ displayStatus(counterOffer.author?.kyc_validated) }}</p>
+                        <p><strong>Birthdate:</strong> {{ formatDate(counterOffer.author?.birthdate) }}</p>
+                        <p><strong>Gender:</strong> {{ counterOffer.author?.gender || 'N/A' }}</p>
+                        <p><strong>Phone Number:</strong> {{ counterOffer.author?.phone_number || 'N/A' }}</p>
+                        <p><strong>Counter Offer:</strong> ₱{{ counterOffer.counter_offer || 'N/A' }}</p>
+                        <p><strong>Counter-Offer Created At:</strong> {{ formatDate(counterOffer.created_at) }}</p>
+                        <p><strong>Counter-Offer Details:</strong> {{ counterOffer.details || 'N/A' }}</p>
+                        <p><strong>Counter-Offer ID:</strong>
+                          <router-link :to="`/counter-offer/${counterOffer.id}`" class="badge bg-secondary">{{ counterOffer.id }}</router-link>
+                        </p>
+                        <p><strong>Job Offer ID:</strong> {{ counterOffer.job_offer_id || 'N/A' }}</p>
+                      </div>
+                    </div>
+                    <p v-else class="counter-offer-section">No counter-offers available for this offer.</p>
                   </div>
                 </div>
                 <p v-else>No offers available for this job.</p>
@@ -118,11 +157,14 @@ export default {
     async fetchJob() {
       try {
         const jobId = this.$route.params.jobId;
+        console.log('Fetching job with ID:', jobId);
         const jobDoc = await getDoc(doc(db, 'job-posting', jobId));
         if (jobDoc.exists()) {
           this.job = { id: jobDoc.id, ...jobDoc.data() };
+          console.log('Job fetched:', { id: this.job.id, title: this.job.job_request?.title });
           await this.fetchJobOffers(jobId);
         } else {
+          console.error('Job not found for ID:', jobId);
           alert('Job not found');
           this.$router.push('/job-postings');
         }
@@ -133,18 +175,63 @@ export default {
     },
     async fetchJobOffers(jobId) {
       try {
+        console.log('Fetching offers for jobId:', jobId);
         const offersQuery = query(
           collection(db, 'job-offers'),
           where('job_id', '==', jobId)
         );
         const querySnapshot = await getDocs(offersQuery);
-        this.jobOffers = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const offers = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id, // Firestore document ID (e.g., "1752548039259")
+            doc_id: data.id, // Internal id field (e.g., "1752548039259")
+            ...data,
+            counterOffers: [],
+          };
+        });
+        console.log('Offers fetched:', offers.map(o => ({
+          firestore_id: o.id,
+          internal_id: o.doc_id,
+          job_id: o.job_id
+        })));
+
+        // Log all job_offer_id values in job-counter-offers for debugging
+        const allCounterOffersQuery = query(collection(db, 'job-counter-offers'));
+        const allCounterOffersSnapshot = await getDocs(allCounterOffersQuery);
+        const allJobOfferIds = allCounterOffersSnapshot.docs.map(doc => doc.data().job_offer_id);
+        console.log('All job_offer_id values in job-counter-offers:', [...new Set(allJobOfferIds)]);
+
+        for (const offer of offers) {
+          console.log('Fetching counter-offers for offer Firestore ID:', offer.id);
+          const counterOffersQuery = query(
+            collection(db, 'job-counter-offers'),
+            where('job_offer_id', '==', offer.id) // Uses Firestore document ID
+          );
+          const counterOffersSnapshot = await getDocs(counterOffersQuery);
+          offer.counterOffers = counterOffersSnapshot.docs.map(doc => ({
+            id: doc.id, // Firestore document ID for counter-offer
+            ...doc.data(),
+          }));
+          if (offer.counterOffers.length === 0) {
+            console.warn(`No counter-offers found for offer ${offer.id}. Expected job_offer_id: ${offer.id}`);
+          } else {
+            console.log(`Counter-offers for offer ${offer.id}:`, offer.counterOffers.map(co => ({
+              firestore_id: co.id,
+              job_offer_id: co.job_offer_id
+            })));
+          }
+        }
+
+        this.jobOffers = offers;
+        console.log('Final jobOffers:', this.jobOffers.map(o => ({
+          firestore_id: o.id,
+          internal_id: o.doc_id,
+          counterOffers: o.counterOffers.map(co => co.id)
+        })));
       } catch (error) {
-        console.error('Error fetching job offers:', error);
-        alert('Failed to load job offers');
+        console.error('Error fetching job offers or counter-offers:', error);
+        alert('Failed to load job offers or counter-offers');
       }
     },
     mapAccountType(accountType) {
@@ -234,5 +321,14 @@ export default {
 }
 .nav-tabs .nav-link.active {
   color: #0d6efd;
+}
+.offer-section {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 1rem;
+}
+.counter-offer-section {
+  margin-left: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid #dee2e6;
 }
 </style>
