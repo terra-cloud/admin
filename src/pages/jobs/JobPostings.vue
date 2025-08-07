@@ -1,6 +1,28 @@
 <template>
   <div class="container-fluid">
     <h1 class="mb-4">Job Postings</h1>
+    <!-- Summary -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Job Postings Summary</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <p><strong>Total Job Postings:</strong> {{ jobs.length }}</p>
+            <p><strong>Status Breakdown:</strong></p>
+            <div>
+              <span class="badge bg-primary me-2">Open: {{ jobStatusCounts.Open }}</span>
+              <span class="badge bg-info me-2">In Progress: {{ jobStatusCounts['In Progress'] }}</span>
+              <span class="badge bg-success me-2">Completed: {{ jobStatusCounts.Completed }}</span>
+              <span class="badge bg-warning me-2">Cancelled: {{ jobStatusCounts.Cancelled }}</span>
+              <span class="badge bg-danger me-2">Dropped: {{ jobStatusCounts.Dropped }}</span>
+              <span class="badge bg-secondary">Unknown: {{ jobStatusCounts.Unknown }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Filters -->
     <div class="row mb-4">
       <div class="col-md-4 mb-3">
@@ -179,6 +201,21 @@ export default {
     };
   },
   computed: {
+    jobStatusCounts() {
+      const counts = {
+        Open: 0,
+        'In Progress': 0,
+        Completed: 0,
+        Cancelled: 0,
+        Dropped: 0,
+        Unknown: 0,
+      };
+      this.jobs.forEach(job => {
+        const status = this.mapJobStatus(job.job_status);
+        counts[status] = (counts[status] || 0) + 1;
+      });
+      return counts;
+    },
     filteredJobs() {
       return this.jobs.filter(job => {
         const searchQuery = this.searchQuery.toLowerCase();
