@@ -87,17 +87,10 @@
                     <p><strong>Offerer:</strong> {{ offer.author?.display_name || 'N/A' }}</p>
                     <p><strong>Email:</strong> {{ offer.author?.email || 'N/A' }}</p>
                     <p><strong>Name:</strong> {{ offer.author?.name || 'N/A' }} {{ offer.author?.last_name || '' }}</p>
-                    <p><strong>Account Type:</strong> {{ mapAccountType(offer.author?.account_type) }}</p>
-                    <p><strong>KYC Status:</strong> {{ displayStatus(offer.author?.kyc_validated) }}</p>
-                    <p><strong>Birthdate:</strong> {{ formatDate(offer.author?.birthdate) }}</p>
-                    <p><strong>Gender:</strong> {{ offer.author?.gender || 'N/A' }}</p>
                     <p><strong>Phone Number:</strong> {{ offer.author?.phone_number || 'N/A' }}</p>
                     <p><strong>Counter Offer:</strong> ₱{{ offer.counter_offer || 'N/A' }}</p>
                     <p><strong>Offer Created At:</strong> {{ formatDate(offer.created_at) }}</p>
                     <p><strong>Offer Details:</strong> {{ offer.details || 'N/A' }}</p>
-                    <p><strong>Offer ID:</strong>
-                      <router-link :to="`/offer/${offer.id}`" class="badge bg-info">{{ offer.id }}</router-link>
-                    </p>
                     <p v-if="offer.doc_id !== offer.id"><strong>Internal Offer ID:</strong> {{ offer.doc_id || 'N/A' }}</p>
                     <p><strong>Job ID:</strong> {{ offer.job_id || 'N/A' }}</p>
                     <!-- Counter-Offers -->
@@ -106,7 +99,6 @@
                       <div v-for="counterOffer in offer.counterOffers" :key="counterOffer.id" class="mb-3">
                         <h6 class="card-subtitle mb-2 text-muted">Counter-Offer {{ counterOffer.id }}</h6>
                         <p>
-                          <strong>Counter-Offerer Photo:</strong>
                           <span v-if="counterOffer.author?.photo_url">
                             <img :src="counterOffer.author?.photo_url" class="user-photo" alt="Counter-Offerer Photo" />
                           </span>
@@ -115,17 +107,10 @@
                         <p><strong>Counter-Offerer:</strong> {{ counterOffer.author?.display_name || 'N/A' }}</p>
                         <p><strong>Email:</strong> {{ counterOffer.author?.email || 'N/A' }}</p>
                         <p><strong>Name:</strong> {{ counterOffer.author?.name || 'N/A' }} {{ counterOffer.author?.last_name || '' }}</p>
-                        <p><strong>Account Type:</strong> {{ mapAccountType(counterOffer.author?.account_type) }}</p>
-                        <p><strong>KYC Status:</strong> {{ displayStatus(counterOffer.author?.kyc_validated) }}</p>
-                        <p><strong>Birthdate:</strong> {{ formatDate(counterOffer.author?.birthdate) }}</p>
-                        <p><strong>Gender:</strong> {{ counterOffer.author?.gender || 'N/A' }}</p>
                         <p><strong>Phone Number:</strong> {{ counterOffer.author?.phone_number || 'N/A' }}</p>
                         <p><strong>Counter Offer:</strong> ₱{{ counterOffer.counter_offer || 'N/A' }}</p>
                         <p><strong>Counter-Offer Created At:</strong> {{ formatDate(counterOffer.created_at) }}</p>
                         <p><strong>Counter-Offer Details:</strong> {{ counterOffer.details || 'N/A' }}</p>
-                        <p><strong>Counter-Offer ID:</strong>
-                          <router-link :to="`/counter-offer/${counterOffer.id}`" class="badge bg-secondary">{{ counterOffer.id }}</router-link>
-                        </p>
                         <p><strong>Job Offer ID:</strong> {{ counterOffer.job_offer_id || 'N/A' }}</p>
                       </div>
                     </div>
@@ -184,14 +169,15 @@ export default {
         const offers = querySnapshot.docs.map(doc => {
           const data = doc.data();
           return {
-            id: doc.id, // Firestore document ID (e.g., "1752548039259")
+            reference_id: doc.id, // Firestore document ID (e.g., "1752548039259")
+            id: doc.id,
             doc_id: data.id, // Internal id field (e.g., "1752548039259")
             ...data,
             counterOffers: [],
           };
         });
         console.log('Offers fetched:', offers.map(o => ({
-          firestore_id: o.id,
+          firestore_id: o.reference_id,
           internal_id: o.doc_id,
           job_id: o.job_id
         })));
@@ -206,7 +192,7 @@ export default {
           console.log('Fetching counter-offers for offer Firestore ID:', offer.id);
           const counterOffersQuery = query(
             collection(db, 'job-counter-offers'),
-            where('job_offer_id', '==', offer.id) // Uses Firestore document ID
+            where('job_offer_id', '==', offer.reference_id) // Uses Firestore document ID
           );
           const counterOffersSnapshot = await getDocs(counterOffersQuery);
           offer.counterOffers = counterOffersSnapshot.docs.map(doc => ({
