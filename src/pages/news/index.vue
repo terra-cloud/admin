@@ -5,10 +5,16 @@
     <Toast
       :message="toastMessage"
       :type="toastType"
-      :showConfirmButtons="showConfirmButtons"
-      :id="toastId"
-      @confirm="confirmDelete"
+      :showConfirmButtons="false"
       @cancel="hideToast"
+    />
+    <!-- Confirm Dialog Component -->
+    <ConfirmDialog
+      :show="isConfirmDialogVisible"
+      :message="confirmMessage"
+      :currentId="confirmId"
+      @confirm="confirmDelete"
+      @close="hideConfirmDialog"
     />
     <!-- Add News Button -->
     <div class="mb-4 col-12 d-flex justify-content-end">
@@ -152,12 +158,15 @@
 import NewsDataService from '@/services/NewsDataService';
 import Pagination from '@/components/Pagination.vue';
 import Toast from '@/components/Toast.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { ref } from 'vue';
 import { Modal } from 'bootstrap';
 
 export default {
   components: {
     Pagination,
-    Toast
+    Toast,
+    ConfirmDialog
   },
   data() {
     return {
@@ -178,8 +187,9 @@ export default {
       formModal: null,
       toastMessage: '',
       toastType: '',
-      toastId: null,
-      showConfirmButtons: false
+      isConfirmDialogVisible: false,
+      confirmMessage: '',
+      confirmId: null
     };
   },
   computed: {
@@ -202,17 +212,25 @@ export default {
     }
   },
   methods: {
-    showToast(message, type, showConfirmButtons = false, id = null) {
-      this.toastMessage = message;
-      this.toastType = type;
-      this.showConfirmButtons = showConfirmButtons;
-      this.toastId = id;
+    showToast(message, type) {
+      if (['success', 'error'].includes(type)) {
+        this.toastMessage = message;
+        this.toastType = type;
+      }
     },
     hideToast() {
       this.toastMessage = '';
       this.toastType = '';
-      this.showConfirmButtons = false;
-      this.toastId = null;
+    },
+    showConfirmDialog(message, id) {
+      this.confirmMessage = message;
+      this.confirmId = id;
+      this.isConfirmDialogVisible = true;
+    },
+    hideConfirmDialog() {
+      this.isConfirmDialogVisible = false;
+      this.confirmMessage = '';
+      this.confirmId = null;
     },
     async confirmDelete(id) {
       if (id) {
@@ -224,7 +242,7 @@ export default {
           this.showToast('Failed to delete news: ' + error.message, 'error');
         }
       }
-      this.hideToast();
+      this.hideConfirmDialog();
     },
     async fetchNews() {
       NewsDataService.getAll((news) => {
@@ -291,7 +309,7 @@ export default {
         this.showToast('Error: Cannot delete news. Invalid document ID.', 'error');
         return;
       }
-      this.showToast('Are you sure you want to delete this news?', 'confirm', true, id);
+      this.showConfirmDialog('Are you sure you want to delete this news?', id);
     },
     handleImageUpload(event) {
       this.imageFile = event.target.files[0];

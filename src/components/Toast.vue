@@ -68,7 +68,7 @@ export default {
           }
           this.toastInstance = new Toast(this.$refs.toastElement, {
             autohide: !this.showConfirmButtons,
-            delay: 5000
+            delay: 2000
           });
           this.toastInstance.show();
         });

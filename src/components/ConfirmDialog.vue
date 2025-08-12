@@ -8,18 +8,18 @@
     data-bs-backdrop="static"
     data-bs-keyboard="false"
   >
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-          <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="$emit('close')"></button>
         </div>
         <div class="modal-body">
-          Are you sure you want to delete this user?
+          {{ message }}
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
-          <button type="button" class="btn btn-danger" @click="confirmDelete">Delete</button>
+          <button type="button" class="btn btn-secondary" @click="$emit('close')">Cancel</button>
+          <button type="button" class="btn btn-danger" @click="$emit('confirm', currentId)">Delete</button>
         </div>
       </div>
     </div>
@@ -27,52 +27,63 @@
 </template>
 
 <script>
+import { Modal } from 'bootstrap';
+
 export default {
+  name: 'ConfirmDialog',
   props: {
     currentId: {
       type: String,
-      required: true,
+      required: true
     },
+    message: {
+      type: String,
+      default: 'Are you sure you want to proceed?'
+    },
+    show: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
-      modal: null,
+      modalInstance: null
     };
   },
-  methods: {
-    confirmDelete() {
-      this.$emit('confirm', this.currentId);
-      this.closeModal();
-    },
-    closeModal() {
-      this.$emit('close');
-      if (this.modal) {
-        this.modal.classList.remove('show');
-        this.modal.style.display = 'none';
-        document.body.classList.remove('modal-open');
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) backdrop.remove();
-      }
-    },
-  },
-  mounted() {
-    this.modal = document.getElementById(`deleteModal-${this.currentId}`);
-    if (this.modal) {
-      this.modal.classList.add('show');
-      this.modal.style.display = 'block';
-      document.body.classList.add('modal-open');
-      const backdrop = document.createElement('div');
-      backdrop.className = 'modal-backdrop fade show';
-      document.body.appendChild(backdrop);
-    } else {
-      console.error('Delete modal element not found');
+  watch: {
+    show(newShow) {
+      this.$nextTick(() => {
+        if (!this.modalInstance) {
+          this.modalInstance = new Modal(this.$el, {
+            backdrop: 'static',
+            keyboard: false
+          });
+        }
+        if (newShow) {
+          this.modalInstance.show();
+        } else {
+          this.modalInstance.hide();
+        }
+      });
     }
   },
+  beforeUnmount() {
+    if (this.modalInstance) {
+      this.modalInstance.dispose();
+    }
+  }
 };
 </script>
 
 <style scoped>
 .modal-dialog {
   max-width: 400px;
+}
+.btn {
+  min-height: 38px;
+  line-height: 1.5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
