@@ -57,8 +57,8 @@
                   <span v-else>N/A</span>
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-outline-info me-2" @click="editNews(news)"><i class="fas fa-edit me-1" aria-hidden="true"></i> Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.id, news.image_url)"><i class="fas fa-trash me-1" aria-hidden="true"></i> Delete</button>
+                  <button class="btn btn-sm btn-outline-primary me-2" @click="editNews(news)">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.id, news.image_url)">Delete</button>
                 </td>
               </tr>
             </tbody>
