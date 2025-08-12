@@ -308,7 +308,6 @@ export default {
       try {
         const jobRef = doc(db, 'job-posting', jobId);
         await setDoc(jobRef, { job_status: 4 }, { merge: true });
-        console.log(`Job ${jobId} dropped (status set to Dropped)`);
         this.showDialog = false;
         this.selectedJobId = null;
         this.selectedJobTitle = '';

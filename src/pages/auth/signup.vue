@@ -127,7 +127,6 @@ export default {
         password: this.password
       })
       .then(({data}) => {
-        console.log(data, 'data')
         if(data && data.token) {
           localStorage.setItem('token', data.token)
           this.$router.push({name: 'dashboard'})

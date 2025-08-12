@@ -142,11 +142,9 @@ export default {
     async fetchJob() {
       try {
         const jobId = this.$route.params.jobId;
-        console.log('Fetching job with ID:', jobId);
         const jobDoc = await getDoc(doc(db, 'job-posting', jobId));
         if (jobDoc.exists()) {
           this.job = { id: jobDoc.id, ...jobDoc.data() };
-          console.log('Job fetched:', { id: this.job.id, title: this.job.job_request?.title });
           await this.fetchJobOffers(jobId);
         } else {
           console.error('Job not found for ID:', jobId);
@@ -160,7 +158,6 @@ export default {
     },
     async fetchJobOffers(jobId) {
       try {
-        console.log('Fetching offers for jobId:', jobId);
         const offersQuery = query(
           collection(db, 'job-offers'),
           where('job_id', '==', jobId)
@@ -176,20 +173,13 @@ export default {
             counterOffers: [],
           };
         });
-        console.log('Offers fetched:', offers.map(o => ({
-          firestore_id: o.reference_id,
-          internal_id: o.doc_id,
-          job_id: o.job_id
-        })));
 
         // Log all job_offer_id values in job-counter-offers for debugging
         const allCounterOffersQuery = query(collection(db, 'job-counter-offers'));
         const allCounterOffersSnapshot = await getDocs(allCounterOffersQuery);
         const allJobOfferIds = allCounterOffersSnapshot.docs.map(doc => doc.data().job_offer_id);
-        console.log('All job_offer_id values in job-counter-offers:', [...new Set(allJobOfferIds)]);
 
         for (const offer of offers) {
-          console.log('Fetching counter-offers for offer Firestore ID:', offer.id);
           const counterOffersQuery = query(
             collection(db, 'job-counter-offers'),
             where('job_offer_id', '==', offer.reference_id) // Uses Firestore document ID
@@ -201,20 +191,11 @@ export default {
           }));
           if (offer.counterOffers.length === 0) {
             console.warn(`No counter-offers found for offer ${offer.id}. Expected job_offer_id: ${offer.id}`);
-          } else {
-            console.log(`Counter-offers for offer ${offer.id}:`, offer.counterOffers.map(co => ({
-              firestore_id: co.id,
-              job_offer_id: co.job_offer_id
-            })));
           }
         }
 
         this.jobOffers = offers;
-        console.log('Final jobOffers:', this.jobOffers.map(o => ({
-          firestore_id: o.id,
-          internal_id: o.doc_id,
-          counterOffers: o.counterOffers.map(co => co.id)
-        })));
+        
       } catch (error) {
         console.error('Error fetching job offers or counter-offers:', error);
         alert('Failed to load job offers or counter-offers');

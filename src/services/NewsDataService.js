@@ -33,7 +33,6 @@ class NewsDataService {
         if (!doc.id) {
           console.error('Firestore document missing ID:', doc.data());
         }
-        console.log('Mapped Firestore document:', { id: doc.id, title: doc.data().title });
         return data;
       });
       callback(news);
@@ -45,7 +44,6 @@ class NewsDataService {
 
   // Create a new news item with random Firestore ID
   async create(news, imageFile) {
-    console.log('Creating news:', { title: news.title, hasImage: !!imageFile });
     let image_url = '';
     const newsData = {
       ...news,
@@ -53,15 +51,12 @@ class NewsDataService {
       created_at: formatDateToMicroseconds(new Date())
     };
     const docRef = await addDoc(newsCollection, newsData);
-    console.log('Created document with ID:', docRef.id);
     if (imageFile) {
       const storageRef = ref(storage, `news/${docRef.id}_${imageFile.name}`);
       await uploadBytes(storageRef, imageFile);
       image_url = await getDownloadURL(storageRef);
-      console.log('Uploaded image, URL:', image_url);
       // Update the document with the image URL
       await updateDoc(docRef, { image_url });
-      console.log('Updated document with ID:', docRef.id, 'with image_url:', image_url);
     }
     await updateDoc(docRef, { id: docRef.id });
     return docRef; // Return document reference
@@ -73,35 +68,29 @@ class NewsDataService {
       console.error('Update failed: Invalid document ID:', id);
       throw new Error('Invalid news document ID');
     }
-    console.log('Updating news with document ID:', id, 'title:', news.title);
     const newsRef = doc(db, 'news-data', id);
     let image_url = news.image_url || '';
     if (imageFile) {
-      console.log('New image provided:', imageFile.name);
       const storageRef = ref(storage, `news/${id}_${Date.now()}_${imageFile.name}`);
       await uploadBytes(storageRef, imageFile);
       image_url = await getDownloadURL(storageRef);
-      console.log('Uploaded new image, URL:', image_url);
       // Delete old image if exists
       if (news.image_url) {
         try {
           const oldImageRef = ref(storage, news.image_url);
           await deleteObject(oldImageRef);
-          console.log('Deleted old image:', news.image_url);
         } catch (error) {
           console.warn('Could not delete old image:', error);
         }
       }
-    } else {
-      console.log('No new image provided, keeping existing image_url:', image_url);
     }
+
     const newsData = {
       ...news,
       image_url,
       updated_at: formatDateToMicroseconds(new Date())
     };
     await updateDoc(newsRef, newsData);
-    console.log('Updated document with ID:', id);
     return newsRef;
   }
 
@@ -111,19 +100,16 @@ class NewsDataService {
       console.error('Delete failed: Invalid document ID:', id);
       throw new Error('Invalid news document ID');
     }
-    console.log('Deleting news with document ID:', id);
     const newsRef = doc(db, 'news-data', id);
     if (image_url) {
       try {
         const imageRef = ref(storage, image_url);
         await deleteObject(imageRef);
-        console.log('Deleted image:', image_url);
       } catch (error) {
         console.warn('Could not delete image:', error);
       }
     }
     await deleteDoc(newsRef);
-    console.log('Deleted document with ID:', id);
     return newsRef;
   }
 }
