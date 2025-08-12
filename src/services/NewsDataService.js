@@ -1,5 +1,5 @@
 import { db } from '@/firebase';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 // Helper function to format date as YYYY-MM-DDThh:mm:ss.ssssss
@@ -24,10 +24,18 @@ class NewsDataService {
   getAll(callback) {
     const q = query(newsCollection, orderBy('created_at', 'desc'));
     return onSnapshot(q, (snapshot) => {
-      const news = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const news = snapshot.docs.map(doc => {
+        const data = {
+          id: doc.id,
+          docRef: doc.ref, // Include docRef for use in update
+          ...doc.data()
+        };
+        if (!doc.id) {
+          console.error('Firestore document missing ID:', doc.data());
+        }
+        console.log('Mapped Firestore document:', { id: doc.id, title: doc.data().title });
+        return data;
+      });
       callback(news);
     }, (error) => {
       console.error('Error fetching news:', error);
@@ -35,20 +43,28 @@ class NewsDataService {
     });
   }
 
-  // Create a new news item
+  // Create a new news item with random Firestore ID
   async create(news, imageFile) {
+    console.log('Creating news:', { title: news.title, hasImage: !!imageFile });
     let image_url = '';
-    if (imageFile) {
-      const storageRef = ref(storage, `news/${Date.now()}_${imageFile.name}`);
-      await uploadBytes(storageRef, imageFile);
-      image_url = await getDownloadURL(storageRef);
-    }
     const newsData = {
       ...news,
       image_url,
       created_at: formatDateToMicroseconds(new Date())
     };
-    return await addDoc(newsCollection, newsData);
+    const docRef = await addDoc(newsCollection, newsData);
+    console.log('Created document with ID:', docRef.id);
+    if (imageFile) {
+      const storageRef = ref(storage, `news/${docRef.id}_${imageFile.name}`);
+      await uploadBytes(storageRef, imageFile);
+      image_url = await getDownloadURL(storageRef);
+      console.log('Uploaded image, URL:', image_url);
+      // Update the document with the image URL
+      await updateDoc(docRef, { image_url });
+      console.log('Updated document with ID:', docRef.id, 'with image_url:', image_url);
+    }
+    await updateDoc(docRef, { id: docRef.id });
+    return docRef; // Return document reference
   }
 
   // Update a news item
@@ -79,16 +95,24 @@ class NewsDataService {
 
   // Delete a news item
   async delete(id, image_url) {
+    if (!id) {
+      console.error('Delete failed: Invalid document ID:', id);
+      throw new Error('Invalid news document ID');
+    }
+    console.log('Deleting news with document ID:', id);
     const newsRef = doc(db, 'news-data', id);
     if (image_url) {
       try {
         const imageRef = ref(storage, image_url);
         await deleteObject(imageRef);
+        console.log('Deleted image:', image_url);
       } catch (error) {
         console.warn('Could not delete image:', error);
       }
     }
-    return await deleteDoc(newsRef);
+    await deleteDoc(newsRef);
+    console.log('Deleted document with ID:', id);
+    return newsRef;
   }
 }
 

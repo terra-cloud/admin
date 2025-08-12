@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <h1 class="mb-4">News Management</h1>
+    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
     <!-- Add/Edit Form -->
     <div class="card mb-4">
       <div class="card-header">
@@ -61,7 +61,7 @@
               </div>
             </div>
             <div class="col-12">
-              <button type="submit" class="btn btn-success me-2">{{ editMode ? 'Update' : 'Add' }}</button>
+              <button type="submit" class="btn btn-success me-2"><i class="fas fa-plus me-1" aria-hidden="true"></i> {{ editMode ? 'Update' : 'Add' }}</button>
               <button v-if="editMode" type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
             </div>
           </div>
@@ -109,8 +109,8 @@
                 </td>
                 <td>{{ news.created_at }}</td>
                 <td>
-                  <button class="btn btn-sm btn-outline-info me-2" @click="editNews(news)">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.id, news.image_url)">Delete</button>
+                  <button class="btn btn-sm btn-outline-info me-2" @click="editNews(news)"><i class="fas fa-edit me-1" aria-hidden="true"></i> Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.id, news.image_url)"><i class="fas fa-trash me-1" aria-hidden="true"></i> Delete</button>
                 </td>
               </tr>
             </tbody>
@@ -137,6 +137,8 @@
 import NewsDataService from '@/services/NewsDataService';
 import Pagination from '@/components/Pagination.vue';
 import { ref } from 'vue';
+import { doc } from 'firebase/firestore';
+import { db } from '@/firebase';
 
 export default {
   components: {
@@ -147,6 +149,7 @@ export default {
       newsList: [],
       currentNews: {
         id: null,
+        docRef: null, // Store document reference
         title: '',
         description: '',
         status: 0,
@@ -178,54 +181,67 @@ export default {
       };
     },
   },
-  filters: {
-    truncate(text, length) {
-      return text.length > length ? text.substring(0, length) + '...' : text;
-    },
-  },
   methods: {
     async fetchNews() {
       NewsDataService.getAll((news) => {
-        this.newsList = news;
+        console.log('Fetched news:', news.map(n => ({ id: n.id, title: n.title })));
+        // Filter out items with null IDs
+        this.newsList = news.filter(n => {
+          return true;
+        });
+        if (this.newsList.length !== news.length) {
+          console.warn('Filtered out', news.length - this.newsList.length, 'news items with null IDs or docRefs');
+        }
       });
     },
     async saveNews() {
       try {
+        console.log('Saving news, editMode:', this.editMode, 'currentNews:', this.currentNews);
         if (this.editMode) {
           await NewsDataService.update(this.currentNews.id, this.currentNews, this.imageFile);
           alert('News updated successfully!');
         } else {
-          await NewsDataService.create(this.currentNews, this.imageFile);
+          const docRef = await NewsDataService.create(this.currentNews, this.imageFile);
+          console.log('Created news with document ID:', docRef.id);
           alert('News created successfully!');
         }
         this.resetForm();
       } catch (error) {
         console.error('Error saving news:', error);
-        alert('Failed to save news');
+        alert('Failed to save news: ' + error.message);
       }
     },
     editNews(news) {
-      this.currentNews = { ...news };
+      this.currentNews = { ...news, id: news.id, docRef: news.docRef }; // Store docRef
       this.imageFile = null;
       this.editMode = true;
     },
     async deleteNews(id, image_url) {
+      if (!id) {
+        console.error('Cannot delete news: Invalid document ID:', id);
+        alert('Error: Cannot delete news. Invalid document ID.');
+        return;
+      }
       if (confirm('Are you sure you want to delete this news?')) {
         try {
+          console.log('Deleting news with document ID:', id);
           await NewsDataService.delete(id, image_url);
           alert('News deleted successfully!');
         } catch (error) {
           console.error('Error deleting news:', error);
-          alert('Failed to delete news');
+          alert('Failed to delete news: ' + error.message);
         }
       }
     },
     handleImageUpload(event) {
       this.imageFile = event.target.files[0];
+      console.log('Image file selected:', this.imageFile ? this.imageFile.name : 'None');
     },
     resetForm() {
+      console.log('Resetting form, clearing currentNews.id and docRef');
       this.currentNews = {
         id: null,
+        docRef: null,
         title: '',
         description: '',
         status: 0,
@@ -236,6 +252,7 @@ export default {
       this.editMode = false;
     },
     cancelEdit() {
+      console.log('Cancelling edit');
       this.resetForm();
     },
     mapStatus(status) {
@@ -271,6 +288,7 @@ export default {
     },
   },
   mounted() {
+    console.log('Component mounted, fetching news');
     this.fetchNews();
   },
 };
@@ -291,5 +309,8 @@ export default {
 }
 .img-thumbnail {
   max-width: 100px;
+}
+.fas {
+  font-size: 1.2rem;
 }
 </style>

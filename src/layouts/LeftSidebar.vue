@@ -29,6 +29,12 @@
           <span class="nav-text">Users</span>
         </router-link>
       </li>
+      <li>
+        <router-link to="/news" class="nav-link" active-class="active">
+          <i class="fas fa-newspaper me-2"></i>
+          <span class="nav-text">News</span>
+        </router-link>
+      </li>
       
     </ul>
   </div>
