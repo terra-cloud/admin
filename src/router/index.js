@@ -5,11 +5,13 @@ import auth from './auth'
 import dashboard from './dashboard';
 import users from './users';
 import jobs from './jobs';
+import news from './news';
 const routes = [
     ...auth,
     ...dashboard,
     ...users,
-    ...jobs
+    ...jobs,
+    ...news
 ]
 
 const router = createRouter({
