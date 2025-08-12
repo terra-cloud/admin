@@ -1,8 +1,8 @@
 <template>
   <div class="container-fluid">
-    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News Management</h1>
+    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
     <!-- Add News Button -->
-    <div class="mb-4">
+    <div class="mb-4 col-12 d-flex justify-content-end">
       <button class="btn btn-success" @click="showFormModal"><i class="fas fa-plus me-1" aria-hidden="true"></i> Add News</button>
     </div>
     <!-- News List -->
@@ -20,7 +20,6 @@
                 <th>Status</th>
                 <th>Type</th>
                 <th>Image</th>
-                <th>Created At</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -44,7 +43,6 @@
                   />
                   <span v-else>N/A</span>
                 </td>
-                <td>{{ news.created_at }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-info me-2" @click="editNews(news)"><i class="fas fa-edit me-1" aria-hidden="true"></i> Edit</button>
                   <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.id, news.image_url)"><i class="fas fa-trash me-1" aria-hidden="true"></i> Delete</button>
@@ -54,19 +52,18 @@
           </table>
         </div>
       </div>
+      <!-- Pagination -->
+      <Pagination
+        :currentPage="currentPage"
+        :totalPages="totalPages"
+        :tableData="tableData"
+        @setPage="setPage"
+        @prevPage="prevPage"
+        @nextPage="nextPage"
+        @firstPage="setPage(1)"
+        @lastPage="setPage(totalPages)"
+      />
     </div>
-    <!-- Pagination -->
-    <Pagination
-      v-if="totalPages > 1"
-      :currentPage="currentPage"
-      :totalPages="totalPages"
-      :tableData="tableData"
-      @setPage="setPage"
-      @prevPage="prevPage"
-      @nextPage="nextPage"
-      @firstPage="setPage(1)"
-      @lastPage="setPage(totalPages)"
-    />
     <!-- Form Modal -->
     <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -130,8 +127,8 @@
                   </div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary">Cancel</button>
-                  <button type="submit" class="btn btn-success" style="margin-top:16px;">{{ editMode ? 'Update' : 'Add' }}</button>
+                  <button type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
+                  <button type="submit" class="btn btn-success" style="margin-top:16px;"><i class="fas fa-plus me-1" aria-hidden="true"></i> {{ editMode ? 'Update' : 'Add' }}</button>
                 </div>
               </div>
             </form>
@@ -193,7 +190,6 @@ export default {
   methods: {
     async fetchNews() {
       NewsDataService.getAll((news) => {
-        console.log('Fetched news:', news.map(n => ({ id: n.id, title: n.title })));
         // Filter out items with null IDs
         this.newsList = news.filter(n => {
           if (!n.id) {
@@ -218,7 +214,6 @@ export default {
         return;
       }
       try {
-        console.log('Saving news, editMode:', this.editMode, 'currentNews:', this.currentNews);
         // Restore original image_url for Firebase update if no new image is selected
         if (!this.imageFile && this.originalImageUrl) {
           this.currentNews.image_url = this.originalImageUrl;
@@ -229,12 +224,10 @@ export default {
             alert('Error: Cannot update news. No valid document ID provided.');
             return;
           }
-          console.log('Updating news with document ID:', this.currentNews.id);
           await NewsDataService.update(this.currentNews.id, this.currentNews, this.imageFile);
           alert('News updated successfully!');
         } else {
           const docRef = await NewsDataService.create(this.currentNews, this.imageFile);
-          console.log('Created news with document ID:', docRef.id);
           alert('News created successfully!');
         }
         this.formModal.hide();
@@ -250,7 +243,6 @@ export default {
         alert('Error: Cannot edit news. Invalid document ID.');
         return;
       }
-      console.log('Editing news with document ID:', news.id);
       this.currentNews = { ...news, id: news.id };
       this.originalImageUrl = news.image_url || ''; // Store original image URL
       this.imageFile = null;
@@ -265,7 +257,6 @@ export default {
       }
       if (confirm('Are you sure you want to delete this news?')) {
         try {
-          console.log('Deleting news with document ID:', id);
           await NewsDataService.delete(id, image_url);
           alert('News deleted successfully!');
         } catch (error) {
@@ -279,15 +270,12 @@ export default {
       if (this.imageFile) {
         // Create a temporary URL for preview
         this.currentNews.image_url = URL.createObjectURL(this.imageFile);
-        console.log('Image file selected:', this.imageFile.name, 'Preview URL:', this.currentNews.image_url);
       } else {
         // Restore original image URL if no file is selected
         this.currentNews.image_url = this.originalImageUrl;
-        console.log('No image file selected, restored original image_url:', this.originalImageUrl);
       }
     },
     resetForm() {
-      console.log('Resetting form, clearing currentNews.id and image URLs');
       // Revoke previous temporary URL to prevent memory leaks
       if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
         URL.revokeObjectURL(this.currentNews.image_url);
@@ -305,7 +293,6 @@ export default {
       this.editMode = false;
     },
     cancelEdit() {
-      console.log('Cancelling edit');
       this.resetForm();
       this.formModal.hide();
     },
@@ -342,7 +329,6 @@ export default {
     },
   },
   mounted() {
-    console.log('Component mounted, fetching news');
     this.fetchNews();
     // Initialize Bootstrap form modal
     this.formModal = new Modal(document.getElementById('formModal'), {
