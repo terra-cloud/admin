@@ -27,7 +27,7 @@ class NewsDataService {
       const news = snapshot.docs.map(doc => {
         const data = {
           id: doc.id,
-          docRef: doc.ref, // Include docRef for use in update
+          docRef: doc.ref, // Include docRef for potential future use
           ...doc.data()
         };
         if (!doc.id) {
@@ -69,28 +69,40 @@ class NewsDataService {
 
   // Update a news item
   async update(id, news, imageFile) {
+    if (!id) {
+      console.error('Update failed: Invalid document ID:', id);
+      throw new Error('Invalid news document ID');
+    }
+    console.log('Updating news with document ID:', id, 'title:', news.title);
     const newsRef = doc(db, 'news-data', id);
-    let image_url = news.image_url;
+    let image_url = news.image_url || '';
     if (imageFile) {
+      console.log('New image provided:', imageFile.name);
       const storageRef = ref(storage, `news/${id}_${Date.now()}_${imageFile.name}`);
       await uploadBytes(storageRef, imageFile);
       image_url = await getDownloadURL(storageRef);
+      console.log('Uploaded new image, URL:', image_url);
       // Delete old image if exists
       if (news.image_url) {
         try {
           const oldImageRef = ref(storage, news.image_url);
           await deleteObject(oldImageRef);
+          console.log('Deleted old image:', news.image_url);
         } catch (error) {
           console.warn('Could not delete old image:', error);
         }
       }
+    } else {
+      console.log('No new image provided, keeping existing image_url:', image_url);
     }
     const newsData = {
       ...news,
       image_url,
       updated_at: formatDateToMicroseconds(new Date())
     };
-    return await updateDoc(newsRef, newsData);
+    await updateDoc(newsRef, newsData);
+    console.log('Updated document with ID:', id);
+    return newsRef;
   }
 
   // Delete a news item

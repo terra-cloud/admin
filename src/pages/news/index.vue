@@ -1,72 +1,9 @@
 <template>
   <div class="container-fluid">
-    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
-    <!-- Add/Edit Form -->
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5 class="card-title mb-0">{{ editMode ? 'Edit News' : 'Add News' }}</h5>
-      </div>
-      <div class="card-body">
-        <form @submit.prevent="saveNews">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="title" class="form-label">Title</label>
-              <input
-                id="title"
-                type="text"
-                class="form-control"
-                v-model="currentNews.title"
-                required
-                placeholder="Enter news title"
-              />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="type" class="form-label">Type</label>
-              <select id="type" class="form-select" v-model="currentNews.type" required>
-                <option value="General">General</option>
-                <option value="Event">Event</option>
-                <option value="Update">Update</option>
-              </select>
-            </div>
-            <div class="col-12 mb-3">
-              <label for="description" class="form-label">Description</label>
-              <textarea
-                id="description"
-                class="form-control"
-                v-model="currentNews.description"
-                required
-                rows="4"
-                placeholder="Enter news description"
-              ></textarea>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="status" class="form-label">Status</label>
-              <select id="status" class="form-select" v-model.number="currentNews.status" required>
-                <option :value="0">Draft</option>
-                <option :value="1">Published</option>
-                <option :value="2">Archived</option>
-              </select>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="image" class="form-label">Image</label>
-              <input
-                id="image"
-                type="file"
-                class="form-control"
-                accept="image/*"
-                @change="handleImageUpload"
-              />
-              <div v-if="currentNews.image_url" class="mt-2">
-                <img :src="currentNews.image_url" alt="News Image" class="img-thumbnail" style="max-width: 100px;" />
-              </div>
-            </div>
-            <div class="col-12">
-              <button type="submit" class="btn btn-success me-2"><i class="fas fa-plus me-1" aria-hidden="true"></i> {{ editMode ? 'Update' : 'Add' }}</button>
-              <button v-if="editMode" type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
-            </div>
-          </div>
-        </form>
-      </div>
+    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News Management</h1>
+    <!-- Add News Button -->
+    <div class="mb-4">
+      <button class="btn btn-success" @click="showFormModal"><i class="fas fa-plus me-1" aria-hidden="true"></i> Add News</button>
     </div>
     <!-- News List -->
     <div class="card">
@@ -130,6 +67,78 @@
       @firstPage="setPage(1)"
       @lastPage="setPage(totalPages)"
     />
+    <!-- Form Modal -->
+    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="formModalLabel">{{ editMode ? 'Edit News' : 'Add News' }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="cancelEdit"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="saveNews">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="title" class="form-label">Title</label>
+                  <input
+                    id="title"
+                    type="text"
+                    class="form-control"
+                    v-model="currentNews.title"
+                    required
+                    placeholder="Enter news title"
+                  />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="type" class="form-label">Type</label>
+                  <select id="type" class="form-select" v-model="currentNews.type" required>
+                    <option value="General">General</option>
+                    <option value="Event">Event</option>
+                    <option value="Update">Update</option>
+                  </select>
+                </div>
+                <div class="col-12 mb-3">
+                  <label for="description" class="form-label">Description</label>
+                  <textarea
+                    id="description"
+                    class="form-control"
+                    v-model="currentNews.description"
+                    required
+                    rows="4"
+                    placeholder="Enter news description"
+                  ></textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="status" class="form-label">Status</label>
+                  <select id="status" class="form-select" v-model.number="currentNews.status" required>
+                    <option :value="0">Draft</option>
+                    <option :value="1">Published</option>
+                    <option :value="2">Archived</option>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="image" class="form-label">Image</label>
+                  <input
+                    id="image"
+                    type="file"
+                    class="form-control"
+                    accept="image/*"
+                    @change="handleImageUpload"
+                  />
+                  <div v-if="currentNews.image_url" class="mt-2">
+                    <img :src="currentNews.image_url" alt="News Image" class="img-thumbnail" style="max-width: 100px;" />
+                  </div>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-success me-2"><i class="fas fa-plus me-1" aria-hidden="true"></i> {{ editMode ? 'Update' : 'Add' }}</button>
+                  <button type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -137,8 +146,7 @@
 import NewsDataService from '@/services/NewsDataService';
 import Pagination from '@/components/Pagination.vue';
 import { ref } from 'vue';
-import { doc } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { Modal } from 'bootstrap';
 
 export default {
   components: {
@@ -149,7 +157,6 @@ export default {
       newsList: [],
       currentNews: {
         id: null,
-        docRef: null, // Store document reference
         title: '',
         description: '',
         status: 0,
@@ -160,6 +167,7 @@ export default {
       editMode: false,
       currentPage: 1,
       newsPerPage: 10,
+      formModal: null, // Store form modal instance
     };
   },
   computed: {
@@ -187,17 +195,36 @@ export default {
         console.log('Fetched news:', news.map(n => ({ id: n.id, title: n.title })));
         // Filter out items with null IDs
         this.newsList = news.filter(n => {
+          if (!n.id) {
+            console.error('Skipping news item with null ID:', n);
+            return false;
+          }
           return true;
         });
         if (this.newsList.length !== news.length) {
-          console.warn('Filtered out', news.length - this.newsList.length, 'news items with null IDs or docRefs');
+          console.warn('Filtered out', news.length - this.newsList.length, 'news items with null IDs');
         }
       });
     },
+    showFormModal() {
+      this.resetForm();
+      this.editMode = false;
+      this.formModal.show();
+    },
     async saveNews() {
+      if (!this.currentNews.title || !this.currentNews.description || !this.currentNews.type) {
+        alert('Please fill in all required fields (Title, Description, Type).');
+        return;
+      }
       try {
         console.log('Saving news, editMode:', this.editMode, 'currentNews:', this.currentNews);
         if (this.editMode) {
+          if (!this.currentNews.id) {
+            console.error('Cannot update: Invalid document ID:', this.currentNews.id);
+            alert('Error: Cannot update news. No valid document ID provided.');
+            return;
+          }
+          console.log('Updating news with document ID:', this.currentNews.id);
           await NewsDataService.update(this.currentNews.id, this.currentNews, this.imageFile);
           alert('News updated successfully!');
         } else {
@@ -205,6 +232,7 @@ export default {
           console.log('Created news with document ID:', docRef.id);
           alert('News created successfully!');
         }
+        this.formModal.hide();
         this.resetForm();
       } catch (error) {
         console.error('Error saving news:', error);
@@ -212,9 +240,16 @@ export default {
       }
     },
     editNews(news) {
-      this.currentNews = { ...news, id: news.id, docRef: news.docRef }; // Store docRef
+      if (!news.id) {
+        console.error('Cannot edit news: Invalid document ID:', news.id);
+        alert('Error: Cannot edit news. Invalid document ID.');
+        return;
+      }
+      console.log('Editing news with document ID:', news.id);
+      this.currentNews = { ...news, id: news.id };
       this.imageFile = null;
       this.editMode = true;
+      this.formModal.show();
     },
     async deleteNews(id, image_url) {
       if (!id) {
@@ -238,10 +273,9 @@ export default {
       console.log('Image file selected:', this.imageFile ? this.imageFile.name : 'None');
     },
     resetForm() {
-      console.log('Resetting form, clearing currentNews.id and docRef');
+      console.log('Resetting form, clearing currentNews.id');
       this.currentNews = {
         id: null,
-        docRef: null,
         title: '',
         description: '',
         status: 0,
@@ -254,6 +288,7 @@ export default {
     cancelEdit() {
       console.log('Cancelling edit');
       this.resetForm();
+      this.formModal.hide();
     },
     mapStatus(status) {
       const statuses = {
@@ -290,6 +325,16 @@ export default {
   mounted() {
     console.log('Component mounted, fetching news');
     this.fetchNews();
+    // Initialize Bootstrap form modal
+    this.formModal = new Modal(document.getElementById('formModal'), {
+      backdrop: 'static',
+      keyboard: false
+    });
+  },
+  beforeUnmount() {
+    if (this.formModal) {
+      this.formModal.dispose();
+    }
   },
 };
 </script>
@@ -312,5 +357,8 @@ export default {
 }
 .fas {
   font-size: 1.2rem;
+}
+.btn-success {
+  margin-bottom: 1rem;
 }
 </style>
