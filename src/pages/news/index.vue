@@ -129,9 +129,9 @@
                     <img :src="currentNews.image_url" alt="News Image" class="img-thumbnail" style="max-width: 100px;" />
                   </div>
                 </div>
-                <div class="col-12">
-                  <button type="submit" class="btn btn-success me-2"><i class="fas fa-plus me-1" aria-hidden="true"></i> {{ editMode ? 'Update' : 'Add' }}</button>
-                  <button type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary">Cancel</button>
+                  <button type="submit" class="btn btn-success" style="margin-top:16px;">{{ editMode ? 'Update' : 'Add' }}</button>
                 </div>
               </div>
             </form>
@@ -164,6 +164,7 @@ export default {
         image_url: ''
       },
       imageFile: null,
+      originalImageUrl: '', // Store original Firebase image URL
       editMode: false,
       currentPage: 1,
       newsPerPage: 10,
@@ -218,6 +219,10 @@ export default {
       }
       try {
         console.log('Saving news, editMode:', this.editMode, 'currentNews:', this.currentNews);
+        // Restore original image_url for Firebase update if no new image is selected
+        if (!this.imageFile && this.originalImageUrl) {
+          this.currentNews.image_url = this.originalImageUrl;
+        }
         if (this.editMode) {
           if (!this.currentNews.id) {
             console.error('Cannot update: Invalid document ID:', this.currentNews.id);
@@ -247,6 +252,7 @@ export default {
       }
       console.log('Editing news with document ID:', news.id);
       this.currentNews = { ...news, id: news.id };
+      this.originalImageUrl = news.image_url || ''; // Store original image URL
       this.imageFile = null;
       this.editMode = true;
       this.formModal.show();
@@ -270,10 +276,22 @@ export default {
     },
     handleImageUpload(event) {
       this.imageFile = event.target.files[0];
-      console.log('Image file selected:', this.imageFile ? this.imageFile.name : 'None');
+      if (this.imageFile) {
+        // Create a temporary URL for preview
+        this.currentNews.image_url = URL.createObjectURL(this.imageFile);
+        console.log('Image file selected:', this.imageFile.name, 'Preview URL:', this.currentNews.image_url);
+      } else {
+        // Restore original image URL if no file is selected
+        this.currentNews.image_url = this.originalImageUrl;
+        console.log('No image file selected, restored original image_url:', this.originalImageUrl);
+      }
     },
     resetForm() {
-      console.log('Resetting form, clearing currentNews.id');
+      console.log('Resetting form, clearing currentNews.id and image URLs');
+      // Revoke previous temporary URL to prevent memory leaks
+      if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
+        URL.revokeObjectURL(this.currentNews.image_url);
+      }
       this.currentNews = {
         id: null,
         title: '',
@@ -283,6 +301,7 @@ export default {
         image_url: ''
       };
       this.imageFile = null;
+      this.originalImageUrl = '';
       this.editMode = false;
     },
     cancelEdit() {
@@ -332,6 +351,10 @@ export default {
     });
   },
   beforeUnmount() {
+    // Revoke temporary URL to prevent memory leaks
+    if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
+      URL.revokeObjectURL(this.currentNews.image_url);
+    }
     if (this.formModal) {
       this.formModal.dispose();
     }
@@ -360,5 +383,17 @@ export default {
 }
 .btn-success {
   margin-bottom: 1rem;
+}
+/* Ensure buttons have the same height */
+.btn {
+  min-height: 38px; /* Match typical Bootstrap button height */
+  line-height: 1.5; /* Consistent text alignment */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn i {
+  line-height: inherit; /* Align icon with text */
+  vertical-align: middle;
 }
 </style>
