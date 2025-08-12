@@ -1,6 +1,29 @@
 <template>
   <div class="container-fluid">
     <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
+    <!-- Toast Container -->
+    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1055;">
+      <div
+        class="toast"
+        :class="toastType === 'success' ? 'bg-success text-white' : toastType === 'error' ? 'bg-danger text-white' : 'bg-warning text-dark'"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        ref="toastElement"
+      >
+        <div class="toast-header">
+          <strong class="me-auto">{{ toastType === 'success' ? 'Success' : toastType === 'error' ? 'Error' : 'Confirm' }}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close" v-if="!showConfirmButtons" @click="hideToast"></button>
+        </div>
+        <div class="toast-body">
+          {{ toastMessage }}
+          <div v-if="showConfirmButtons" class="mt-2">
+            <button class="btn btn-sm btn-outline-success me-2" @click="confirmDelete">Confirm</button>
+            <button class="btn btn-sm btn-outline-secondary" @click="hideToast">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Add News Button -->
     <div class="mb-4 col-12 d-flex justify-content-end">
       <button class="btn btn-success" @click="showFormModal"><i class="fas fa-plus me-1" aria-hidden="true"></i> Add News</button>
@@ -143,7 +166,7 @@
 import NewsDataService from '@/services/NewsDataService';
 import Pagination from '@/components/Pagination.vue';
 import { ref } from 'vue';
-import { Modal } from 'bootstrap';
+import { Modal, Toast } from 'bootstrap';
 
 export default {
   components: {
@@ -166,6 +189,11 @@ export default {
       currentPage: 1,
       newsPerPage: 10,
       formModal: null, // Store form modal instance
+      toastMessage: '',
+      toastType: '', // success, error, confirm
+      toastId: null, // For delete confirmation
+      showConfirmButtons: false,
+      toastInstance: null, // Store toast instance
     };
   },
   computed: {
@@ -188,9 +216,46 @@ export default {
     },
   },
   methods: {
+    showToast(message, type, showConfirmButtons = false, id = null) {
+      this.toastMessage = message;
+      this.toastType = type;
+      this.showConfirmButtons = showConfirmButtons;
+      this.toastId = id;
+      this.$nextTick(() => {
+        if (this.toastInstance) {
+          this.toastInstance.hide();
+        }
+        this.toastInstance = new Toast(this.$refs.toastElement, {
+          autohide: !showConfirmButtons,
+          delay: 5000, // 5 seconds for success/error toasts
+        });
+        this.toastInstance.show();
+      });
+    },
+    hideToast() {
+      if (this.toastInstance) {
+        this.toastInstance.hide();
+        this.toastInstance = null;
+        this.toastMessage = '';
+        this.toastType = '';
+        this.showConfirmButtons = false;
+        this.toastId = null;
+      }
+    },
+    async confirmDelete() {
+      if (this.toastId) {
+        try {
+          await NewsDataService.delete(this.toastId, this.newsList.find(n => n.id === this.toastId)?.image_url);
+          this.showToast('News deleted successfully!', 'success');
+        } catch (error) {
+          console.error('Error deleting news:', error);
+          this.showToast('Failed to delete news: ' + error.message, 'error');
+        }
+      }
+      this.hideToast();
+    },
     async fetchNews() {
       NewsDataService.getAll((news) => {
-        // Filter out items with null IDs
         this.newsList = news.filter(n => {
           if (!n.id) {
             console.error('Skipping news item with null ID:', n);
@@ -210,73 +275,61 @@ export default {
     },
     async saveNews() {
       if (!this.currentNews.title || !this.currentNews.description || !this.currentNews.type) {
-        alert('Please fill in all required fields (Title, Description, Type).');
+        this.showToast('Please fill in all required fields (Title, Description, Type).', 'error');
         return;
       }
       try {
-        // Restore original image_url for Firebase update if no new image is selected
         if (!this.imageFile && this.originalImageUrl) {
           this.currentNews.image_url = this.originalImageUrl;
         }
         if (this.editMode) {
           if (!this.currentNews.id) {
             console.error('Cannot update: Invalid document ID:', this.currentNews.id);
-            alert('Error: Cannot update news. No valid document ID provided.');
+            this.showToast('Error: Cannot update news. No valid document ID provided.', 'error');
             return;
           }
           await NewsDataService.update(this.currentNews.id, this.currentNews, this.imageFile);
-          alert('News updated successfully!');
+          this.showToast('News updated successfully!', 'success');
         } else {
           const docRef = await NewsDataService.create(this.currentNews, this.imageFile);
-          alert('News created successfully!');
+          this.showToast('News created successfully!', 'success');
         }
         this.formModal.hide();
         this.resetForm();
       } catch (error) {
         console.error('Error saving news:', error);
-        alert('Failed to save news: ' + error.message);
+        this.showToast('Failed to save news: ' + error.message, 'error');
       }
     },
     editNews(news) {
       if (!news.id) {
         console.error('Cannot edit news: Invalid document ID:', news.id);
-        alert('Error: Cannot edit news. Invalid document ID.');
+        this.showToast('Error: Cannot edit news. Invalid document ID.', 'error');
         return;
       }
       this.currentNews = { ...news, id: news.id };
-      this.originalImageUrl = news.image_url || ''; // Store original image URL
+      this.originalImageUrl = news.image_url || '';
       this.imageFile = null;
       this.editMode = true;
       this.formModal.show();
     },
-    async deleteNews(id, image_url) {
+    deleteNews(id, image_url) {
       if (!id) {
         console.error('Cannot delete news: Invalid document ID:', id);
-        alert('Error: Cannot delete news. Invalid document ID.');
+        this.showToast('Error: Cannot delete news. Invalid document ID.', 'error');
         return;
       }
-      if (confirm('Are you sure you want to delete this news?')) {
-        try {
-          await NewsDataService.delete(id, image_url);
-          alert('News deleted successfully!');
-        } catch (error) {
-          console.error('Error deleting news:', error);
-          alert('Failed to delete news: ' + error.message);
-        }
-      }
+      this.showToast('Are you sure you want to delete this news?', 'confirm', true, id);
     },
     handleImageUpload(event) {
       this.imageFile = event.target.files[0];
       if (this.imageFile) {
-        // Create a temporary URL for preview
         this.currentNews.image_url = URL.createObjectURL(this.imageFile);
       } else {
-        // Restore original image URL if no file is selected
         this.currentNews.image_url = this.originalImageUrl;
       }
     },
     resetForm() {
-      // Revoke previous temporary URL to prevent memory leaks
       if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
         URL.revokeObjectURL(this.currentNews.image_url);
       }
@@ -330,19 +383,20 @@ export default {
   },
   mounted() {
     this.fetchNews();
-    // Initialize Bootstrap form modal
     this.formModal = new Modal(document.getElementById('formModal'), {
       backdrop: 'static',
       keyboard: false
     });
   },
   beforeUnmount() {
-    // Revoke temporary URL to prevent memory leaks
     if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
       URL.revokeObjectURL(this.currentNews.image_url);
     }
     if (this.formModal) {
       this.formModal.dispose();
+    }
+    if (this.toastInstance) {
+      this.toastInstance.dispose();
     }
   },
 };
@@ -372,14 +426,14 @@ export default {
 }
 /* Ensure buttons have the same height */
 .btn {
-  min-height: 38px; /* Match typical Bootstrap button height */
-  line-height: 1.5; /* Consistent text alignment */
+  min-height: 38px;
+  line-height: 1.5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .btn i {
-  line-height: inherit; /* Align icon with text */
+  line-height: inherit;
   vertical-align: middle;
 }
 </style>
