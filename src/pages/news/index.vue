@@ -22,9 +22,7 @@
     </div>
     <!-- News List -->
     <div class="card">
-      <div class="card-header">
-        <h5 class="card-title mb-0">News List</h5>
-      </div>
+
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-striped">
@@ -99,11 +97,12 @@
                     v-model="currentNews.title"
                     required
                     placeholder="Enter news title"
+                    :disabled="isSaving"
                   />
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="type" class="form-label">Type</label>
-                  <select id="type" class="form-select" v-model="currentNews.type" required>
+                  <select id="type" class="form-select" v-model="currentNews.type" required :disabled="isSaving">
                     <option value="General">General</option>
                     <option value="Event">Event</option>
                     <option value="Update">Update</option>
@@ -115,14 +114,14 @@
                     id="description"
                     class="form-control"
                     v-model="currentNews.description"
-                    required
                     rows="4"
                     placeholder="Enter news description"
+                    :disabled="isSaving"
                   ></textarea>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="status" class="form-label">Status</label>
-                  <select id="status" class="form-select" v-model.number="currentNews.status" required>
+                  <select id="status" class="form-select" v-model.number="currentNews.status" required :disabled="isSaving">
                     <option :value="0">Draft</option>
                     <option :value="1">Published</option>
                     <option :value="2">Archived</option>
@@ -136,14 +135,19 @@
                     class="form-control"
                     accept="image/*"
                     @change="handleImageUpload"
+                    :disabled="isSaving"
                   />
                   <div v-if="currentNews.image_url" class="mt-2">
                     <img :src="currentNews.image_url" alt="News Image" class="img-thumbnail" style="max-width: 100px;" />
                   </div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
-                  <button type="submit" class="btn btn-success" style="margin-top:16px;"><i class="fas fa-plus me-1" aria-hidden="true"></i> {{ editMode ? 'Update' : 'Add' }}</button>
+                  <button type="button" class="btn btn-secondary" @click="cancelEdit" :disabled="isSaving">Cancel</button>
+                  <button type="submit" class="btn btn-success" style="margin-top:16px;" :disabled="isSaving">
+                    <span v-if="isSaving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    <i v-if="!isSaving" class="fas fa-plus me-1" aria-hidden="true"></i>
+                    {{ isSaving ? 'Saving...' : editMode ? 'Update' : 'Add' }}
+                  </button>
                 </div>
               </div>
             </form>
@@ -155,11 +159,10 @@
 </template>
 
 <script>
-import NewsDataService from '@/services/NewsDataService';
-import Pagination from '@/components/Pagination.vue';
-import Toast from '@/components/Toast.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import { ref } from 'vue';
+import NewsDataService from '@//services/NewsDataService';
+import Pagination from '@//components/Pagination.vue';
+import Toast from '@//components/Toast.vue';
+import ConfirmDialog from '@//components/ConfirmDialog.vue';
 import { Modal } from 'bootstrap';
 
 export default {
@@ -189,7 +192,8 @@ export default {
       toastType: '',
       isConfirmDialogVisible: false,
       confirmMessage: '',
-      confirmId: null
+      confirmId: null,
+      isSaving: false
     };
   },
   computed: {
@@ -264,8 +268,11 @@ export default {
       this.formModal.show();
     },
     async saveNews() {
-      if (!this.currentNews.title || !this.currentNews.description || !this.currentNews.type) {
+      if (this.isSaving) return; // Prevent multiple submissions
+      this.isSaving = true;
+      if (!this.currentNews.title || !this.currentNews.type) {
         this.showToast('Please fill in all required fields (Title, Description, Type).', 'error');
+        this.isSaving = false;
         return;
       }
       try {
@@ -276,12 +283,13 @@ export default {
           if (!this.currentNews.id) {
             console.error('Cannot update: Invalid document ID:', this.currentNews.id);
             this.showToast('Error: Cannot update news. No valid document ID provided.', 'error');
+            this.isSaving = false;
             return;
           }
           await NewsDataService.update(this.currentNews.id, this.currentNews, this.imageFile);
           this.showToast('News updated successfully!', 'success');
         } else {
-          const docRef = await NewsDataService.create(this.currentNews, this.imageFile);
+          await NewsDataService.create(this.currentNews, this.imageFile);
           this.showToast('News created successfully!', 'success');
         }
         this.formModal.hide();
@@ -289,6 +297,8 @@ export default {
       } catch (error) {
         console.error('Error saving news:', error);
         this.showToast('Failed to save news: ' + error.message, 'error');
+      } finally {
+        this.isSaving = false;
       }
     },
     editNews(news) {
@@ -334,6 +344,7 @@ export default {
       this.imageFile = null;
       this.originalImageUrl = '';
       this.editMode = false;
+      this.isSaving = false;
     },
     cancelEdit() {
       this.resetForm();
