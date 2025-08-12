@@ -1,29 +1,15 @@
 <template>
   <div class="container-fluid">
     <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
-    <!-- Toast Container -->
-    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1055;">
-      <div
-        class="toast"
-        :class="toastType === 'success' ? 'bg-success text-white' : toastType === 'error' ? 'bg-danger text-white' : 'bg-warning text-dark'"
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-        ref="toastElement"
-      >
-        <div class="toast-header">
-          <strong class="me-auto">{{ toastType === 'success' ? 'Success' : toastType === 'error' ? 'Error' : 'Confirm' }}</strong>
-          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close" v-if="!showConfirmButtons" @click="hideToast"></button>
-        </div>
-        <div class="toast-body">
-          {{ toastMessage }}
-          <div v-if="showConfirmButtons" class="mt-2">
-            <button class="btn btn-sm btn-outline-success me-2" @click="confirmDelete">Confirm</button>
-            <button class="btn btn-sm btn-outline-secondary" @click="hideToast">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Toast Component -->
+    <Toast
+      :message="toastMessage"
+      :type="toastType"
+      :showConfirmButtons="showConfirmButtons"
+      :id="toastId"
+      @confirm="confirmDelete"
+      @cancel="hideToast"
+    />
     <!-- Add News Button -->
     <div class="mb-4 col-12 d-flex justify-content-end">
       <button class="btn btn-success" @click="showFormModal"><i class="fas fa-plus me-1" aria-hidden="true"></i> Add News</button>
@@ -165,12 +151,13 @@
 <script>
 import NewsDataService from '@/services/NewsDataService';
 import Pagination from '@/components/Pagination.vue';
-import { ref } from 'vue';
-import { Modal, Toast } from 'bootstrap';
+import Toast from '@/components/Toast.vue';
+import { Modal } from 'bootstrap';
 
 export default {
   components: {
     Pagination,
+    Toast
   },
   data() {
     return {
@@ -184,16 +171,15 @@ export default {
         image_url: ''
       },
       imageFile: null,
-      originalImageUrl: '', // Store original Firebase image URL
+      originalImageUrl: '',
       editMode: false,
       currentPage: 1,
       newsPerPage: 10,
-      formModal: null, // Store form modal instance
+      formModal: null,
       toastMessage: '',
-      toastType: '', // success, error, confirm
-      toastId: null, // For delete confirmation
-      showConfirmButtons: false,
-      toastInstance: null, // Store toast instance
+      toastType: '',
+      toastId: null,
+      showConfirmButtons: false
     };
   },
   computed: {
@@ -213,7 +199,7 @@ export default {
         to,
         totalItems: this.newsList.length,
       };
-    },
+    }
   },
   methods: {
     showToast(message, type, showConfirmButtons = false, id = null) {
@@ -221,31 +207,17 @@ export default {
       this.toastType = type;
       this.showConfirmButtons = showConfirmButtons;
       this.toastId = id;
-      this.$nextTick(() => {
-        if (this.toastInstance) {
-          this.toastInstance.hide();
-        }
-        this.toastInstance = new Toast(this.$refs.toastElement, {
-          autohide: !showConfirmButtons,
-          delay: 5000, // 5 seconds for success/error toasts
-        });
-        this.toastInstance.show();
-      });
     },
     hideToast() {
-      if (this.toastInstance) {
-        this.toastInstance.hide();
-        this.toastInstance = null;
-        this.toastMessage = '';
-        this.toastType = '';
-        this.showConfirmButtons = false;
-        this.toastId = null;
-      }
+      this.toastMessage = '';
+      this.toastType = '';
+      this.showConfirmButtons = false;
+      this.toastId = null;
     },
-    async confirmDelete() {
-      if (this.toastId) {
+    async confirmDelete(id) {
+      if (id) {
         try {
-          await NewsDataService.delete(this.toastId, this.newsList.find(n => n.id === this.toastId)?.image_url);
+          await NewsDataService.delete(id, this.newsList.find(n => n.id === id)?.image_url);
           this.showToast('News deleted successfully!', 'success');
         } catch (error) {
           console.error('Error deleting news:', error);
@@ -379,7 +351,7 @@ export default {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
       }
-    },
+    }
   },
   mounted() {
     this.fetchNews();
@@ -395,10 +367,7 @@ export default {
     if (this.formModal) {
       this.formModal.dispose();
     }
-    if (this.toastInstance) {
-      this.toastInstance.dispose();
-    }
-  },
+  }
 };
 </script>
 
@@ -424,7 +393,6 @@ export default {
 .btn-success {
   margin-bottom: 1rem;
 }
-/* Ensure buttons have the same height */
 .btn {
   min-height: 38px;
   line-height: 1.5;
