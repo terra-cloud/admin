@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <h1 class="mb-4">News</h1>
+    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
     <!-- Toast Component -->
     <Toast
       :message="toastMessage"
@@ -22,31 +22,22 @@
     </div>
     <!-- News List -->
     <div class="card">
-
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-striped">
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Type</th>
-                <th>Image</th>
-                <th>Actions</th>
+                <th class="text-center" scope="col">Image</th>
+                <th @click="sort('title')">Title <i class="fas" :class="sortIcon('title')"></i></th>
+                <th @click="sort('description')">Description <i class="fas" :class="sortIcon('description')"></i></th>
+                <th @click="sort('status')">Status <i class="fas" :class="sortIcon('status')"></i></th>
+                <th @click="sort('type')">Type <i class="fas" :class="sortIcon('type')"></i></th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="news in paginatedNews" :key="news.id">
-                <td>{{ news.title }}</td>
-                <td>{{ $filters.truncate(news.description, 50) }}</td>
-                <td>
-                  <span :class="getStatusBadgeClass(news.status)">
-                    {{ mapStatus(news.status) }}
-                  </span>
-                </td>
-                <td>{{ news.type }}</td>
-                <td>
+                <td class="text-center">
                   <img
                     v-if="news.image_url"
                     :src="news.image_url"
@@ -56,6 +47,14 @@
                   />
                   <span v-else>N/A</span>
                 </td>
+                <td>{{ news.title }}</td>
+                <td>{{ $filters.truncate(news.description, 50) }}</td>
+                <td>
+                  <span :class="getStatusBadgeClass(news.status)">
+                    {{ mapStatus(news.status) }}
+                  </span>
+                </td>
+                <td>{{ news.type }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-2" @click="editNews(news)">Edit</button>
                   <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.id, news.image_url)">Delete</button>
@@ -159,10 +158,11 @@
 </template>
 
 <script>
-import NewsDataService from '@//services/NewsDataService';
-import Pagination from '@//components/Pagination.vue';
-import Toast from '@//components/Toast.vue';
-import ConfirmDialog from '@//components/ConfirmDialog.vue';
+import NewsDataService from '@/services/NewsDataService';
+import Pagination from '@/components/Pagination.vue';
+import Toast from '@/components/Toast.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { ref } from 'vue';
 import { Modal } from 'bootstrap';
 
 export default {
@@ -193,29 +193,64 @@ export default {
       isConfirmDialogVisible: false,
       confirmMessage: '',
       confirmId: null,
-      isSaving: false
+      isSaving: false,
+      sortKey: '',
+      sortOrder: 'asc'
     };
   },
   computed: {
+    sortedNews() {
+      if (!this.sortKey) return this.newsList;
+      const sorted = [...this.newsList];
+      const order = this.sortOrder === 'asc' ? 1 : -1;
+      return sorted.sort((a, b) => {
+        let aValue = a[this.sortKey];
+        let bValue = b[this.sortKey];
+        // Handle string sorting (case-insensitive)
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+        // Handle null/undefined values
+        if (aValue == null) return 1;
+        if (bValue == null) return -1;
+        return aValue > bValue ? order : aValue < bValue ? -order : 0;
+      });
+    },
     paginatedNews() {
       const start = (this.currentPage - 1) * this.newsPerPage;
       const end = start + this.newsPerPage;
-      return this.newsList.slice(start, end);
+      return this.sortedNews.slice(start, end);
     },
     totalPages() {
-      return Math.ceil(this.newsList.length / this.newsPerPage);
+      return Math.ceil(this.sortedNews.length / this.newsPerPage);
     },
     tableData() {
-      const from = this.newsList.length === 0 ? 0 : (this.currentPage - 1) * this.newsPerPage + 1;
-      const to = Math.min(from + this.paginatedNews.length - 1, this.newsList.length);
+      const from = this.sortedNews.length === 0 ? 0 : (this.currentPage - 1) * this.newsPerPage + 1;
+      const to = Math.min(from + this.paginatedNews.length - 1, this.sortedNews.length);
       return {
         from,
         to,
-        totalItems: this.newsList.length,
+        totalItems: this.sortedNews.length,
       };
     }
   },
   methods: {
+    sort(key) {
+      if (this.sortKey === key) {
+        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortKey = key;
+        this.sortOrder = 'asc';
+        this.currentPage = 1; // Reset to first page on new sort
+      }
+    },
+    sortIcon(key) {
+      if (this.sortKey === key) {
+        return this.sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+      }
+      return 'fa-sort';
+    },
     showToast(message, type) {
       if (['success', 'error'].includes(type)) {
         this.toastMessage = message;
@@ -268,10 +303,10 @@ export default {
       this.formModal.show();
     },
     async saveNews() {
-      if (this.isSaving) return; // Prevent multiple submissions
+      if (this.isSaving) return;
       this.isSaving = true;
       if (!this.currentNews.title || !this.currentNews.type) {
-        this.showToast('Please fill in all required fields (Title, Description, Type).', 'error');
+        this.showToast('Please fill in all required fields (Title, Type).', 'error');
         this.isSaving = false;
         return;
       }
@@ -432,5 +467,16 @@ export default {
 .btn i {
   line-height: inherit;
   vertical-align: middle;
+}
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.sortable:hover {
+  background-color: #f8f9fa;
+}
+.sorted {
+  font-weight: bold;
+  color: #007bff;
 }
 </style>
