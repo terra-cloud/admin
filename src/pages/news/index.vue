@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <h1 class="mb-4">News</h1>
+    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
     <!-- Toast Component -->
     <Toast
       :message="toastMessage"
@@ -23,15 +23,67 @@
     <!-- News List -->
     <div class="card">
       <div class="card-body">
+        <div class="mb-3 row">
+          <div class="col-md-4">
+            <label for="searchQuery" class="form-label">Search News</label>
+            <input
+              id="searchQuery"
+              type="text"
+              class="form-control"
+              v-model="searchQuery"
+              placeholder="Search by title or description..."
+            />
+          </div>
+          <div class="col-md-4">
+            <label for="filterStatus" class="form-label">Filter by Status</label>
+            <select
+              id="filterStatus"
+              class="form-select"
+              multiple
+              v-model="filterStatuses"
+            >
+              <option value="All">All</option>
+              <option value="Draft">Draft</option>
+              <option value="Published">Published</option>
+              <option value="Archived">Archived</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="filterType" class="form-label">Filter by Type</label>
+            <select
+              id="filterType"
+              class="form-select"
+              multiple
+              v-model="filterTypes"
+            >
+              <option value="All">All</option>
+              <option value="General">General</option>
+              <option value="Event">Event</option>
+              <option value="Update">Update</option>
+            </select>
+          </div>
+        </div>
         <div class="table-responsive">
           <table class="table table-striped">
             <thead>
               <tr>
                 <th class="text-center" scope="col">Image</th>
-                <th @click="sort('title')">Title <i class="fas" :class="sortIcon('title')"></i></th>
-                <th @click="sort('description')">Description <i class="fas" :class="sortIcon('description')"></i></th>
-                <th @click="sort('status')">Status <i class="fas" :class="sortIcon('status')"></i></th>
-                <th @click="sort('type')">Type <i class="fas" :class="sortIcon('type')"></i></th>
+                <th @click="sort('title')" class="sortable" :class="{ 'sorted': sortKey === 'title' }">
+                  Title
+                  <i class="fas" :class="sortIcon('title')"></i>
+                </th>
+                <th @click="sort('description')" class="sortable" :class="{ 'sorted': sortKey === 'description' }">
+                  Description
+                  <i class="fas" :class="sortIcon('description')"></i>
+                </th>
+                <th @click="sort('status')" class="sortable" :class="{ 'sorted': sortKey === 'status' }">
+                  Status
+                  <i class="fas" :class="sortIcon('status')"></i>
+                </th>
+                <th @click="sort('type')" class="sortable" :class="{ 'sorted': sortKey === 'type' }">
+                  Type
+                  <i class="fas" :class="sortIcon('type')"></i>
+                </th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
@@ -195,23 +247,41 @@ export default {
       confirmId: null,
       isSaving: false,
       sortKey: '',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
+      searchQuery: '',
+      filterStatuses: [],
+      filterTypes: []
     };
   },
   computed: {
+    filteredNews() {
+      return this.newsList.filter(news => {
+        const title = news.title ? news.title.toLowerCase() : '';
+        const description = news.description ? news.description.toLowerCase() : '';
+        const status = this.mapStatus(news.status).toLowerCase();
+        const type = news.type ? news.type.toLowerCase() : '';
+        const searchQuery = this.searchQuery ? this.searchQuery.toLowerCase() : '';
+        const matchesText = searchQuery === '' ||
+          title.includes(searchQuery) ||
+          description.includes(searchQuery);
+        const effectiveStatuses = this.filterStatuses.includes('All') ? ['Draft', 'Published', 'Archived'] : this.filterStatuses;
+        const effectiveTypes = this.filterTypes.includes('All') ? ['General', 'Event', 'Update'] : this.filterTypes;
+        const matchesStatus = effectiveStatuses.length === 0 || effectiveStatuses.includes(this.mapStatus(news.status));
+        const matchesType = effectiveTypes.length === 0 || effectiveTypes.includes(news.type);
+        return matchesText && matchesStatus && matchesType;
+      });
+    },
     sortedNews() {
-      if (!this.sortKey) return this.newsList;
-      const sorted = [...this.newsList];
+      if (!this.sortKey) return this.filteredNews;
+      const sorted = [...this.filteredNews];
       const order = this.sortOrder === 'asc' ? 1 : -1;
       return sorted.sort((a, b) => {
         let aValue = a[this.sortKey];
         let bValue = b[this.sortKey];
-        // Handle string sorting (case-insensitive)
         if (typeof aValue === 'string') {
           aValue = aValue.toLowerCase();
           bValue = bValue.toLowerCase();
         }
-        // Handle null/undefined values
         if (aValue == null) return 1;
         if (bValue == null) return -1;
         return aValue > bValue ? order : aValue < bValue ? -order : 0;
@@ -242,7 +312,7 @@ export default {
       } else {
         this.sortKey = key;
         this.sortOrder = 'asc';
-        this.currentPage = 1; // Reset to first page on new sort
+        this.currentPage = 1;
       }
     },
     sortIcon(key) {
@@ -415,6 +485,17 @@ export default {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
       }
+    }
+  },
+  watch: {
+    searchQuery() {
+      this.currentPage = 1;
+    },
+    filterStatuses() {
+      this.currentPage = 1;
+    },
+    filterTypes() {
+      this.currentPage = 1;
     }
   },
   mounted() {
