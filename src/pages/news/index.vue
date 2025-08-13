@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <h1 class="mb-4"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> News</h1>
+    <h1 class="mb-4">News</h1>
     <!-- Toast Component -->
     <Toast
       :message="toastMessage"
