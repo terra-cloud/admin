@@ -179,6 +179,19 @@
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">
+                  <label for="imageUploader" class="form-label">Image</label>
+                  <ImageUploader
+                    :mainAspectRatio="16/9"
+                    :photo="currentNews.image_url"
+                    :buttonText="'Change Photo'"
+                    :dimensionText="'Recommended: 800x800px'"
+                    :minHeight="'100'"
+                    :maxHeight="'100'"
+                    :disabled="isSaving"
+                    @setPhoto.stop="updateImage"
+                  />
+                </div>
+                <!-- <div class="col-md-6 mb-3">
                   <label for="image" class="form-label">Image</label>
                   <input
                     id="image"
@@ -191,7 +204,7 @@
                   <div v-if="currentNews.image_url" class="mt-2">
                     <img :src="currentNews.image_url" alt="News Image" class="img-thumbnail" style="max-width: 100px;" />
                   </div>
-                </div>
+                </div> -->
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" @click="cancelEdit" :disabled="isSaving">Cancel</button>
                   <button type="submit" class="btn btn-success" style="margin-top:16px;" :disabled="isSaving">
@@ -214,14 +227,15 @@ import NewsDataService from '@/services/NewsDataService';
 import Pagination from '@/components/Pagination.vue';
 import Toast from '@/components/Toast.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import { ref } from 'vue';
+import ImageUploader from '@/components/ImageUploader.vue';
 import { Modal } from 'bootstrap';
 
 export default {
   components: {
     Pagination,
     Toast,
-    ConfirmDialog
+    ConfirmDialog,
+    ImageUploader
   },
   data() {
     return {
@@ -426,14 +440,17 @@ export default {
       }
       this.showConfirmDialog('Are you sure you want to delete this news?', id);
     },
-    handleImageUpload(event) {
-      this.imageFile = event.target.files[0];
-      if (this.imageFile) {
-        this.currentNews.image_url = URL.createObjectURL(this.imageFile);
-      } else {
-        this.currentNews.image_url = this.originalImageUrl;
-      }
+    updateImage(image) {
+      this.currentNews.image_url = image;
     },
+    // handleImageUpload(event) {
+    //   this.imageFile = event.target.files[0];
+    //   if (this.imageFile) {
+    //     this.currentNews.image_url = URL.createObjectURL(this.imageFile);
+    //   } else {
+    //     this.currentNews.image_url = this.originalImageUrl;
+    //   }
+    // },
     resetForm() {
       if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
         URL.revokeObjectURL(this.currentNews.image_url);
