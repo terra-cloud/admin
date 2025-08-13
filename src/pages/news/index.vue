@@ -183,28 +183,13 @@
                   <ImageUploader
                     :mainAspectRatio="16/9"
                     :photo="currentNews.image_url"
-                    :buttonText="'Change Photo'"
                     :dimensionText="'Recommended: 800x800px'"
                     :minHeight="'100'"
                     :maxHeight="'100'"
                     :disabled="isSaving"
-                    @setPhoto.stop="updateImage"
+                    @setPhoto="updateImage"
                   />
                 </div>
-                <!-- <div class="col-md-6 mb-3">
-                  <label for="image" class="form-label">Image</label>
-                  <input
-                    id="image"
-                    type="file"
-                    class="form-control"
-                    accept="image/*"
-                    @change="handleImageUpload"
-                    :disabled="isSaving"
-                  />
-                  <div v-if="currentNews.image_url" class="mt-2">
-                    <img :src="currentNews.image_url" alt="News Image" class="img-thumbnail" style="max-width: 100px;" />
-                  </div>
-                </div> -->
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" @click="cancelEdit" :disabled="isSaving">Cancel</button>
                   <button type="submit" class="btn btn-success" style="margin-top:16px;" :disabled="isSaving">
@@ -248,8 +233,6 @@ export default {
         type: 'General',
         image_url: ''
       },
-      imageFile: null,
-      originalImageUrl: '',
       editMode: false,
       currentPage: 1,
       newsPerPage: 10,
@@ -395,9 +378,25 @@ export default {
         return;
       }
       try {
-        if (!this.imageFile && this.originalImageUrl) {
-          this.currentNews.image_url = this.originalImageUrl;
+        let imageToUpload = null;
+        if (this.currentNews.image_url && this.currentNews.image_url.startsWith('data:')) {
+          try {
+            const response = await fetch(this.currentNews.image_url);
+            if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
+            const blob = await response.blob();
+            imageToUpload = new File([blob], `news_image_${Date.now()}.png`, { type: 'image/png' });
+            console.log('Image converted to File:', imageToUpload);
+          } catch (error) {
+            console.error('Error converting image:', error);
+            this.showToast('Failed to process image: ' + error.message, 'error');
+            this.isSaving = false;
+            return;
+          }
+        } else if (this.currentNews.image_url && !this.editMode) {
+          console.warn('Image URL is not a data URL and editMode is false, skipping upload:', this.currentNews.image_url);
+          this.currentNews.image_url = ''; // Clear invalid image_url for new news
         }
+        console.log('Saving news with image:', imageToUpload);
         if (this.editMode) {
           if (!this.currentNews.id) {
             console.error('Cannot update: Invalid document ID:', this.currentNews.id);
@@ -405,10 +404,10 @@ export default {
             this.isSaving = false;
             return;
           }
-          await NewsDataService.update(this.currentNews.id, this.currentNews, this.imageFile);
+          await NewsDataService.update(this.currentNews.id, this.currentNews, imageToUpload);
           this.showToast('News updated successfully!', 'success');
         } else {
-          await NewsDataService.create(this.currentNews, this.imageFile);
+          await NewsDataService.create(this.currentNews, imageToUpload);
           this.showToast('News created successfully!', 'success');
         }
         this.formModal.hide();
@@ -427,8 +426,6 @@ export default {
         return;
       }
       this.currentNews = { ...news, id: news.id };
-      this.originalImageUrl = news.image_url || '';
-      this.imageFile = null;
       this.editMode = true;
       this.formModal.show();
     },
@@ -441,16 +438,9 @@ export default {
       this.showConfirmDialog('Are you sure you want to delete this news?', id);
     },
     updateImage(image) {
+      console.log('Updating image:', image);
       this.currentNews.image_url = image;
     },
-    // handleImageUpload(event) {
-    //   this.imageFile = event.target.files[0];
-    //   if (this.imageFile) {
-    //     this.currentNews.image_url = URL.createObjectURL(this.imageFile);
-    //   } else {
-    //     this.currentNews.image_url = this.originalImageUrl;
-    //   }
-    // },
     resetForm() {
       if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
         URL.revokeObjectURL(this.currentNews.image_url);
@@ -463,8 +453,6 @@ export default {
         type: 'General',
         image_url: ''
       };
-      this.imageFile = null;
-      this.originalImageUrl = '';
       this.editMode = false;
       this.isSaving = false;
     },
