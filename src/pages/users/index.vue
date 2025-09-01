@@ -308,7 +308,7 @@ export default {
     },
     mapAccountType(accountType) {
       const types = {
-        1: 'User',
+        1: 'Job Seeker',
         2: 'Employer',
       };
       return types[accountType] || 'Unknown';
