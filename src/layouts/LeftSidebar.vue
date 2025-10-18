@@ -13,26 +13,18 @@
       <h1 class="text-xl font-bold">Terra PH</h1>
     </div>
     <nav class="flex flex-col gap-2 flex-grow">
-      <a class="flex items-center gap-4 px-4 py-3 rounded-lg bg-primary/20 text-primary dark:text-white dark:bg-primary"
-        href="#">
-        <span class="material-symbols-outlined">dashboard</span>
-        <span class="text-base font-semibold">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-primary/10 dark:hover:bg-white/10 text-text-secondary-light dark:text-text-secondary-dark"
-        href="#">
-        <span class="material-symbols-outlined">group</span>
-        <span class="text-base font-medium">Users</span>
-      </a>
-      <a class="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-primary/10 dark:hover:bg-white/10 text-text-secondary-light dark:text-text-secondary-dark"
-        href="#">
-        <span class="material-symbols-outlined">assessment</span>
-        <span class="text-base font-medium">Reports</span>
-      </a>
-      <a class="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-primary/10 dark:hover:bg-white/10 text-text-secondary-light dark:text-text-secondary-dark"
-        href="#">
-        <span class="material-symbols-outlined">settings</span>
-        <span class="text-base font-medium">Settings</span>
-      </a>
+      <router-link
+        v-for="item in menu"
+        :key="item.name"
+        :to="{ name: item.route }"
+        class="flex items-center gap-4 px-4 py-3 rounded-lg text-primary dark:text-white dark:bg-primary transition"
+        :class="{
+          'bg-primary/20 text-primary dark:text-white': $route.name === item.route
+        }"
+      >
+        <span class="material-symbols-outlined">{{ item.icon }}</span>
+        <span class="text-base font-semibold">{{ item.label }}</span>
+      </router-link>
     </nav>
     <button @click="logout" class="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-primary/10 dark:hover:bg-white/10 text-text-secondary-light dark:text-text-secondary-dark"
       >
@@ -47,6 +39,19 @@ import { apiLogout } from '@/apis/auth'
 
 export default {
   props: ['sidebarOpen', 'mobileSidebarOpen'],
+  data() {
+    return {
+      menu: [
+        { name: "dashboard", route: "dashboard", icon: "dashboard", label: "Dashboard" },
+        // { name: "Bookings", route: "bookings", icon: "event", label: "Bookings" },
+        { name: "jobPostings", route: "jobPostings", icon: "work", label: "Job Posting" },
+        // { name: "Rentals", route: "rentals", icon: "apartment", label: "Rentals" },
+        // { name: "Users", route: "users", icon: "group", label: "Users" },
+        // { name: "news", route: "news", icon: "group", label: "News" },
+        // { name: "Settings", route: "settings", icon: "settings", label: "Settings" },
+      ],
+    };
+  },
   methods: {
     logout() {
       apiLogout().then(() => {
