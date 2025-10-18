@@ -1,124 +1,173 @@
 <template>
-  <div class="container-fluid">
-    <h1 class="mb-4">Job Request Details</h1>
-    <div class="row mb-4">
-      <!-- Back Button -->
-      <div class="col-12 mb-3">
-        <router-link to="/job-postings" class="btn btn-outline-secondary">
-          <i class="fas fa-arrow-left me-2"></i> Back to Job Postings
-        </router-link>
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+      <div class="flex items-center gap-4">
+        <button
+          class="flex items-center gap-2 text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h1 class="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark">Job Posting Details</h1>
       </div>
-      <!-- Job Request Details -->
-      <div class="col-lg-8">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Job Details</h5>
+      <div class="flex gap-3">
+        <button
+          class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
+          <span class="material-symbols-outlined mr-2 text-base">edit</span>
+          Edit Job
+        </button>
+        <button
+          class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-gray-700 text-text-primary-light dark:text-text-primary-dark text-sm font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all">
+          Change Status
+        </button>
+        <button
+          class="flex items-center justify-center rounded-lg h-10 px-4 bg-transparent text-destructive text-sm font-bold hover:bg-destructive/10 transition-all">
+          <span class="material-symbols-outlined mr-2 text-base">delete</span>
+          Delete Job
+        </button>
+      </div>
+    </div>
+    <div class="space-y-6">
+      <div class="bg-card-light dark:bg-card-dark rounded-lg p-6 shadow-card hover:shadow-card-hover transition-shadow">
+        <div class="flex justify-between items-start">
+          <h2 class="text-xl font-bold text-text-primary-light dark:text-text-primary-dark mb-6">Job Information</h2>
+          <span
+            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Active</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block mb-1">Job Title</label>
+            <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">Senior Software
+              Engineer (Frontend)</p>
           </div>
-          <div class="card-body">
-            <!-- Tab Navigation -->
-            <ul class="nav nav-tabs mb-3" id="jobDetailsTabs" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="poster-tab" data-bs-toggle="tab" data-bs-target="#poster" type="button" role="tab" aria-controls="poster" aria-selected="true">Poster Information</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="job-tab" data-bs-toggle="tab" data-bs-target="#job" type="button" role="tab" aria-controls="job" aria-selected="false">Job Information</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="offers-tab" data-bs-toggle="tab" data-bs-target="#offers" type="button" role="tab" aria-controls="offers" aria-selected="false">Offers and Counter-Offers</button>
-              </li>
-            </ul>
-            <!-- Tab Content -->
-            <div class="tab-content" id="jobDetailsTabContent">
-              <!-- Poster Information Tab -->
-              <div class="tab-pane fade show active" id="poster" role="tabpanel" aria-labelledby="poster-tab">
-                <h6 class="card-subtitle mb-2 text-muted">Poster Information</h6>
-                <p>
-                  <strong>Photo:</strong>
-                  <span v-if="job.author?.photo_url">
-                    <img :src="job.author?.photo_url" class="user-photo" alt="Poster Photo" />
-                  </span>
-                  <span v-else>N/A</span>
-                </p>
-                <p><strong>Posted By:</strong> {{ job.author?.display_name || 'N/A' }}</p>
-                <p><strong>Email:</strong> {{ job.author?.email || 'N/A' }}</p>
-                <p><strong>Name:</strong> {{ job.author?.name || 'N/A' }} {{ job.author?.last_name || '' }}</p>
-                <p><strong>Account Type:</strong> {{ mapAccountType(job.author?.account_type) }}</p>
-                <p><strong>KYC Status:</strong> {{ displayStatus(job.author?.kyc_validated) }}</p>
-                <p><strong>Birthdate:</strong> {{ formatDate(job.author?.birthdate) }}</p>
-                <p><strong>Gender:</strong> {{ job.author?.gender || 'N/A' }}</p>
-                <p><strong>Phone Number:</strong> {{ job.author?.phone_number || 'N/A' }}</p>
-              </div>
-              <!-- Job Information Tab -->
-              <div class="tab-pane fade" id="job" role="tabpanel" aria-labelledby="job-tab">
-                <h6 class="card-subtitle mb-2 text-muted">Job Information</h6>
-                <p><strong>Title:</strong> {{ job.job_request?.title || 'N/A' }}</p>
-                <p><strong>Details:</strong> {{ job.details?.details || 'N/A' }}</p>
-                <p><strong>Work Style:</strong> {{ mapWorkStyle(job.details?.work_style) }}</p>
-                <p><strong>Budget:</strong> ₱{{ job.budget?.budget || 'N/A' }} <span v-if="job.budget?.is_negotiable">(Negotiable)</span></p>
-                <p><strong>Created At:</strong> {{ formatDate(job.created_at) }}</p>
-                <p><strong>Schedule Date:</strong> {{ formatDate(job.job_request?.schedule?.date) }}</p>
-                <p><strong>Date Type:</strong> {{ job.job_request?.schedule?.dateType || 'N/A' }}</p>
-                <p><strong>Time Preferences:</strong> {{ mapTimePreferences(job.job_request?.schedule?.timePreferences) }}</p>
-                <p><strong>Job Status:</strong> {{ mapJobStatus(job.job_request?.job_status) }}</p>
-                <p><strong>Location Address:</strong> {{ job.location?.stringified_address || 'N/A' }}</p>
-                <p><strong>Location Type:</strong> {{ mapLocationType(job.location?.type) }}</p>
-                <p><strong>Coordinates:</strong> {{ job.location?.coordinates || 'N/A' }}</p>
-                <p><strong>Accepted Offer ID:</strong> {{ job.accepted_offer_id || 'N/A' }}</p>
-                <p><strong>Search Keywords:</strong>
-                  <span v-if="job.search_keywords && job.search_keywords.length">
-                    <span v-for="(keyword, index) in job.search_keywords" :key="index" class="badge bg-primary me-1">{{ keyword }}</span>
-                  </span>
-                  <span v-else>N/A</span>
-                </p>
-              </div>
-              <!-- Offers and Counter-Offers Tab -->
-              <div class="tab-pane fade" id="offers" role="tabpanel" aria-labelledby="offers-tab">
-                <h6 class="card-subtitle mb-2 text-muted">Offers and Counter-Offers</h6>
-                <div v-if="jobOffers.length">
-                  <div v-for="offer in jobOffers" :key="offer.id" class="mb-4 offer-section">
-                    <h6 class="card-subtitle mb-2 text-muted">Offer {{ offer.id }}</h6>
-                    <p>
-                      <strong>Offerer Photo:</strong>
-                      <span v-if="offer.author?.photo_url">
-                        <img :src="offer.author?.photo_url" class="user-photo" alt="Offerer Photo" />
-                      </span>
-                      <span v-else>N/A</span>
-                    </p>
-                    <p><strong>Offerer:</strong> {{ offer.author?.display_name || 'N/A' }}</p>
-                    <p><strong>Email:</strong> {{ offer.author?.email || 'N/A' }}</p>
-                    <p><strong>Name:</strong> {{ offer.author?.name || 'N/A' }} {{ offer.author?.last_name || '' }}</p>
-                    <p><strong>Phone Number:</strong> {{ offer.author?.phone_number || 'N/A' }}</p>
-                    <p><strong>Counter Offer:</strong> ₱{{ offer.counter_offer || 'N/A' }}</p>
-                    <p><strong>Offer Created At:</strong> {{ formatDate(offer.created_at) }}</p>
-                    <p><strong>Offer Details:</strong> {{ offer.details || 'N/A' }}</p>
-                    <p v-if="offer.doc_id !== offer.id"><strong>Internal Offer ID:</strong> {{ offer.doc_id || 'N/A' }}</p>
-                    <p><strong>Job ID:</strong> {{ offer.job_id || 'N/A' }}</p>
-                    <!-- Counter-Offers -->
-                    <div v-if="offer.counterOffers && offer.counterOffers.length" class="counter-offer-section">
-                      <h6 class="card-subtitle mb-2 text-muted">Counter-Offers</h6>
-                      <div v-for="counterOffer in offer.counterOffers" :key="counterOffer.id" class="mb-3">
-                        <h6 class="card-subtitle mb-2 text-muted">Counter-Offer {{ counterOffer.id }}</h6>
-                        <p>
-                          <span v-if="counterOffer.author?.photo_url">
-                            <img :src="counterOffer.author?.photo_url" class="user-photo" alt="Counter-Offerer Photo" />
-                          </span>
-                          <span v-else>N/A</span>
-                        </p>
-                        <p><strong>Counter-Offerer:</strong> {{ counterOffer.author?.display_name || 'N/A' }}</p>
-                        <p><strong>Email:</strong> {{ counterOffer.author?.email || 'N/A' }}</p>
-                        <p><strong>Name:</strong> {{ counterOffer.author?.name || 'N/A' }} {{ counterOffer.author?.last_name || '' }}</p>
-                        <p><strong>Phone Number:</strong> {{ counterOffer.author?.phone_number || 'N/A' }}</p>
-                        <p><strong>Counter Offer:</strong> ₱{{ counterOffer.counter_offer || 'N/A' }}</p>
-                        <p><strong>Counter-Offer Created At:</strong> {{ formatDate(counterOffer.created_at) }}</p>
-                        <p><strong>Counter-Offer Details:</strong> {{ counterOffer.details || 'N/A' }}</p>
-                        <p><strong>Job Offer ID:</strong> {{ counterOffer.job_offer_id || 'N/A' }}</p>
-                      </div>
-                    </div>
-                    <p v-else class="counter-offer-section">No counter-offers available for this offer.</p>
-                  </div>
+          <div>
+            <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block mb-1">Company
+              Name</label>
+            <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">Innovate Inc.</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="flex items-center">
+            <span
+              class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark mr-2">calendar_today</span>
+            <div>
+              <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block">Date Created</label>
+              <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">Oct 26, 2023</p>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <span
+              class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark mr-2">update</span>
+            <div>
+              <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block">Last Updated</label>
+              <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">Nov 01, 2023</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block mb-1">Full Job
+            Description</label>
+          <p class="text-base text-text-primary-light dark:text-text-primary-dark leading-relaxed">
+            We are looking for a talented Senior Frontend Software Engineer to join our dynamic team. The ideal
+            candidate will have a strong background in modern JavaScript frameworks (React, Vue, or Angular), a passion
+            for building beautiful and performant user interfaces, and a commitment to writing clean, maintainable code.
+            You will be responsible for leading the development of new features, mentoring junior engineers, and working
+            closely with product and design teams to deliver exceptional user experiences.
+          </p>
+        </div>
+      </div>
+      <div class="bg-card-light dark:bg-card-dark rounded-lg p-6 shadow-card hover:shadow-card-hover transition-shadow">
+        <h2 class="text-xl font-bold text-text-primary-light dark:text-text-primary-dark mb-6">Budget Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block mb-1">Salary
+              Range</label>
+            <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">$120,000 - $150,000</p>
+          </div>
+          <div>
+            <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block mb-1">Currency</label>
+            <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">USD</p>
+          </div>
+          <div>
+            <label class="text-sm text-text-secondary-light dark:text-text-secondary-dark block mb-1">Employment
+              Type</label>
+            <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">Full-time</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div
+          class="bg-card-light dark:bg-card-dark rounded-lg p-6 shadow-card hover:shadow-card-hover transition-shadow">
+          <h2 class="text-xl font-bold text-text-primary-light dark:text-text-primary-dark mb-6">Author Information</h2>
+          <div class="flex items-center gap-4">
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
+              data-alt="Profile picture of Jane Doe"
+              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAdw9v1aW7k6Hoz7dqNxEHEb6y1vkM3EAV39p7BZx45ch_eoZjs9uokSKuy25otaZEjfWmH37Hx5uwyFHXliLLXJ0CuONE_oGYnZZa-Sv0VKTRCZdo3lnLVH0hAzTQxdc-b-f-Usej9s738RiQ7lC45TKdpKzXfCwFgYoT6YAoryQyXYawoGEj_fVNLzw5EbY27LRAsdVowKxHDy6kUNQHiRNjiVyAkpVmGbZEYyapHT93Et9n2lyp-UahDIygbF4oyTXbY0lLFtwJu");'>
+            </div>
+            <div>
+              <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">Jane Doe</p>
+              <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">jane.doe@innovate.com</p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="bg-card-light dark:bg-card-dark rounded-lg p-6 shadow-card hover:shadow-card-hover transition-shadow">
+          <h2 class="text-xl font-bold text-text-primary-light dark:text-text-primary-dark mb-6">Location</h2>
+          <div class="flex items-center gap-4">
+            <span
+              class="material-symbols-outlined text-3xl text-text-secondary-light dark:text-text-secondary-dark">location_on</span>
+            <div>
+              <p class="text-base text-text-primary-light dark:text-text-primary-dark font-medium">San Francisco, CA</p>
+              <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Hybrid</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-card-light dark:bg-card-dark rounded-lg p-6 shadow-card hover:shadow-card-hover transition-shadow">
+        <h2 class="text-xl font-bold text-text-primary-light dark:text-text-primary-dark mb-6">Job Offers</h2>
+        <div class="space-y-6">
+          <div class="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-4">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
+                  data-alt="Profile picture of John Smith"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA9SgKQQA_ouJodbtzPBNnHY5uvYvkoj9q3mBDch5sbTivYGBDRrtpiyHRrIQWcpSgI3tUGMBhQXJuCtkqfrDITeEnrSI5iTkyPlMtXJtbxMmjmPJotW-g7U9yQyAM0QL_13Ni2zLk0X_hviqp9DhdyCF--BNRNtYlSr_Ls2RGoYZuxfG_DhGOZZAhcpaCDQq5t_qHONYGfGaI_cfxx29Ix7shi5mSE3Ys4N19_J5d80wgHUeuDPvDnynii1EL39y2Wzap0FA2Tjm5c");'>
                 </div>
-                <p v-else>No offers available for this job.</p>
+                <div>
+                  <p class="text-base font-medium text-text-primary-light dark:text-text-primary-dark">John Smith</p>
+                  <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">john.smith@example.com</p>
+                </div>
               </div>
+              <div class="text-right">
+                <p class="text-base font-medium text-text-primary-light dark:text-text-primary-dark">$135,000</p>
+                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Nov 02, 2023</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">Offer Details:</p>
+              <p class="text-base text-text-primary-light dark:text-text-primary-dark">Excited about the opportunity. My
+                counter-offer includes a signing bonus and an additional week of vacation.</p>
+            </div>
+          </div>
+          <div class="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-4">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
+                  data-alt="Profile picture of Emily White"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCQmaksGCU9aMOQSnrbG9hmEYGaGfvyMKfsbVpvyrRsQqbG8DM9xFiUMJ8tKh0caRowtz2pTmHfHB3DWMTrwEN6Py7u3gcoabV92LDFrU15G5j5UEsa_QlQwsvfwsWUrcsdO0WhrrV7Oe6TeQVCVT_mTv3nr5B4WxvvB6a5a43wrWfAGpYShKR4tRLcfhCkatA_20kYSHV4ukC4t0Pw1IbXnEH4lBqye90jSCGSeN1Rqm6Tw1TkpOj0tVsJr-WNWCTAibToe1UFnz1d");'>
+                </div>
+                <div>
+                  <p class="text-base font-medium text-text-primary-light dark:text-text-primary-dark">Emily White</p>
+                  <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">emily.white@example.com</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-base font-medium text-text-primary-light dark:text-text-primary-dark">$140,000</p>
+                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Nov 03, 2023</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">Offer Details:</p>
+              <p class="text-base text-text-primary-light dark:text-text-primary-dark">I am very interested in this
+                role. My proposed salary is based on my extensive experience and the value I can bring to the team.</p>
             </div>
           </div>
         </div>
@@ -195,7 +244,7 @@ export default {
         }
 
         this.jobOffers = offers;
-        
+
       } catch (error) {
         console.error('Error fetching job offers or counter-offers:', error);
         alert('Failed to load job offers or counter-offers');
@@ -266,12 +315,15 @@ export default {
 .card-body p {
   margin-bottom: 0.5rem;
 }
+
 .card-body strong {
   font-weight: 600;
 }
+
 .badge {
   font-size: 0.8rem;
 }
+
 .user-photo {
   width: 50px;
   height: 50px;
@@ -280,19 +332,24 @@ export default {
   vertical-align: middle;
   margin-left: 0.5rem;
 }
+
 .tab-content {
   padding: 1rem;
 }
+
 .nav-tabs .nav-link {
   color: #495057;
 }
+
 .nav-tabs .nav-link.active {
   color: #0d6efd;
 }
+
 .offer-section {
   border-bottom: 1px solid #dee2e6;
   padding-bottom: 1rem;
 }
+
 .counter-offer-section {
   margin-left: 1.5rem;
   padding-left: 1rem;

@@ -128,9 +128,10 @@
                 <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ job?.location?.stringified_address ? _replacePlaceholder(job?.location?.stringified_address) : 'N/A' }}</div>
                 <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ _mapLocationType(job.location?.type) }}</div>
               </div>
-              <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400">
-                <span class="material-symbols-outlined">more_vert</span>
-              </button>
+              <MoreMenu
+                :itemId="job.id"
+                @view="viewItem"
+              />
             </div>
             <div class="flex items-center mt-3">
               <div class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
@@ -169,9 +170,11 @@ import { collection, query, orderBy, limit, startAfter, onSnapshot, getCountFrom
 import Pagination from '@/components/Pagination.vue';
 import DropJobModal from './components/DropJobModal.vue';
 import OptionDropdown from '@/components/form/OptionDropdown.vue';
+import MoreMenu from '@/components/form/MenuDropdown.vue';
 
 export default {
   components: {
+    MoreMenu,
     OptionDropdown,
     Pagination,
     DropJobModal,
@@ -296,6 +299,18 @@ export default {
     },
   },
   methods: {
+    viewItem(id){
+      this.$router.push({ name: 'jobDetails', params: { jobId: id } })
+    },
+    handleMenuSelect(job) {
+      return (item) => {
+        if (item.value === 'view') {
+          this.$router.push({ name: 'jobDetails', params: { jobId: job.id } })
+        } else if (item.value === 'delete') {
+          console.log('Delete job:', job.id)
+        }
+      }
+    },
     async fetchJobs() {
       const jobsQuery = query(
         collection(db, 'job-posting'),
