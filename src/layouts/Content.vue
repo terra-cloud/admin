@@ -1,8 +1,11 @@
 <template>
-  <div class="">
-    <router-view :key="$route.fullPath"/>
-  </div>
-</template>
-<style>
+  <main class="ml-[280px] flex-1">
 
-</style>
+    <div class="pt-36 px-[120px] pb-10">
+      <router-view :key="$route.fullPath"/>
+    </div>
+  </main>
+  <!-- <div class="">
+  </div> -->
+</template>
+<style></style>

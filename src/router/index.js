@@ -20,33 +20,45 @@ const router = createRouter({
 })
 
 
-router.beforeEach((to, from, next) => {
-    const baseURL = import.meta.env.VITE_API_SUPPORT_URL;
-    axios.interceptors.request.use(function(config) {
-      const token = localStorage.getItem('token')
-      if (token) config.headers.Authorization='Bearer '+token
+router.beforeEach(async (to, from, next) => {
+  const baseURL = import.meta.env.VITE_API_SUPPORT_URL;
+
+  // Add token interceptor only once (not on every route change)
+  if (!axios.interceptors.request.handlers.length) {
+    axios.interceptors.request.use(function (config) {
+      const token = localStorage.getItem("token");
+      if (token) config.headers.Authorization = "Bearer " + token;
       return config;
     });
-    const excludeRoutes = ['login', 'signup']
-    if(excludeRoutes.some(item => item == to.name)) next();
-    axios.get(`${baseURL}/api/auth/check-user`).then(({ data }) => {
-      if (to.matched.some((record) => record.meta.requiresAuth)) {
-        if (!data) {
-          next({
-            name: "login",
-            query: { redirect: to.fullPath },
-          });
-        } else {
-          next();
-        }
-      } 
-    })
-    .catch(error => {
-      next({
+  }
+
+  const excludeRoutes = ["login", "signup"];
+
+  // ✅ Skip auth check for excluded routes
+  if (excludeRoutes.includes(to.name)) {
+    return next();
+  }
+
+  try {
+    const { data } = await axios.get(`${baseURL}/api/auth/check-user`);
+
+    // If the route requires auth and user is not authenticated
+    if (to.matched.some((record) => record.meta.requiresAuth) && !data) {
+      return next({
         name: "login",
         query: { redirect: to.fullPath },
       });
+    }
+
+    // Otherwise proceed
+    return next();
+  } catch (error) {
+    // If check-user API fails, redirect to login
+    return next({
+      name: "login",
+      query: { redirect: to.fullPath },
     });
+  }
 });
 
 export default router

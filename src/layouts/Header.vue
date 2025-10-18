@@ -1,45 +1,29 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarNav"
-        aria-controls="navbarNav"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-        @click="$emit('toggle-mobile-sidebar')"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto align-items-center">
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <i class="fas fa-bell"></i>
-              <span class="badge bg-danger ms-1">{{ notifications.length }}</span>
-            </a>
-          </li>
-          <li class="nav-item dropdown">
-            <a
-              class="nav-link dropdown-toggle"
-              href="#"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-              @click="toggleDropdown"
-            >
-              <i class="fas fa-user-circle me-2"></i> Admin
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#" @click.prevent="logout">Logout</a></li>
-            </ul>
-          </li>
-        </ul>
+  <!-- Header Bar -->
+  <header
+    class="fixed top-0 left-[280px] right-0 h-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm flex items-center px-[120px] z-10 border-b border-border-light dark:border-border-dark">
+    <div class="flex items-center justify-between w-full">
+      <h2 class="text-2xl font-bold">Dashboard Overview</h2>
+      <div class="flex items-center gap-6">
+        <div class="relative w-64">
+          <span
+            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark">search</span>
+          <input
+            class="w-full h-10 pl-10 pr-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-300"
+            placeholder="Search..." type="text" />
+        </div>
+        <button class="relative p-2 rounded-full hover:bg-primary/10 dark:hover:bg-white/10">
+          <span
+            class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark">notifications</span>
+          <span class="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-500"></span>
+        </button>
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+          data-alt="User avatar with a stylized person icon on a colored background"
+          style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAHjn5a7PqrBzpSYBsjCprpohoTU4kcMK8_CGlbJ3u7B6M0_aiFsRsRwWK8xJ3dtA4zReABNCk7WUSaNL_S-3Wh14yK4rwWCQpR4llECEqvvNROLwv0-ozf3kVLlaUUCskQGSJyOoLwVtRUu8wh4V6q37XSzm3hUmltWookLQOtjpn0rh9pCuuFZesXloFzxRW7aSZZ17lESyxSLV4DIbzJP2I4boy4N4VmluXfFvSJQyUujve4g8cQ3nge-G6H_KyTYTBW8paV4zjM");'>
+        </div>
       </div>
     </div>
-  </nav>
+  </header>
 </template>
 <script>
 import * as bootstrap from 'bootstrap';
@@ -55,15 +39,14 @@ export default {
     };
   },
   mounted() {
-    // Initialize dropdown on mount
-    const dropdownElement = this.$el.querySelector('.dropdown-toggle');
-    if (dropdownElement) {
-      this.dropdown = new bootstrap.Dropdown(dropdownElement);
-    }
+    
   },
   methods: {
     logout() {
-      apiLogout().then(() => this.$router.push({ name: "login" }));
+      apiLogout().then(() => {
+        localStorage.removeItem('token');
+        this.$router.push('/login');
+      });
     },
     toggleDropdown(event) {
       if (!this.dropdown) {
