@@ -1,12 +1,12 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
-import PageHelper from "./mixins/PageHelper.vue"
+import mixins from './mixins'
 import './assets/main.css'
 
 const app = createApp(App)
 
-app.mixin(PageHelper)
+mixins.forEach(mixin => app.mixin(mixin))
 
 app.config.globalProperties.$filters = {
 

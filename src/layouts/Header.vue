@@ -5,13 +5,13 @@
     <div class="flex items-center justify-between w-full">
       <h2 class="text-2xl font-bold">Dashboard Overview</h2>
       <div class="flex items-center gap-6">
-        <div class="relative w-64">
+        <!-- <div class="relative w-64">
           <span
             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark">search</span>
           <input
             class="w-full h-10 pl-10 pr-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-300"
             placeholder="Search..." type="text" />
-        </div>
+        </div> -->
         <button class="relative p-2 rounded-full hover:bg-primary/10 dark:hover:bg-white/10">
           <span
             class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark">notifications</span>

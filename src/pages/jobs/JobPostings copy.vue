@@ -1,166 +1,167 @@
 <template>
-  <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
-    <div></div>
-    <!-- <button
-      class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30 hover:bg-primary/90 transition-all duration-300">
-      <span class="material-symbols-outlined mr-2">add</span>
-      <span class="truncate">Create New Job Posting</span>
-    </button> -->
-  </div>
-  <div class="bg-white dark:bg-background-dark rounded-xl shadow-lg shadow-gray-200/50 dark:shadow-black/20 p-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      
-      <!-- Search -->
-      <div>
-        <label for="searchQuery" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+  <div class="container-fluid">
+    <h1 class="mb-4">Job Postings</h1>
+    <!-- Summary -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Job Postings Summary</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <p><strong>Total Job Postings:</strong> {{ jobs.length }}</p>
+            <p><strong>Status Breakdown:</strong></p>
+            <div>
+              <span class="badge bg-primary me-2">Open: {{ jobStatusCounts.Open }}</span>
+              <span class="badge bg-info me-2">In Progress: {{ jobStatusCounts['In Progress'] }}</span>
+              <span class="badge bg-success me-2">Completed: {{ jobStatusCounts.Completed }}</span>
+              <span class="badge bg-warning me-2">Cancelled: {{ jobStatusCounts.Cancelled }}</span>
+              <span class="badge bg-danger me-2">Dropped: {{ jobStatusCounts.Dropped }}</span>
+              <span class="badge bg-secondary">Unknown: {{ jobStatusCounts.Unknown }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <label for="searchQuery" class="form-label">Search</label>
         <input
           id="searchQuery"
           type="text"
+          class="form-control"
           v-model="searchQuery"
           placeholder="Search by posted by, email, title, details, or keywords..."
-          class="w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary p-2 text-sm"
         />
       </div>
-
-      <!-- Budget Range -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Budget Range (₱)</label>
-        <div class="flex items-center space-x-2">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Budget Range (₱)</label>
+        <div class="input-group">
           <input
             type="number"
+            class="form-control"
             v-model.number="budgetMin"
             placeholder="Min"
             min="0"
-            class="w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary p-2 text-sm"
           />
-          <span class="text-gray-500 text-sm">to</span>
+          <span class="input-group-text">to</span>
           <input
             type="number"
+            class="form-control"
             v-model.number="budgetMax"
             placeholder="Max"
             min="0"
-            class="w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary p-2 text-sm"
           />
         </div>
       </div>
-
-      <!-- Work Style -->
-      <OptionDropdown
-        label="Work Style"
-        v-model="filterWorkStyles"
-        :items="workStyleOptions"
-      />
-
-      <!-- Date Range -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Created Date Range</label>
-        <div class="flex items-center space-x-2">
+      <div class="col-md-4 mb-3">
+        <label for="workStyle" class="form-label">Work Style</label>
+        <select id="workStyle" class="form-select" multiple v-model="filterWorkStyles">
+          <option value="All">All</option>
+          <option value="Full time">Full time</option>
+          <option value="Contract">Contract</option>
+          <option value="Part time">Part time</option>
+        </select>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Created Date Range</label>
+        <div class="input-group">
           <input
             type="date"
+            class="form-control"
             v-model="startDate"
             placeholder="Start Date"
-            class="w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary p-2 text-sm"
           />
-          <span class="text-gray-500 text-sm">to</span>
+          <span class="input-group-text">to</span>
           <input
             type="date"
+            class="form-control"
             v-model="endDate"
             placeholder="End Date"
-            class="w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary p-2 text-sm"
           />
         </div>
       </div>
-
-      <!-- Job Status -->
-      <OptionDropdown
-        label="Status"
-        v-model="filterJobStatuses"
-        :items="statusOptions"
-      />
-
-      <OptionDropdown
-        label="Location Type"
-        v-model="filterLocationTypes"
-        :items="locationTypesOptions"
-      />
+      <div class="col-md-4 mb-3">
+        <label for="jobStatus" class="form-label">Job Status</label>
+        <select id="jobStatus" class="form-select" multiple v-model="filterJobStatuses">
+          <option value="All">All</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="Dropped">Dropped</option>
+        </select>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="locationType" class="form-label">Location Type</label>
+        <select id="locationType" class="form-select" multiple v-model="filterLocationTypes">
+          <option value="All">All</option>
+          <option value="In person">In person</option>
+          <option value="Remote">Remote</option>
+        </select>
+      </div>
     </div>
-
-    <div class="flex flex-wrap items-center gap-4 mb-4">
-      <div class="flex-grow">
-        <label class="flex flex-col h-12 w-full">
-          <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
-            <div
-              class="text-gray-400 dark:text-gray-500 flex bg-gray-100 dark:bg-gray-900/50 items-center justify-center pl-4 rounded-l-lg">
-              <span class="material-symbols-outlined text-2xl">search</span>
-            </div>
-            <input
-              v-model="searchQuery"
-              class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-gray-800 dark:text-gray-200 focus:outline-0 focus:ring-2 focus:ring-primary/50 border-none bg-gray-100 dark:bg-gray-900/50 h-full placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 pl-2 text-base font-normal"
-              placeholder="Search by posted by, email, title, details, or keywords..." value="" />
+    <!-- Job Postings -->
+    <div class="row mb-4">
+      <div v-for="job in paginatedJobs" :key="job.id" class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">{{ job.title || 'N/A' }}</h5>
           </div>
-        </label>
-      </div>
-      <div class="flex gap-3">
-        <button
-          class="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-gray-100 dark:bg-gray-900/50 px-4 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-          <p class="text-sm font-medium">Status</p>
-          <span class="material-symbols-outlined text-xl text-gray-400 dark:text-gray-500">expand_more</span>
-        </button>
-        <button
-          class="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-gray-100 dark:bg-gray-900/50 px-4 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-          <p class="text-sm font-medium">Location</p>
-          <span class="material-symbols-outlined text-xl text-gray-400 dark:text-gray-500">expand_more</span>
-        </button>
-      </div>
-    </div>
-    <div class="@container">
-      <div class="overflow-x-auto">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4">
-          <!-- Job Card -->
-          <div 
-          v-for="job in paginatedJobs"
-          :key="job.id"
-          class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-5 transition hover:shadow-md">
-            <div class="flex items-start justify-between">
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ job.title || 'N/A' }} ({{ _mapWorkStyle(job.details?.work_style) }})</h3>
-                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ job?.author?.display_name || 'N/A' }} </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ job?.location?.stringified_address ? _replacePlaceholder(job?.location?.stringified_address) : 'N/A' }}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ _mapLocationType(job.location?.type) }}</div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-12">
+                <p><strong>Posted By:</strong> {{ job?.author?.display_name || 'N/A' }}</p>
+                <p><strong>Email:</strong> {{ job?.author?.email || 'N/A' }}</p>
+                <p><strong>Created At:</strong> {{ formatDate(job.created_at) }}</p>
+                <p><strong>Budget:</strong> ₱{{ job.budget?.budget || 'N/A' }} <span v-if="job.budget?.is_negotiable">(Negotiable)</span></p>
+                <p><strong>Details:</strong> {{ job.details?.details || 'N/A' }}</p>
+                <p><strong>Work Style:</strong> {{ mapWorkStyle(job.details?.work_style) }}</p>
+                <p><strong>Schedule:</strong> {{ formatDate(job.schedule?.date) }} ({{ job.schedule?.dateType || 'N/A' }}, {{ mapTimePreferences(job.schedule?.timePreferences) }})</p>
+                <p><strong>Job Status:</strong> {{ mapJobStatus(job.job_status) }}</p>
+                <p><strong>Location:</strong> {{ job.location?.stringified_address || 'N/A' }} ({{ mapLocationType(job.location?.type) }})</p>
+                <p><strong>Search Keywords:</strong>
+                  <span v-if="job.search_keywords && job.search_keywords.length">
+                    <span v-for="(keyword, index) in job.search_keywords" :key="index" class="badge bg-primary me-1">{{ keyword }}</span>
+                  </span>
+                  <span v-else>N/A</span>
+                </p>
+                <div class="mt-2">
+                  <router-link :to="'/jobs/' + job.id" class="btn btn-sm btn-outline-info me-2">View Full Details</router-link>
+                  <button
+                    v-if="job.job_status === 0 || job.job_status === 1"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="showDropDialog(job.id, job.title)"
+                  >
+                    Drop
+                  </button>
+                </div>
+                <DropJobModal
+                  v-if="showDialog && selectedJobId === job.id"
+                  :job-id="job.id"
+                  :job-title="job.title"
+                  @confirm="confirmDrop"
+                  @close="cancelDrop"
+                />
               </div>
-              <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400">
-                <span class="material-symbols-outlined">more_vert</span>
-              </button>
             </div>
-            <div class="flex items-center mt-3">
-              <div class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-              :class="[_mapJobColor(job.job_status).bg, _mapJobColor(job.job_status).text]"
-              >
-                <span 
-                class="size-2 rounded-full mr-2"
-                :class="_mapJobColor(job.job_status).dot"
-                ></span>
-                {{_mapJobStatus(job.job_status)}}
-              </div>
-              <span class="ml-auto text-sm font-medium text-gray-700 dark:text-gray-300">₱{{ job.budget?.budget || 'N/A' }}</span>
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">Schedule: {{ _formatDate(job.schedule?.date) }} ({{ job.schedule?.dateType || 'N/A' }}, {{ mapTimePreferences(job.schedule?.timePreferences) }})</p>
           </div>
         </div>
-
       </div>
     </div>
+    <!-- Pagination -->
+    <Pagination
+      :currentPage="currentPage"
+      :totalPages="totalPages"
+      :tableData="tableData"
+      @setPage="setPage"
+      @prevPage="prevPage"
+      @nextPage="nextPage"
+      @firstPage="setPage(1)"
+      @lastPage="setPage(totalPages)"
+    />
   </div>
-  <Pagination
-    :currentPage="currentPage"
-    :totalPages="totalPages"
-    :tableData="tableData"
-    @setPage="setPage"
-    @prevPage="prevPage"
-    @nextPage="nextPage"
-    @firstPage="setPage(1)"
-    @lastPage="setPage(totalPages)"
-  />
 </template>
 
 <script>
@@ -168,11 +169,9 @@ import { db } from '@/firebase';
 import { collection, query, orderBy, limit, startAfter, onSnapshot, getCountFromServer, doc, setDoc } from 'firebase/firestore';
 import Pagination from '@/components/Pagination.vue';
 import DropJobModal from './components/DropJobModal.vue';
-import OptionDropdown from '@/components/form/OptionDropdown.vue';
 
 export default {
   components: {
-    OptionDropdown,
     Pagination,
     DropJobModal,
   },
@@ -186,11 +185,11 @@ export default {
       searchQuery: '',
       budgetMin: null,
       budgetMax: null,
-      filterWorkStyles: '',
+      filterWorkStyles: [],
       startDate: null,
       endDate: null,
-      filterJobStatuses: '',
-      filterLocationTypes: '',
+      filterJobStatuses: [],
+      filterLocationTypes: [],
       statusSet: [
         { value: 0, message: 'Pending' },
         { value: 1, message: 'Approved' },
@@ -199,26 +198,6 @@ export default {
       showDialog: false,
       selectedJobId: null,
       selectedJobTitle: '',
-      selectedStatus: 'All',
-      statusOptions: [
-        { text: 'All', value: '' },
-        { text: 'Open', value: 'Open' },
-        { text: 'In Progress', value: 'In Progress' },
-        { text: 'Completed', value: 'Completed' },
-        { text: 'Cancelled', value: 'Cancelled' },
-        { text: 'Dropped', value: 'Dropped' },
-      ],
-      locationTypesOptions: [
-        { text: 'All', value: '' },
-        { text: 'In person', value: 'In person' },
-        { text: 'Remote', value: 'Remote' },
-      ],
-      workStyleOptions: [
-        { text: 'All', value: '' },
-        { text: 'Full time', value: 'Full time' },
-        { text: 'Contract', value: 'Contract' },
-        { text: 'Part time', value: 'Part time' },
-      ]
     };
   },
   computed: {
@@ -232,7 +211,7 @@ export default {
         Unknown: 0,
       };
       this.jobs.forEach(job => {
-        const status = this._mapJobStatus(job.job_status);
+        const status = this.mapJobStatus(job.job_status);
         counts[status] = (counts[status] || 0) + 1;
       });
       return counts;
@@ -254,7 +233,7 @@ export default {
 
         const budget = job.budget?.budget || 0;
         const matchesBudget = (!this.budgetMin || budget >= this.budgetMin) &&
-          (!this.budgetMax || budget <= this.budgetMax);
+                             (!this.budgetMax || budget <= this.budgetMax);
 
         const workStyle = this.mapWorkStyle(job.details?.work_style);
         const effectiveWorkStyles = this.filterWorkStyles.includes('All') ? ['Full time', 'Contract', 'Part time'] : this.filterWorkStyles;
@@ -264,13 +243,13 @@ export default {
         const startDate = this.startDate || null;
         const endDate = this.endDate ? new Date(new Date(this.endDate).setDate(new Date(this.endDate).getDate() + 1)).toISOString().split('T')[0] : null;
         const matchesDate = (!startDate || !jobDate || jobDate >= startDate) &&
-          (!endDate || !jobDate || jobDate < endDate);
+                           (!endDate || !jobDate || jobDate < endDate);
 
-        const jobStatus = this._mapJobStatus(job.job_status);
+        const jobStatus = this.mapJobStatus(job.job_status);
         const effectiveJobStatuses = this.filterJobStatuses.includes('All') ? ['Open', 'In Progress', 'Completed', 'Cancelled', 'Dropped'] : this.filterJobStatuses;
         const matchesJobStatus = !this.filterJobStatuses.length || effectiveJobStatuses.includes(jobStatus);
 
-        const locationType = this._mapLocationType(job.location?.type);
+        const locationType = this.mapLocationType(job.location?.type);
         const effectiveLocationTypes = this.filterLocationTypes.includes('All') ? ['Unknown', 'In person', 'Remote'] : this.filterLocationTypes;
         const matchesLocationType = !this.filterLocationTypes.length || effectiveLocationTypes.includes(locationType);
 
@@ -361,6 +340,24 @@ export default {
       };
       return styles[workStyle] || 'Unknown';
     },
+    mapJobStatus(status) {
+      const statuses = {
+        0: 'Open',
+        1: 'In Progress',
+        2: 'Completed',
+        3: 'Cancelled',
+        4: 'Dropped',
+      };
+      return statuses[status] || 'Unknown';
+    },
+    mapLocationType(type) {
+      const types = {
+        0: 'Unknown',
+        1: 'In person',
+        2: 'Remote',
+      };
+      return types[type] || 'Unknown';
+    },
     mapTimePreferences(pref) {
       const prefs = {
         '0': 'Any Time',
@@ -369,6 +366,11 @@ export default {
         '3': 'Evening',
       };
       return prefs[pref] || 'Unknown';
+    },
+    formatDate(date) {
+      if (!date) return 'N/A';
+      const d = new Date(date);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     },
     setPage(page) {
       if (page >= 1 && page <= this.totalPages) {
@@ -427,24 +429,19 @@ export default {
 .card-body p {
   margin-bottom: 0.5rem;
 }
-
 .card-body strong {
   font-weight: 600;
 }
-
 .badge {
   font-size: 0.8rem;
 }
-
 .card.h-100 {
   display: flex;
   flex-direction: column;
 }
-
 .form-select[multiple] {
   height: 100px;
 }
-
 .btn-sm.me-2 {
   margin-right: 0.5rem;
 }

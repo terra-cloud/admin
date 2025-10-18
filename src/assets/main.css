@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 body {
-    background-image: radial-gradient(circle at top left, #e0e6eb 0%, #f6f7f8 50%, #e0e6eb 100%);
+  background-image: radial-gradient(circle at top left, #e0e6eb 0%, #f6f7f8 50%, #e0e6eb 100%);
+  background-repeat: no-repeat;
+  background-size: cover; /* or 100% 100% for a fixed fill */
+  background-attachment: fixed; /* optional for a smooth static feel */
 }
-
