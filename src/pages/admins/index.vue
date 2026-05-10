@@ -132,7 +132,7 @@
       @close="closeEditModal"
     />
     <ConfirmDialog
-      v-if="showDeleteModal"
+      :show="showDeleteModal"
       :currentId="selectedDeleteAdminId"
       :key="'delete-' + selectedDeleteAdminId"
       :message="'Are you sure you want to delete this admin? This will also revoke all their sessions.'"
