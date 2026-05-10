@@ -82,6 +82,7 @@
                   v-model="form.type"
                   required
                 >
+                  <option value="superadmin">Superadmin</option>
                   <option value="partner">Partner</option>
                   <option value="staff">Staff</option>
                 </select>
@@ -100,24 +101,36 @@
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               <div class="mb-4">
-                <label for="editCity" class="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  id="editCity"
-                  v-model="form.city"
+                <label class="block text-sm font-medium text-gray-700 mb-1">State / Province</label>
+                <SearchableSelect
+                  :options="states"
+                  :model-value="form.gadm_state_id"
+                  icon="map"
+                  placeholder="Search state..."
+                  :loading="statesLoading"
+                  @change="onStateChange"
                 />
               </div>
               <div class="mb-4">
-                <label for="editState" class="block text-sm font-medium text-gray-700 mb-1">State</label>
-                <input
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  id="editState"
-                  v-model="form.state"
+                <label class="block text-sm font-medium text-gray-700 mb-1">City / Municipality</label>
+                <SearchableSelect
+                  :options="cities"
+                  :model-value="form.gadm_city_id"
+                  icon="location_city"
+                  placeholder="Search city..."
+                  :loading="citiesLoading"
+                  :disabled="!form.gadm_state_id"
+                  @search="onCitySearch"
+                  @change="onCityChange"
                 />
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               <div class="mb-4">
                 <label for="editAddress" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <input
@@ -129,7 +142,7 @@
               </div>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-200">
+            <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-200 mt-4">
               <router-link
                 to="/admins"
                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -153,8 +166,11 @@
 
 <script>
 import { apiListAdmins, apiUpdateAdmin } from '@/apis/admin';
+import { apiGetStates, apiGetCities } from '@/apis/gadm';
+import SearchableSelect from '@/components/forms/SearchableSelect.vue';
 
 export default {
+  components: { SearchableSelect },
   data() {
     return {
       form: {
@@ -165,10 +181,18 @@ export default {
         company: '',
         type: 'partner',
         status: 'pending',
-        city: '',
-        state: '',
         address: '',
+        gadm_state_id: null,
+        gadm_city_id: null,
       },
+      originalStateName: '',
+      originalCityName: '',
+      pendingStateId: null,
+      pendingCityId: null,
+      states: [],
+      statesLoading: false,
+      cities: [],
+      citiesLoading: false,
       loading: true,
       saving: false,
       error: null,
@@ -199,10 +223,15 @@ export default {
             company: admin.company || '',
             type: admin.type || 'partner',
             status: admin.status || 'pending',
-            city: admin.city || '',
-            state: admin.state || '',
             address: admin.address || '',
+            gadm_state_id: null,
+            gadm_city_id: null,
           };
+          this.originalStateName = admin.state || '';
+          this.originalCityName = admin.city || '';
+          this.pendingStateId = admin.gadm_state_id || null;
+          this.pendingCityId = admin.gadm_city_id || null;
+          await this.loadStates();
         } else {
           this.error = 'Failed to load admin data.';
         }
@@ -212,12 +241,92 @@ export default {
         this.loading = false;
       }
     },
+    async loadStates() {
+      this.statesLoading = true;
+      try {
+        const { data } = await apiGetStates();
+        this.states = (data.data || []).map(s => ({
+          id: s.id,
+          name: s.display_name || s.name,
+        }));
+
+        let stateId = this.pendingStateId;
+        if (!stateId && this.originalStateName) {
+          const match = this.states.find(s => s.name.toLowerCase() === this.originalStateName.toLowerCase());
+          if (match) stateId = match.id;
+        }
+
+        if (stateId) {
+          this.form.gadm_state_id = stateId;
+          await this.loadCities();
+        }
+      } catch {
+        // silently fail
+      } finally {
+        this.statesLoading = false;
+      }
+    },
+    async loadCities(keyword) {
+      if (!this.form.gadm_state_id) return;
+      this.citiesLoading = true;
+      try {
+        const params = { map_state_id: this.form.gadm_state_id, keyword: keyword || '' };
+        const { data } = await apiGetCities(params);
+        this.cities = (data.data || []).map(c => ({
+          id: c.id,
+          name: c.display_name || c.name,
+        }));
+
+        let cityId = this.pendingCityId;
+        if (!cityId && !keyword && this.originalCityName) {
+          const match = this.cities.find(c => c.name.toLowerCase() === this.originalCityName.toLowerCase());
+          if (match) cityId = match.id;
+        }
+
+        if (cityId) {
+          this.form.gadm_city_id = cityId;
+        }
+      } catch {
+        // silently fail
+      } finally {
+        this.citiesLoading = false;
+      }
+    },
+    onStateChange(opt) {
+      this.form.gadm_state_id = opt ? opt.id : null;
+      this.form.gadm_city_id = null;
+      this.cities = [];
+      if (this.form.gadm_state_id) {
+        this.loadCities();
+      }
+    },
+    onCitySearch(keyword) {
+      if (this.form.gadm_state_id && keyword) {
+        this.loadCities(keyword);
+      }
+    },
+    onCityChange(opt) {
+      this.form.gadm_city_id = opt ? opt.id : null;
+    },
     async saveAdmin() {
       this.saving = true;
       this.saved = false;
       this.saveError = null;
       try {
-        await apiUpdateAdmin(this.$route.params.id, this.form);
+        const payload = { ...this.form };
+        if (this.form.gadm_state_id) {
+          const state = this.states.find(s => s.id === this.form.gadm_state_id);
+          payload.state = state ? state.name : null;
+        } else {
+          payload.state = null;
+        }
+        if (this.form.gadm_city_id) {
+          const city = this.cities.find(c => c.id === this.form.gadm_city_id);
+          payload.city = city ? city.name : null;
+        } else {
+          payload.city = null;
+        }
+        await apiUpdateAdmin(this.$route.params.id, payload);
         this.saved = true;
       } catch (err) {
         this.saveError = err.response?.data?.error || 'Failed to update admin.';

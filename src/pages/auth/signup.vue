@@ -273,6 +273,8 @@ export default {
           employer_id: this.adminType === 'staff' ? this.selectedPartnerId : null,
           state: this.selectedStateName || null,
           city: this.selectedCityName || null,
+          gadm_state_id: this.selectedStateId || null,
+          gadm_city_id: this.selectedCityId || null,
         });
         if (response.data?.access_token) {
           setAccessToken(response.data.access_token)

@@ -75,19 +75,31 @@ export default {
     },
   },
   watch: {
-    options() {
-      if (this.selected && !this.options.some(o => o.id === this.selected.id)) {
-        this.selected = null;
-      }
-    },
-    modelValue(val) {
-      if (val && !this.selected) {
-        const match = this.options.find(o => o.id === val);
-        if (match) {
-          this.selected = match;
-          this.search = match.display_name || match.name;
+    options: {
+      handler() {
+        if (this.selected && !this.options.some(o => o.id === this.selected.id)) {
+          this.selected = null;
         }
-      }
+        if (this.modelValue && !this.selected) {
+          const match = this.options.find(o => o.id === this.modelValue);
+          if (match) {
+            this.selected = match;
+            this.search = match.display_name || match.name;
+          }
+        }
+      },
+    },
+    modelValue: {
+      handler(val) {
+        if (val && !this.selected) {
+          const match = this.options.find(o => o.id === val);
+          if (match) {
+            this.selected = match;
+            this.search = match.display_name || match.name;
+          }
+        }
+      },
+      immediate: true,
     },
   },
   methods: {
