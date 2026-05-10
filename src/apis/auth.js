@@ -8,3 +8,5 @@ export const apiCheckUser = () =>
     Axios.get(`${resource_api}/${resource}/check-user`);
 export const apiRegister = (payload) =>
     Axios.post(`${resource_api}/${resource}/register`, payload);
+export const apiRefreshToken = () =>
+    Axios.post(`${resource_api}/${resource}/refresh-token`);

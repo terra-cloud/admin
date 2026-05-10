@@ -18,10 +18,10 @@
 
         <div class="w-full flex flex-col gap-6">
           <label class="flex flex-col gap-2">
-            <p class="text-text-light dark:text-text-dark text-sm font-medium">Email or Username</p>
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">Email</p>
             <div class="relative flex items-center">
               <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">person</span>
-              <input v-model="email" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-4 text-base font-normal shadow-soft" placeholder="Enter your email or username"/>
+              <input v-model="email" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-4 text-base font-normal shadow-soft" placeholder="Enter your email"/>
             </div>
           </label>
 
@@ -46,8 +46,9 @@
         </div>
 
         <div class="w-full mt-8 flex flex-col gap-4">
-          <button @click="handleLogin" class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white text-base font-bold tracking-wide shadow-soft hover:bg-primary/90 transition-all duration-200">
-            <span class="truncate">Login</span>
+          <button @click="handleLogin" :disabled="loading" class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white text-base font-bold tracking-wide shadow-soft hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200">
+            <span v-if="loading" class="truncate">Signing in...</span>
+            <span v-else class="truncate">Login</span>
           </button>
           <p class="text-text-muted-light dark:text-text-muted-dark text-sm text-center">
             Don't have an account?
@@ -60,7 +61,8 @@
 </template>
 
 <script>
-import { apiLogin, apiCheckUser } from '@/apis/auth'
+import { apiLogin } from '@/apis/auth'
+import { setAccessToken, setAdmin } from '@/stores/auth'
 
 export default {
   name: 'Login',
@@ -69,34 +71,31 @@ export default {
       email: '',
       password: '',
       error: '',
+      loading: false,
       showPassword: false,
       rememberMe: false,
     };
   },
-  mounted(){
-    this.checkLogin();
-  },
   methods: {
-    checkLogin() {
-      apiCheckUser().then(({data}) => {
-        if(data.result){
-          this.$router.push('/dashboard')
-        }
-      })
-    },
     handleLogin(){
+      this.error = ''
+      this.loading = true
       apiLogin({
         email: this.email,
         password: this.password
       })
       .then(({data}) => {
-        if(data && data.token) {
-          localStorage.setItem('token', data.token)
+        if (data?.access_token) {
+          setAccessToken(data.access_token)
+          setAdmin(data.admin)
           this.$router.push({name: 'dashboard'})
         }
       })
       .catch((error) => {
-        this._catchErrors(error)
+        this.error = error.response?.data?.error || error.message || 'Login failed'
+      })
+      .finally(() => {
+        this.loading = false
       })
     }
   },

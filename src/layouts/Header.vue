@@ -23,7 +23,7 @@
             @click="dropdownOpen = !dropdownOpen"
           >
             <i class="fas fa-user-circle text-xl"></i>
-            <span class="hidden sm:inline font-medium">Admin</span>
+            <span class="hidden sm:inline font-medium">{{ adminName }}</span>
             <i class="fas fa-chevron-down text-[10px]"></i>
           </button>
           <div
@@ -45,6 +45,7 @@
 
 <script>
 import { apiLogout } from '@/apis/auth';
+import { state, clearAuth } from '@/stores/auth';
 
 export default {
   props: ['mobileSidebarOpen'],
@@ -57,6 +58,14 @@ export default {
       ],
       dropdownOpen: false,
     };
+  },
+  computed: {
+    adminName() {
+      const admin = state.admin
+      if (admin?.firstname) return admin.firstname
+      if (admin?.email) return admin.email
+      return 'Admin'
+    }
   },
   mounted() {
     document.addEventListener('click', this.handleClickOutside);
@@ -71,7 +80,10 @@ export default {
       }
     },
     logout() {
-      apiLogout().then(() => this.$router.push({ name: 'login' }));
+      apiLogout().finally(() => {
+        clearAuth()
+        this.$router.push({ name: 'login' })
+      });
     },
   },
 };

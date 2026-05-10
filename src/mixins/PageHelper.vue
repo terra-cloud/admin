@@ -26,28 +26,26 @@ export default {
       return result
     },
     _catchErrors(error){
-      let errors;
-      if(typeof error.response?.data?.errors != 'undefined'){
-        errors = error.response?.data?.errors
+      const data = error.response?.data
+      if (!data) {
+        this.error = error.message || 'An unexpected error occurred'
+        return
       }
-
-      if(typeof error.response?.data?.error_key !== 'undefined'){
-        return error.response?.data?.error_key.replace('_', ' ');  
+      if (typeof data.error === 'string') {
+        this.error = data.error
+        return
       }
-
-      if(typeof error.response?.data?.error !== 'undefined'){
-        errors = error.response?.data?.error
+      if (typeof data.errors === 'object' && data.errors !== null) {
+        const keys = Object.keys(data.errors)
+        const first = data.errors[keys[0]]
+        this.error = Array.isArray(first) ? first[0] : first
+        return
       }
-
-      if(errors){
-        let keys = Object.keys(errors)
-        keys.forEach(item => {
-          let [first] = errors[item]
-          return first;  
-        })
+      if (data.error_key) {
+        this.error = data.error_key.replace(/_/g, ' ')
+        return
       }
-
-      this.error = JSON.parse(JSON.stringify(errors))
+      this.error = 'An unexpected error occurred'
     },
     _readableNumbers(number) {
       new Intl.NumberFormat('en', { notation: 'compact' }).format(number)

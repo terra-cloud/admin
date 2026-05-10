@@ -18,13 +18,22 @@
         <div v-if="success" class="w-full mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-sm">{{ success }}</div>
 
         <div class="w-full flex flex-col gap-6">
-          <label class="flex flex-col gap-2">
-            <p class="text-text-light dark:text-text-dark text-sm font-medium">Name</p>
-            <div class="relative flex items-center">
-              <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">badge</span>
-              <input v-model="name" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-4 text-base font-normal shadow-soft" placeholder="Enter your name"/>
-            </div>
-          </label>
+          <div class="flex gap-4">
+            <label class="flex flex-1 flex-col gap-2">
+              <p class="text-text-light dark:text-text-dark text-sm font-medium">First Name <span class="text-primary">*</span></p>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">badge</span>
+                <input v-model="firstname" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-4 text-base font-normal shadow-soft" placeholder="First name"/>
+              </div>
+            </label>
+            <label class="flex flex-1 flex-col gap-2">
+              <p class="text-text-light dark:text-text-dark text-sm font-medium">Last Name <span class="text-primary">*</span></p>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">badge</span>
+                <input v-model="lastname" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-4 text-base font-normal shadow-soft" placeholder="Last name"/>
+              </div>
+            </label>
+          </div>
 
           <label class="flex flex-col gap-2">
             <p class="text-text-light dark:text-text-dark text-sm font-medium">Email <span class="text-primary">*</span></p>
@@ -58,8 +67,9 @@
         </div>
 
         <div class="w-full mt-8 flex flex-col gap-4">
-          <button @click="signup" class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white text-base font-bold tracking-wide shadow-soft hover:bg-primary/90 transition-all duration-200">
-            <span class="truncate">Sign Up</span>
+          <button @click="signup" :disabled="loading" class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white text-base font-bold tracking-wide shadow-soft hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200">
+            <span v-if="loading" class="truncate">Creating account...</span>
+            <span v-else class="truncate">Sign Up</span>
           </button>
           <p class="text-text-muted-light dark:text-text-muted-dark text-sm text-center">
             Already have an account?
@@ -72,13 +82,15 @@
 </template>
 
 <script>
-import { apiRegister, apiLogin } from '@/apis/auth'
+import { apiRegister } from '@/apis/auth'
+import { setAccessToken, setAdmin } from '@/stores/auth'
 
 export default {
   name: 'Signup',
   data() {
     return {
-      name: '',
+      firstname: '',
+      lastname: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -86,6 +98,7 @@ export default {
       showConfirmPassword: false,
       error: '',
       success: '',
+      loading: false,
     };
   },
   methods: {
@@ -93,7 +106,7 @@ export default {
       this.error = '';
       this.success = '';
 
-      if (!this.name || !this.email || !this.password || !this.confirmPassword) {
+      if (!this.firstname || !this.lastname || !this.email || !this.password || !this.confirmPassword) {
         this.error = 'All fields are required';
         return;
       }
@@ -103,38 +116,31 @@ export default {
         return;
       }
 
+      this.loading = true;
+
       try {
         const response = await apiRegister({
-          name: this.name,
+          firstname: this.firstname,
+          lastname: this.lastname,
           email: this.email,
           password: this.password,
-          password_confirmation: this.confirmPassword,
         });
-        this.success = 'Registration successful! Redirecting to dashboard...';
-        if(response.status == 200){
+        if (response.data?.access_token) {
+          setAccessToken(response.data.access_token)
+          setAdmin(response.data.admin)
+          this.$router.push({name: 'dashboard'})
+        } else {
+          this.success = 'Registration successful! Redirecting to login...';
           setTimeout(() => {
-            this.handleLogin()
-          }, 1500);
+            this.$router.push({name: 'login'})
+          }, 3000)
         }
       } catch (error) {
-        this.error = error.response?.data?.message || 'Registration failed';
+        this.error = error.response?.data?.error || error.message || 'Registration failed';
+      } finally {
+        this.loading = false
       }
     },
-    handleLogin(){
-      apiLogin({
-        email: this.email,
-        password: this.password
-      })
-      .then(({data}) => {
-        if(data && data.token) {
-          localStorage.setItem('token', data.token)
-          this.$router.push({name: 'dashboard'})
-        }
-      })
-      .catch((error) => {
-        this._catchErrors(error)
-      })
-    }
   },
 };
 </script>
