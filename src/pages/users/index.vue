@@ -1,131 +1,146 @@
 <template>
   <div>
-    <!-- Main Content -->
-    <div>
-      <div class="page-container">
-        <h1 class="mb-4">Users</h1>
-        <!-- Summary Metrics -->
-        <div class="row mb-4">
-          <div class="col-md-4 col-lg-2 mb-3" v-for="metric in metrics" :key="metric.id">
-            <div class="card h-100">
-              <div class="card-body text-center">
-                <h5 class="card-title">{{ metric.title }}</h5>
-                <p class="card-text display-6">{{ metric.value }}</p>
-                <p class="card-text text-muted">{{ metric.description }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-body">
-            <div class="mb-3 row">
-              <div class="col-md-4">
-                <label for="searchQuery" class="form-label">Search Users</label>
-                <input
-                  id="searchQuery"
-                  type="text"
-                  class="form-control"
-                  v-model="searchQuery"
-                  placeholder="Search by name or email..."
-                />
-              </div>
-              <div class="col-md-4">
-                <label for="filterType" class="form-label">Filter by Type</label>
-                <select
-                  id="filterType"
-                  class="form-select"
-                  multiple
-                  v-model="filterTypes"
-                >
-                  <option value="All">All</option>
-                  <option value="User">User</option>
-                  <option value="Employer">Employer</option>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label for="filterKycStatus" class="form-label">Filter by KYC Status</label>
-                <select
-                  id="filterKycStatus"
-                  class="form-select"
-                  multiple
-                  v-model="filterKycStatuses"
-                >
-                  <option value="All">All</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
-            </div>
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th class="text-center">Photo</th>
-                    <th @click="sort('name')">Name <i class="fas" :class="sortIcon('name')"></i></th>
-                    <th @click="sort('email')">Email <i class="fas" :class="sortIcon('email')"></i></th>
-                    <th @click="sort('account_type')">Type <i class="fas" :class="sortIcon('account_type')"></i></th>
-                    <th @click="sort('kyc_validated')">
-                      Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i>
-                    </th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="user in paginatedUsers" :key="user.id">
-                    <td class="text-center">
-                      <img
-                        v-if="user.photo_url"
-                        :src="user.photo_url"
-                        class="user-photo"
-                        alt="User Photo"
-                      />
-                      <span v-else>No Photo</span>
-                    </td>
-                    <td>{{ user.name }} {{ user.last_name }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.type }}</td>
-                    <td>{{ displayStatus(user.kyc_validated) }}</td>
-                    <td>
-                      <button
-                        class="btn btn-sm btn-outline-primary me-2"
-                        @click="openEditModal(user)"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        class="btn btn-sm btn-outline-warning me-2"
-                        @click="openKycModal(user)"
-                      >
-                        KYC
-                      </button>
-                      <button
-                        class="btn btn-sm btn-outline-danger"
-                        @click="openDeleteModal(user.id)"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <!-- Pagination Controls -->
-            <Pagination
-              :currentPage="currentPage"
-              :totalPages="totalPages"
-              :tableData="tableData"
-              @setPage="setPage"
-              @prevPage="prevPage"
-              @nextPage="nextPage"
-              @firstPage="setPage(1)"
-              @lastPage="setPage(totalPages)"
-            />
-          </div>
+    <div class="p-6">
+      <h1 class="text-2xl font-bold text-text-primary mb-6">Users</h1>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div
+          v-for="metric in metrics"
+          :key="metric.id"
+          class="bg-white rounded-xl shadow-soft p-6 text-center"
+        >
+          <h5 class="text-sm font-medium text-text-light mb-1">{{ metric.title }}</h5>
+          <p class="text-3xl font-bold text-text-primary mb-1">{{ metric.value }}</p>
+          <p class="text-xs text-text-muted-light">{{ metric.description }}</p>
         </div>
       </div>
+
+      <div class="bg-white rounded-xl shadow-soft p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <label for="searchQuery" class="block text-sm font-medium text-text-light mb-1">Search Users</label>
+            <input
+              id="searchQuery"
+              type="text"
+              class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
+              v-model="searchQuery"
+              placeholder="Search by name or email..."
+            />
+          </div>
+          <div>
+            <label for="filterType" class="block text-sm font-medium text-text-light mb-1">Filter by Type</label>
+            <select
+              id="filterType"
+              class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none h-[100px]"
+              multiple
+              v-model="filterTypes"
+            >
+              <option value="All">All</option>
+              <option value="User">User</option>
+              <option value="Employer">Employer</option>
+            </select>
+          </div>
+          <div>
+            <label for="filterKycStatus" class="block text-sm font-medium text-text-light mb-1">Filter by KYC Status</label>
+            <select
+              id="filterKycStatus"
+              class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none h-[100px]"
+              multiple
+              v-model="filterKycStatuses"
+            >
+              <option value="All">All</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="border-b border-gray-100">
+                <th class="px-4 py-3 text-left text-xs font-medium text-text-muted-light uppercase tracking-wider">Photo</th>
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-text-muted-light uppercase tracking-wider cursor-pointer"
+                  @click="sort('name')"
+                >
+                  Name <i class="fas" :class="sortIcon('name')"></i>
+                </th>
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-text-muted-light uppercase tracking-wider cursor-pointer"
+                  @click="sort('email')"
+                >
+                  Email <i class="fas" :class="sortIcon('email')"></i>
+                </th>
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-text-muted-light uppercase tracking-wider cursor-pointer"
+                  @click="sort('account_type')"
+                >
+                  Type <i class="fas" :class="sortIcon('account_type')"></i>
+                </th>
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-text-muted-light uppercase tracking-wider cursor-pointer"
+                  @click="sort('kyc_validated')"
+                >
+                  Kyc Status <i class="fas" :class="sortIcon('kyc_validated')"></i>
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-text-muted-light uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in paginatedUsers" :key="user.id" class="border-b border-gray-100">
+                <td class="px-4 py-3 text-sm">
+                  <img
+                    v-if="user.photo_url"
+                    :src="user.photo_url"
+                    class="w-8 h-8 rounded-full object-cover"
+                    alt="User Photo"
+                  />
+                  <span v-else class="text-text-muted-light text-xs">No Photo</span>
+                </td>
+                <td class="px-4 py-3 text-sm text-text-primary">{{ user.name }} {{ user.last_name }}</td>
+                <td class="px-4 py-3 text-sm text-text-primary">{{ user.email }}</td>
+                <td class="px-4 py-3 text-sm text-text-primary">{{ user.type }}</td>
+                <td class="px-4 py-3 text-sm text-text-primary">{{ displayStatus(user.kyc_validated) }}</td>
+                <td class="px-4 py-3 text-sm">
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-primary hover:bg-primary/5"
+                    @click="openEditModal(user)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-amber-600 hover:bg-amber-50"
+                    @click="openKycModal(user)"
+                  >
+                    KYC
+                  </button>
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-red-600 hover:bg-red-50"
+                    @click="openDeleteModal(user.id)"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          :tableData="tableData"
+          @setPage="setPage"
+          @prevPage="prevPage"
+          @nextPage="nextPage"
+          @firstPage="setPage(1)"
+          @lastPage="setPage(totalPages)"
+        />
+      </div>
     </div>
-    <!-- Edit User Modal Component -->
+
     <UserModal
       v-if="showEditModal"
       :user="selectedUser"
@@ -133,7 +148,6 @@
       @save="saveUser"
       @close="closeEditModal"
     />
-    <!-- KYC Status Modal Component -->
     <KycStatusModal
       v-if="showKycModal"
       :user="selectedKycUser"
@@ -141,7 +155,6 @@
       @save="saveKycStatus"
       @close="closeKycModal"
     />
-    <!-- Delete Confirmation Modal Component -->
     <ConfirmDialog
       v-if="showDeleteModal"
       :currentId="selectedDeleteUserId"
@@ -343,12 +356,7 @@ export default {
       this.mobileSidebarOpen = !this.mobileSidebarOpen;
     },
     toggleTheme() {
-      document.body.classList.toggle('bg-dark', this.darkMode);
-      document.body.classList.toggle('text-white', this.darkMode);
-      document.querySelectorAll('.card').forEach(card => {
-        card.classList.toggle('bg-dark', this.darkMode);
-        card.classList.toggle('text-white', this.darkMode);
-      });
+      document.documentElement.classList.toggle('dark', this.darkMode);
     },
     sort(key) {
       if (this.sortKey === key) {

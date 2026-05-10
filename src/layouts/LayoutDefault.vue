@@ -1,56 +1,49 @@
 <template>
-  <!-- <div class="" style="background: #f6f6f6;"> -->
-    <LeftSidebar :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" />
-
-    <div class="content">
-      <Content />
+  <div class="min-h-screen bg-background-light font-display">
+    <LeftSidebar
+      :sidebarOpen="sidebarOpen"
+      :mobileSidebarOpen="mobileSidebarOpen"
+      @toggle-sidebar="toggleSidebar"
+    />
+    <Header
+      :mobileSidebarOpen="mobileSidebarOpen"
+      @toggle-mobile-sidebar="toggleMobileSidebar"
+    />
+    <div
+      class="pt-16 transition-all duration-300 min-h-screen"
+      :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-[70px]'"
+    >
+      <main class="p-6">
+        <Content />
+      </main>
     </div>
-    <Header />
-
-  <!-- </div> -->
+  </div>
 </template>
-<script>
-  export default {
-    data() {
-      return {
-        sidebarOpen: true,
-        mobileSidebarOpen: false,
-      };
-    },
-    methods: {
-      toggleSidebar() {
-        this.sidebarOpen = !this.sidebarOpen;
-        this.mobileSidebarOpen = false; // Close mobile sidebar when toggling desktop sidebar
-      },
-      toggleMobileSidebar() {
-        this.mobileSidebarOpen = !this.mobileSidebarOpen;
-        if (this.mobileSidebarOpen) {
-          this.sidebarOpen = true; // Ensure sidebar is expanded when opened on mobile
-        }
-      },
-    },
-    watch: {
-      mobileSidebarOpen(newVal) {
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
-          sidebar.classList.toggle('show', newVal);
-        }
-      },
-      sidebarOpen() {
-        // Force layout recalculation to ensure smooth transitions
-        this.$nextTick(() => {
-          window.dispatchEvent(new Event('resize'));
-        });
-      },
-    },
-    computed: {
-      cols () {
-        const { lg, sm } = this.$vuetify.display
-        return lg ? [3, 9]
-          : sm ? [9, 3]
-            : [6, 6]
-      },
 
+<script>
+import LeftSidebar from './LeftSidebar.vue';
+import Header from './Header.vue';
+import Content from './Content.vue';
+
+export default {
+  components: { LeftSidebar, Header, Content },
+  data() {
+    return {
+      sidebarOpen: true,
+      mobileSidebarOpen: false,
+    };
+  },
+  methods: {
+    toggleSidebar() {
+      this.sidebarOpen = !this.sidebarOpen;
+      this.mobileSidebarOpen = false;
     },
-  }
+    toggleMobileSidebar() {
+      this.mobileSidebarOpen = !this.mobileSidebarOpen;
+      if (this.mobileSidebarOpen) {
+        this.sidebarOpen = true;
+      }
+    },
+  },
+};
 </script>

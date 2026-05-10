@@ -1,34 +1,29 @@
 <template>
-  <div
-    class="modal fade"
-    :id="'deleteModal-' + currentId"
-    tabindex="-1"
-    aria-labelledby="deleteModalLabel"
-    aria-hidden="true"
-    data-bs-backdrop="static"
-    data-bs-keyboard="false"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="$emit('close')"></button>
-        </div>
-        <div class="modal-body">
-          {{ message }}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="$emit('close')">Cancel</button>
-          <button type="button" class="btn btn-danger" @click="$emit('confirm', currentId)">Delete</button>
-        </div>
+  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 bg-black/50"></div>
+    <div class="relative bg-card-light rounded-lg shadow-lifted w-full max-w-md mx-4">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <h5 class="text-lg font-semibold text-text-light">Confirm Delete</h5>
+        <button class="text-gray-400 hover:text-gray-600 text-xl leading-none" @click="$emit('close')" aria-label="Close">&times;</button>
+      </div>
+      <div class="px-6 py-4 text-text-light text-sm">
+        {{ message }}
+      </div>
+      <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
+        <button
+          class="px-4 py-2 rounded bg-gray-200 text-gray-800 text-sm hover:bg-gray-300 transition-colors"
+          @click="$emit('close')"
+        >Cancel</button>
+        <button
+          class="px-4 py-2 rounded bg-red-600 text-white text-sm hover:bg-red-700 transition-colors"
+          @click="$emit('confirm', currentId)"
+        >Delete</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { Modal } from 'bootstrap';
-
 export default {
   name: 'ConfirmDialog',
   props: {
@@ -45,45 +40,6 @@ export default {
       default: false
     }
   },
-  data() {
-    return {
-      modalInstance: null
-    };
-  },
-  watch: {
-    show(newShow) {
-      this.$nextTick(() => {
-        if (!this.modalInstance) {
-          this.modalInstance = new Modal(this.$el, {
-            backdrop: 'static',
-            keyboard: false
-          });
-        }
-        if (newShow) {
-          this.modalInstance.show();
-        } else {
-          this.modalInstance.hide();
-        }
-      });
-    }
-  },
-  beforeUnmount() {
-    if (this.modalInstance) {
-      this.modalInstance.dispose();
-    }
-  }
+  emits: ['confirm', 'close']
 };
 </script>
-
-<style scoped>
-.modal-dialog {
-  max-width: 400px;
-}
-.btn {
-  min-height: 38px;
-  line-height: 1.5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>

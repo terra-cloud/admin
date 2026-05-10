@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #137fec;
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #101922;
+  --color-card-light: #ffffff;
+  --color-card-dark: #1a2632;
+  --color-input-light: #f0f2f5;
+  --color-input-dark: #2c3a47;
+  --color-text-light: #0d141b;
+  --color-text-dark: #e0e6eb;
+  --color-text-muted-light: #64748b;
+  --color-text-muted-dark: #94a3b8;
+  --font-display: "Inter", sans-serif;
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lifted: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
+}
+
+.auth-bg {
+  background-image: radial-gradient(circle at top left, #e0e6eb 0%, #f6f7f8 50%, #e0e6eb 100%);
+}
+
+.dark .auth-bg {
+  background-image: radial-gradient(circle at top left, #1a2632 0%, #101922 50%, #1a2632 100%);
+}

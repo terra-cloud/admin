@@ -1,62 +1,70 @@
 <template>
-  <div class="container mt-5">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header">
-            <h3 class="text-center">Sign Up</h3>
+  <div class="auth-bg relative flex h-auto min-h-screen w-full flex-col items-center justify-center p-4 overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col justify-center w-full max-w-md">
+      <div class="flex flex-col items-center justify-center p-6 md:p-10 bg-card-light dark:bg-card-dark rounded-xl shadow-lifted">
+        <div class="flex flex-col items-center gap-4 mb-8">
+          <svg class="text-primary" fill="none" height="48" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+          <div class="flex flex-col items-center gap-2 text-center">
+            <p class="text-text-light dark:text-text-dark text-3xl font-bold tracking-tight">Create Account</p>
+            <p class="text-text-muted-light dark:text-text-muted-dark text-base font-normal">Join Terra PH Admin today.</p>
           </div>
-          <div class="card-body">
-            <div v-if="error" class="alert alert-danger">{{ error }}</div>
-            <div v-if="success" class="alert alert-success">{{ success }}</div>
-            
-            <div class="mb-3">
-              <label for="email" class="form-label">Email <span class="red">*</span></label>
-              <input v-model="email" type="email" class="form-control" id="email" placeholder="Enter email">
+        </div>
+
+        <div v-if="error" class="w-full mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">{{ error }}</div>
+        <div v-if="success" class="w-full mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-sm">{{ success }}</div>
+
+        <div class="w-full flex flex-col gap-6">
+          <label class="flex flex-col gap-2">
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">Name</p>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">badge</span>
+              <input v-model="name" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-4 text-base font-normal shadow-soft" placeholder="Enter your name"/>
             </div>
-            <div class="mb-3">
-              <label for="name" class="form-label">Name</label>
-              <input v-model="name" type="text" class="form-control" id="name" placeholder="Enter name">
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">Email <span class="text-primary">*</span></p>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">email</span>
+              <input v-model="email" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-4 text-base font-normal shadow-soft" placeholder="Enter your email"/>
             </div>
-            <div class="mb-3 position-relative">
-              <label for="password" class="form-label">Password</label>
-              <input 
-                v-model="password" 
-                :type="showPassword ? 'text' : 'password'" 
-                class="form-control" 
-                id="password" 
-                placeholder="Enter password"
-              >
-              <span 
-                class="position-absolute end-0 pe-3" 
-                style="cursor: pointer;"
-                @click="showPassword = !showPassword"
-              >
-                <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-              </span>
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">Password</p>
+            <div class="relative flex w-full items-center rounded-lg">
+              <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">lock</span>
+              <input v-model="password" :type="showPassword ? 'text' : 'password'" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-12 text-base font-normal shadow-soft" placeholder="Enter your password"/>
+              <button type="button" aria-label="Toggle password visibility" class="absolute right-4 text-text-muted-light dark:text-text-muted-dark cursor-pointer" @click="showPassword = !showPassword">
+                <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+              </button>
             </div>
-            <div class="mb-3 position-relative">
-              <label for="confirmPassword" class="form-label">Confirm Password</label>
-              <input 
-                v-model="confirmPassword" 
-                :type="showConfirmPassword ? 'text' : 'password'" 
-                class="form-control" 
-                id="confirmPassword" 
-                placeholder="Confirm password"
-              >
-              <span 
-                class="position-absolute end-0 pe-3" 
-                style="cursor: pointer;"
-                @click="showConfirmPassword = !showConfirmPassword"
-              >
-                <i :class="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-              </span>
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">Confirm Password</p>
+            <div class="relative flex w-full items-center rounded-lg">
+              <span class="material-symbols-outlined absolute left-4 text-text-muted-light dark:text-text-muted-dark">lock</span>
+              <input v-model="confirmPassword" :type="showConfirmPassword ? 'text' : 'password'" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 border-none bg-input-light dark:bg-input-dark h-14 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark pl-12 pr-12 text-base font-normal shadow-soft" placeholder="Confirm your password"/>
+              <button type="button" aria-label="Toggle password visibility" class="absolute right-4 text-text-muted-light dark:text-text-muted-dark cursor-pointer" @click="showConfirmPassword = !showConfirmPassword">
+                <span class="material-symbols-outlined">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+              </button>
             </div>
-            <button @click="signup" class="btn btn-primary w-100">Sign Up</button>
-            <p class="mt-3 text-center">
-              Already have an account? <router-link to="/login">Login</router-link>
-            </p>
-          </div>
+          </label>
+        </div>
+
+        <div class="w-full mt-8 flex flex-col gap-4">
+          <button @click="signup" class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white text-base font-bold tracking-wide shadow-soft hover:bg-primary/90 transition-all duration-200">
+            <span class="truncate">Sign Up</span>
+          </button>
+          <p class="text-text-muted-light dark:text-text-muted-dark text-sm text-center">
+            Already have an account?
+            <router-link class="font-medium text-primary hover:underline" to="/login">Login</router-link>
+          </p>
         </div>
       </div>
     </div>
@@ -64,12 +72,7 @@
 </template>
 
 <script>
-// Uncomment the following line if using axios for API calls
-// import axios from 'axios';
-import {
-  apiRegister,
-  apiLogin
-} from '@/apis/auth'
+import { apiRegister, apiLogin } from '@/apis/auth'
 
 export default {
   name: 'Signup',
@@ -87,23 +90,19 @@ export default {
   },
   methods: {
     async signup() {
-      // Clear previous messages
       this.error = '';
       this.success = '';
 
-      // Basic validation
       if (!this.name || !this.email || !this.password || !this.confirmPassword) {
         this.error = 'All fields are required';
         return;
       }
 
-      // Password confirmation validation
       if (this.password !== this.confirmPassword) {
         this.error = 'Passwords do not match';
         return;
       }
 
-      // Optional: Example API call with axios (uncomment to use)
       try {
         const response = await apiRegister({
           name: this.name,
@@ -139,11 +138,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-/* Ensure the eye icon is properly positioned */
-.position-absolute {
-  top: 55%; /* Adjust to align with input field */
-}
-
-</style>

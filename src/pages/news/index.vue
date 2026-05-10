@@ -1,14 +1,20 @@
 <template>
-  <div class="container-fluid">
-    <h1 class="mb-4">News</h1>
-    <!-- Toast Component -->
+  <div>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-text-light">News</h1>
+      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-primary text-white hover:bg-primary/90" @click="showForm = true">
+        <i class="fas fa-plus" aria-hidden="true"></i>
+        Add News
+      </button>
+    </div>
+
     <Toast
       :message="toastMessage"
       :type="toastType"
       :showConfirmButtons="false"
       @cancel="hideToast"
     />
-    <!-- Confirm Dialog Component -->
+
     <ConfirmDialog
       :show="isConfirmDialogVisible"
       :message="confirmMessage"
@@ -16,107 +22,105 @@
       @confirm="confirmDelete"
       @close="hideConfirmDialog"
     />
-    <!-- Add News Button -->
-    <div class="mb-4 col-12 d-flex justify-content-end">
-      <button class="btn btn-success" @click="showFormModal"><i class="fas fa-plus me-1" aria-hidden="true"></i> Add News</button>
-    </div>
-    <!-- News List -->
-    <div class="card">
-      <div class="card-body">
-        <div class="mb-3 row">
-          <div class="col-md-4">
-            <label for="searchQuery" class="form-label">Search News</label>
-            <input
-              id="searchQuery"
-              type="text"
-              class="form-control"
-              v-model="searchQuery"
-              placeholder="Search by title or description..."
-            />
-          </div>
-          <div class="col-md-4">
-            <label for="filterStatus" class="form-label">Filter by Status</label>
-            <select
-              id="filterStatus"
-              class="form-select"
-              multiple
-              v-model="filterStatuses"
-            >
-              <option value="All">All</option>
-              <option value="Draft">Draft</option>
-              <option value="Published">Published</option>
-              <option value="Archived">Archived</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label for="filterType" class="form-label">Filter by Type</label>
-            <select
-              id="filterType"
-              class="form-select"
-              multiple
-              v-model="filterTypes"
-            >
-              <option value="All">All</option>
-              <option value="General">General</option>
-              <option value="Event">Event</option>
-              <option value="Update">Update</option>
-            </select>
-          </div>
+
+    <div class="bg-white rounded-xl shadow-soft p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label for="searchQuery" class="block text-sm font-medium text-text-muted-light mb-1.5">Search News</label>
+          <input
+            id="searchQuery"
+            type="text"
+            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none"
+            v-model="searchQuery"
+            placeholder="Search by title or description..."
+          />
         </div>
-        <div class="table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th class="text-center" scope="col">Image</th>
-                <th @click="sort('title')" class="sortable" :class="{ 'sorted': sortKey === 'title' }">
-                  Title
-                  <i class="fas" :class="sortIcon('title')"></i>
-                </th>
-                <th @click="sort('description')" class="sortable" :class="{ 'sorted': sortKey === 'description' }">
-                  Description
-                  <i class="fas" :class="sortIcon('description')"></i>
-                </th>
-                <th @click="sort('status')" class="sortable" :class="{ 'sorted': sortKey === 'status' }">
-                  Status
-                  <i class="fas" :class="sortIcon('status')"></i>
-                </th>
-                <th @click="sort('type')" class="sortable" :class="{ 'sorted': sortKey === 'type' }">
-                  Type
-                  <i class="fas" :class="sortIcon('type')"></i>
-                </th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="news in paginatedNews" :key="news.id">
-                <td class="text-center">
-                  <img
-                    v-if="news.image_url"
-                    :src="news.image_url"
-                    alt="News Image"
-                    class="img-thumbnail"
-                    style="max-width: 50px;"
-                  />
-                  <span v-else>N/A</span>
-                </td>
-                <td>{{ news.title }}</td>
-                <td>{{ $filters.truncate(news.description, 50) }}</td>
-                <td>
-                  <span :class="getStatusBadgeClass(news.status)">
-                    {{ mapStatus(news.status) }}
-                  </span>
-                </td>
-                <td>{{ news.type }}</td>
-                <td>
-                  <button class="btn btn-sm btn-outline-primary me-2" @click="editNews(news)">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.id, news.image_url)">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div>
+          <label for="filterStatus" class="block text-sm font-medium text-text-muted-light mb-1.5">Filter by Status</label>
+          <select
+            id="filterStatus"
+            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none"
+            multiple
+            v-model="filterStatuses"
+          >
+            <option value="All">All</option>
+            <option value="Draft">Draft</option>
+            <option value="Published">Published</option>
+            <option value="Archived">Archived</option>
+          </select>
+        </div>
+        <div>
+          <label for="filterType" class="block text-sm font-medium text-text-muted-light mb-1.5">Filter by Type</label>
+          <select
+            id="filterType"
+            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none"
+            multiple
+            v-model="filterTypes"
+          >
+            <option value="All">All</option>
+            <option value="General">General</option>
+            <option value="Event">Event</option>
+            <option value="Update">Update</option>
+          </select>
         </div>
       </div>
-      <!-- Pagination -->
+
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="text-center px-4 py-3 text-xs font-semibold text-text-muted-light uppercase tracking-wider">Image</th>
+              <th @click="sort('title')" class="sortable px-4 py-3 text-xs font-semibold text-text-muted-light uppercase tracking-wider text-left" :class="{ 'text-primary': sortKey === 'title' }">
+                Title
+                <i class="fas" :class="sortIcon('title')"></i>
+              </th>
+              <th @click="sort('description')" class="sortable px-4 py-3 text-xs font-semibold text-text-muted-light uppercase tracking-wider text-left" :class="{ 'text-primary': sortKey === 'description' }">
+                Description
+                <i class="fas" :class="sortIcon('description')"></i>
+              </th>
+              <th @click="sort('status')" class="sortable px-4 py-3 text-xs font-semibold text-text-muted-light uppercase tracking-wider text-left" :class="{ 'text-primary': sortKey === 'status' }">
+                Status
+                <i class="fas" :class="sortIcon('status')"></i>
+              </th>
+              <th @click="sort('type')" class="sortable px-4 py-3 text-xs font-semibold text-text-muted-light uppercase tracking-wider text-left" :class="{ 'text-primary': sortKey === 'type' }">
+                Type
+                <i class="fas" :class="sortIcon('type')"></i>
+              </th>
+              <th class="px-4 py-3 text-xs font-semibold text-text-muted-light uppercase tracking-wider text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="news in paginatedNews" :key="news.id" class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              <td class="text-center px-4 py-3">
+                <img
+                  v-if="news.image_url"
+                  :src="news.image_url"
+                  alt="News Image"
+                  class="rounded-lg object-cover inline-block"
+                  style="width: 50px; height: 50px;"
+                />
+                <span v-else class="text-sm text-text-muted-light">N/A</span>
+              </td>
+              <td class="px-4 py-3 text-sm text-text-light">{{ news.title }}</td>
+              <td class="px-4 py-3 text-sm text-text-light">{{ $filters.truncate(news.description, 50) }}</td>
+              <td class="px-4 py-3">
+                <span :class="getStatusBadgeClass(news.status)">
+                  {{ mapStatus(news.status) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-text-light">{{ news.type }}</td>
+              <td class="px-4 py-3">
+                <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-gray-300 text-text-light hover:bg-gray-50 mr-2" @click="editNews(news)">Edit</button>
+                <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-300 text-red-600 hover:bg-red-50" @click="deleteNews(news.id, news.image_url)">Delete</button>
+              </td>
+            </tr>
+            <tr v-if="paginatedNews.length === 0">
+              <td colspan="6" class="text-center px-4 py-8 text-sm text-text-muted-light">No news found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <Pagination
         :currentPage="currentPage"
         :totalPages="totalPages"
@@ -128,80 +132,82 @@
         @lastPage="setPage(totalPages)"
       />
     </div>
-    <!-- Form Modal -->
-    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="formModalLabel">{{ editMode ? 'Edit News' : 'Add News' }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="cancelEdit"></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="saveNews">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="title" class="form-label">Title</label>
-                  <input
-                    id="title"
-                    type="text"
-                    class="form-control"
-                    v-model="currentNews.title"
-                    required
-                    placeholder="Enter news title"
-                    :disabled="isSaving"
-                  />
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="type" class="form-label">Type</label>
-                  <select id="type" class="form-select" v-model="currentNews.type" required :disabled="isSaving">
-                    <option value="General">General</option>
-                    <option value="Event">Event</option>
-                    <option value="Update">Update</option>
-                  </select>
-                </div>
-                <div class="col-12 mb-3">
-                  <label for="description" class="form-label">Description</label>
-                  <textarea
-                    id="description"
-                    class="form-control"
-                    v-model="currentNews.description"
-                    rows="4"
-                    placeholder="Enter news description"
-                    :disabled="isSaving"
-                  ></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="status" class="form-label">Status</label>
-                  <select id="status" class="form-select" v-model.number="currentNews.status" required :disabled="isSaving">
-                    <option :value="0">Draft</option>
-                    <option :value="1">Published</option>
-                    <option :value="2">Archived</option>
-                  </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="imageUploader" class="form-label">Image</label>
-                  <ImageUploader
-                    :mainAspectRatio="16/9"
-                    :photo="currentNews.image_url"
-                    :dimensionText="'Recommended: 800x800px'"
-                    :minHeight="'100'"
-                    :maxHeight="'100'"
-                    :disabled="isSaving"
-                    @setPhoto="updateImage"
-                  />
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" @click="cancelEdit" :disabled="isSaving">Cancel</button>
-                  <button type="submit" class="btn btn-success" style="margin-top:16px;" :disabled="isSaving">
-                    <span v-if="isSaving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                    <i v-if="!isSaving" class="fas fa-plus me-1" aria-hidden="true"></i>
-                    {{ isSaving ? 'Saving...' : editMode ? 'Update' : 'Add' }}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
+
+    <div v-if="showForm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="cancelEdit">
+      <div class="bg-white rounded-xl shadow-lifted max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-text-light">{{ editMode ? 'Edit News' : 'Add News' }}</h2>
+          <button class="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted-light hover:bg-gray-100 transition-colors" @click="cancelEdit" :disabled="isSaving">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
+        <form @submit.prevent="saveNews">
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="title" class="block text-sm font-medium text-text-muted-light mb-1.5">Title</label>
+                <input
+                  id="title"
+                  type="text"
+                  class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none"
+                  v-model="currentNews.title"
+                  required
+                  placeholder="Enter news title"
+                  :disabled="isSaving"
+                />
+              </div>
+              <div>
+                <label for="type" class="block text-sm font-medium text-text-muted-light mb-1.5">Type</label>
+                <select id="type" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none" v-model="currentNews.type" required :disabled="isSaving">
+                  <option value="General">General</option>
+                  <option value="Event">Event</option>
+                  <option value="Update">Update</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="description" class="block text-sm font-medium text-text-muted-light mb-1.5">Description</label>
+              <textarea
+                id="description"
+                class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none"
+                v-model="currentNews.description"
+                rows="4"
+                placeholder="Enter news description"
+                :disabled="isSaving"
+              ></textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="status" class="block text-sm font-medium text-text-muted-light mb-1.5">Status</label>
+                <select id="status" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none" v-model.number="currentNews.status" required :disabled="isSaving">
+                  <option :value="0">Draft</option>
+                  <option :value="1">Published</option>
+                  <option :value="2">Archived</option>
+                </select>
+              </div>
+              <div>
+                <label for="imageUploader" class="block text-sm font-medium text-text-muted-light mb-1.5">Image</label>
+                <ImageUploader
+                  :mainAspectRatio="16/9"
+                  :photo="currentNews.image_url"
+                  :dimensionText="'Recommended: 800x800px'"
+                  :minHeight="'100'"
+                  :maxHeight="'100'"
+                  :disabled="isSaving"
+                  @setPhoto="updateImage"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+            <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-300 text-text-light hover:bg-gray-50" @click="cancelEdit" :disabled="isSaving">Cancel</button>
+            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-primary text-white hover:bg-primary/90" :disabled="isSaving">
+              <span v-if="isSaving" class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" role="status" aria-hidden="true"></span>
+              <i v-if="!isSaving" class="fas fa-plus" aria-hidden="true"></i>
+              {{ isSaving ? 'Saving...' : editMode ? 'Update' : 'Add' }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -213,7 +219,6 @@ import Pagination from '@/components/Pagination.vue';
 import Toast from '@/components/Toast.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
-import { Modal } from 'bootstrap';
 
 export default {
   components: {
@@ -234,9 +239,9 @@ export default {
         image_url: ''
       },
       editMode: false,
+      showForm: false,
       currentPage: 1,
       newsPerPage: 10,
-      formModal: null,
       toastMessage: '',
       toastType: '',
       isConfirmDialogVisible: false,
@@ -364,11 +369,6 @@ export default {
         }
       });
     },
-    showFormModal() {
-      this.resetForm();
-      this.editMode = false;
-      this.formModal.show();
-    },
     async saveNews() {
       if (this.isSaving) return;
       this.isSaving = true;
@@ -385,7 +385,6 @@ export default {
             if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
             const blob = await response.blob();
             imageToUpload = new File([blob], `news_image_${Date.now()}.png`, { type: 'image/png' });
-            console.log('Image converted to File:', imageToUpload);
           } catch (error) {
             console.error('Error converting image:', error);
             this.showToast('Failed to process image: ' + error.message, 'error');
@@ -393,10 +392,8 @@ export default {
             return;
           }
         } else if (this.currentNews.image_url && !this.editMode) {
-          console.warn('Image URL is not a data URL and editMode is false, skipping upload:', this.currentNews.image_url);
-          this.currentNews.image_url = ''; // Clear invalid image_url for new news
+          this.currentNews.image_url = '';
         }
-        console.log('Saving news with image:', imageToUpload);
         if (this.editMode) {
           if (!this.currentNews.id) {
             console.error('Cannot update: Invalid document ID:', this.currentNews.id);
@@ -410,7 +407,7 @@ export default {
           await NewsDataService.create(this.currentNews, imageToUpload);
           this.showToast('News created successfully!', 'success');
         }
-        this.formModal.hide();
+        this.showForm = false;
         this.resetForm();
       } catch (error) {
         console.error('Error saving news:', error);
@@ -427,7 +424,7 @@ export default {
       }
       this.currentNews = { ...news, id: news.id };
       this.editMode = true;
-      this.formModal.show();
+      this.showForm = true;
     },
     deleteNews(id, image_url) {
       if (!id) {
@@ -438,7 +435,6 @@ export default {
       this.showConfirmDialog('Are you sure you want to delete this news?', id);
     },
     updateImage(image) {
-      console.log('Updating image:', image);
       this.currentNews.image_url = image;
     },
     resetForm() {
@@ -455,10 +451,10 @@ export default {
       };
       this.editMode = false;
       this.isSaving = false;
+      this.showForm = false;
     },
     cancelEdit() {
       this.resetForm();
-      this.formModal.hide();
     },
     mapStatus(status) {
       const statuses = {
@@ -470,11 +466,11 @@ export default {
     },
     getStatusBadgeClass(status) {
       const classes = {
-        0: 'badge bg-secondary',
-        1: 'badge bg-success',
-        2: 'badge bg-warning',
+        0: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700',
+        1: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700',
+        2: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700',
       };
-      return classes[status] || 'badge bg-dark';
+      return classes[status] || 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700';
     },
     setPage(page) {
       if (page >= 1 && page <= this.totalPages) {
@@ -505,64 +501,21 @@ export default {
   },
   mounted() {
     this.fetchNews();
-    this.formModal = new Modal(document.getElementById('formModal'), {
-      backdrop: 'static',
-      keyboard: false
-    });
   },
   beforeUnmount() {
     if (this.currentNews.image_url && this.currentNews.image_url.startsWith('blob:')) {
       URL.revokeObjectURL(this.currentNews.image_url);
-    }
-    if (this.formModal) {
-      this.formModal.dispose();
     }
   }
 };
 </script>
 
 <style scoped>
-.card-body p {
-  margin-bottom: 0.5rem;
-}
-.card-body strong {
-  font-weight: 600;
-}
-.badge {
-  font-size: 0.8rem;
-}
-.table-responsive {
-  margin-bottom: 1rem;
-}
-.img-thumbnail {
-  max-width: 100px;
-}
-.fas {
-  font-size: 1.2rem;
-}
-.btn-success {
-  margin-bottom: 1rem;
-}
-.btn {
-  min-height: 38px;
-  line-height: 1.5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn i {
-  line-height: inherit;
-  vertical-align: middle;
-}
 .sortable {
   cursor: pointer;
   user-select: none;
 }
 .sortable:hover {
   background-color: #f8f9fa;
-}
-.sorted {
-  font-weight: bold;
-  color: #007bff;
 }
 </style>
