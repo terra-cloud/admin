@@ -82,11 +82,12 @@ export default {
       this.loading = true
       apiLogin({
         email: this.email,
-        password: this.password
+        password: this.password,
+        rememberMe: this.rememberMe
       })
       .then(({data}) => {
         if (data?.access_token) {
-          setAccessToken(data.access_token)
+          setAccessToken(data.access_token, this.rememberMe)
           setAdmin(data.admin)
           this.$router.push({name: 'dashboard'})
         }

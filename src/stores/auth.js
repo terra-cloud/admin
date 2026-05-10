@@ -6,15 +6,17 @@ const state = reactive({
 })
 
 export function getAccessToken() {
-  return localStorage.getItem('access_token')
+  return sessionStorage.getItem('access_token') || localStorage.getItem('access_token')
 }
 
-export function setAccessToken(token) {
-  if (token) {
-    localStorage.setItem('access_token', token)
-  } else {
-    localStorage.removeItem('access_token')
-  }
+export function setAccessToken(token, rememberMe = false) {
+  localStorage.removeItem('access_token');
+  sessionStorage.removeItem('access_token');
+
+  if (!token) return;
+
+  const storage = rememberMe ? localStorage : sessionStorage;
+  storage.setItem('access_token', token);
 }
 
 export function setAdmin(admin) {
@@ -24,6 +26,7 @@ export function setAdmin(admin) {
 export function clearAuth() {
   state.admin = null
   localStorage.removeItem('access_token')
+  sessionStorage.removeItem('access_token')
 }
 
 export { state }
