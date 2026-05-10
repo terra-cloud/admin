@@ -5,12 +5,14 @@ import { getAccessToken, clearAuth, setAdmin } from '@/stores/auth'
 import auth from './auth'
 import dashboard from './dashboard';
 import users from './users';
+import admins from './admins';
 import jobs from './jobs';
 import news from './news';
 const routes = [
     ...auth,
     ...dashboard,
     ...users,
+    ...admins,
     ...jobs,
     ...news
 ]
