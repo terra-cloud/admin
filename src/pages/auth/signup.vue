@@ -18,6 +18,18 @@
         <div v-if="success" class="w-full mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-sm">{{ success }}</div>
 
         <div class="w-full flex flex-col gap-6">
+          <label class="flex flex-col gap-2">
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">Account Type <span class="text-primary">*</span></p>
+            <div class="flex gap-3">
+              <button type="button" @click="adminType = 'partner'" :class="['flex-1 flex items-center justify-center gap-2 rounded-lg h-14 text-base font-medium transition-all duration-200 border-2', adminType === 'partner' ? 'bg-primary/10 text-primary border-primary' : 'bg-input-light dark:bg-input-dark text-text-muted-light dark:text-text-muted-dark border-transparent hover:border-gray-300 dark:hover:border-gray-600']">
+                <span class="material-symbols-outlined">business</span> Partner
+              </button>
+              <button type="button" @click="adminType = 'staff'" :class="['flex-1 flex items-center justify-center gap-2 rounded-lg h-14 text-base font-medium transition-all duration-200 border-2', adminType === 'staff' ? 'bg-primary/10 text-primary border-primary' : 'bg-input-light dark:bg-input-dark text-text-muted-light dark:text-text-muted-dark border-transparent hover:border-gray-300 dark:hover:border-gray-600']">
+                <span class="material-symbols-outlined">badge</span> Staff
+              </button>
+            </div>
+          </label>
+
           <div class="flex gap-4">
             <label class="flex flex-1 flex-col gap-2">
               <p class="text-text-light dark:text-text-dark text-sm font-medium">First Name <span class="text-primary">*</span></p>
@@ -64,6 +76,43 @@
               </button>
             </div>
           </label>
+
+          <template v-if="adminType === 'staff'">
+            <label class="flex flex-col gap-2">
+              <p class="text-text-light dark:text-text-dark text-sm font-medium">Partner / Employer <span class="text-primary">*</span></p>
+              <SearchableSelect
+                :options="partners"
+                icon="business"
+                placeholder="Search partner..."
+                :loading="partnersLoading"
+                @change="onPartnerChange"
+              />
+            </label>
+          </template>
+
+          <label class="flex flex-col gap-2">
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">State / Province</p>
+            <SearchableSelect
+              :options="states"
+              icon="map"
+              placeholder="Search state..."
+              :loading="statesLoading"
+              @change="onStateChange"
+            />
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <p class="text-text-light dark:text-text-dark text-sm font-medium">City / Municipality</p>
+            <SearchableSelect
+              :options="cities"
+              icon="location_city"
+              placeholder="Search city..."
+              :loading="citiesLoading"
+              :disabled="!selectedStateId"
+              @search="onCitySearch"
+              @change="onCityChange"
+            />
+          </label>
         </div>
 
         <div class="w-full mt-8 flex flex-col gap-4">
@@ -82,13 +131,15 @@
 </template>
 
 <script>
-import { apiRegister } from '@/apis/auth'
+import { apiRegister, apiListPartners } from '@/apis/auth'
+import { apiGetStates, apiGetCities } from '@/apis/gadm'
 import { setAccessToken, setAdmin } from '@/stores/auth'
 
 export default {
   name: 'Signup',
   data() {
     return {
+      adminType: 'partner',
       firstname: '',
       lastname: '',
       email: '',
@@ -99,9 +150,98 @@ export default {
       error: '',
       success: '',
       loading: false,
+      partners: [],
+      partnersLoading: false,
+      selectedPartnerId: null,
+      states: [],
+      statesLoading: false,
+      selectedStateId: null,
+      selectedStateName: '',
+      cities: [],
+      citiesLoading: false,
+      selectedCityId: null,
+      selectedCityName: '',
+      citySearchKeyword: '',
     };
   },
+  watch: {
+    adminType(val) {
+      if (val === 'staff' && this.partners.length === 0) {
+        this.fetchPartners();
+      }
+    },
+  },
+  mounted() {
+    this.fetchPartners();
+    this.fetchStates();
+  },
   methods: {
+    async fetchPartners() {
+      this.partnersLoading = true;
+      try {
+        const { data } = await apiListPartners();
+        this.partners = (data.partners || []).map(p => ({
+          id: p.id,
+          name: [p.firstname, p.lastname].filter(Boolean).join(' ') || p.email,
+        }));
+      } catch {
+        // silently fail
+      } finally {
+        this.partnersLoading = false;
+      }
+    },
+    async fetchStates() {
+      this.statesLoading = true;
+      try {
+        const { data } = await apiGetStates();
+        this.states = (data.data || []).map(s => ({
+          id: s.id,
+          name: s.display_name || s.name,
+        }));
+      } catch {
+        // silently fail
+      } finally {
+        this.statesLoading = false;
+      }
+    },
+    async fetchCities(keyword) {
+      if (!this.selectedStateId) return;
+      this.citiesLoading = true;
+      try {
+        const { data } = await apiGetCities({ map_state_id: this.selectedStateId, keyword: keyword || '' });
+        this.cities = (data.data || []).map(c => ({
+          id: c.id,
+          name: c.display_name || c.name,
+        }));
+      } catch {
+        // silently fail
+      } finally {
+        this.citiesLoading = false;
+      }
+    },
+    onPartnerChange(opt) {
+      this.selectedPartnerId = opt ? opt.id : null;
+    },
+    onStateChange(opt) {
+      this.selectedStateId = opt ? opt.id : null;
+      this.selectedStateName = opt ? opt.name : '';
+      this.selectedCityId = null;
+      this.selectedCityName = '';
+      this.cities = [];
+      if (this.selectedStateId) {
+        this.fetchCities();
+      }
+    },
+    onCitySearch(keyword) {
+      this.citySearchKeyword = keyword;
+      if (this.selectedStateId && keyword) {
+        this.fetchCities(keyword);
+      }
+    },
+    onCityChange(opt) {
+      this.selectedCityId = opt ? opt.id : null;
+      this.selectedCityName = opt ? opt.name : '';
+    },
     async signup() {
       this.error = '';
       this.success = '';
@@ -116,6 +256,11 @@ export default {
         return;
       }
 
+      if (this.adminType === 'staff' && !this.selectedPartnerId) {
+        this.error = 'Please select a partner';
+        return;
+      }
+
       this.loading = true;
 
       try {
@@ -124,6 +269,10 @@ export default {
           lastname: this.lastname,
           email: this.email,
           password: this.password,
+          type: this.adminType,
+          employer_id: this.adminType === 'staff' ? this.selectedPartnerId : null,
+          state: this.selectedStateName || null,
+          city: this.selectedCityName || null,
         });
         if (response.data?.access_token) {
           setAccessToken(response.data.access_token)

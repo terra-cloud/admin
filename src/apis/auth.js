@@ -10,3 +10,5 @@ export const apiRegister = (payload) =>
     Axios.post(`${resource_api}/${resource}/register`, payload);
 export const apiRefreshToken = () =>
     Axios.post(`${resource_api}/${resource}/refresh-token`);
+export const apiListPartners = () =>
+    Axios.get(`${resource_api}/${resource}/partners`);
