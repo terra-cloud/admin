@@ -98,27 +98,43 @@ Deleting an admin also removes all their sessions from the `sessions` table.
 
 ---
 
-## Frontend Page
+## Frontend Pages
+
+### List Page
 
 **Route:** `/admins` (requires auth, `LayoutDefault`)
 
-### Features
+#### Features
 
 - **Metrics bar**: Total admins, Active, Pending, Suspended, Partner count
 - **Search**: Filter by name or email (client-side)
 - **Status filter**: Multi-select dropdown for pending / active / suspended / cancelled
 - **Sortable table**: Click column headers to sort by email, type, or status
 - **Inline status badges**: Color-coded (green=active, yellow=pending, red=suspended, gray=cancelled)
-- **Edit modal**: Update any admin field via `AdminModal` component
+- **Edit button**: Navigates to `/admins/:id/edit`
 - **Delete confirmation**: `ConfirmDialog` with cascading session cleanup warning
+
+### Edit Page
+
+**Route:** `/admins/:id/edit` (requires auth, `LayoutDefault`)
+
+Fetches the admin record on mount (from the list API) and populates a full form. On save, sends a `PUT /api/admins/:id` request. Shows success/error feedback inline.
+
+| State | Behavior |
+|-------|----------|
+| Loading | "Loading admin..." centered message |
+| Not found | "Admin not found." error message |
+| Save success | Green success banner above form |
+| Save error | Red error banner with API error message |
 
 ### Key Files (frontend)
 
 | File | Purpose |
 |------|---------|
 | `src/pages/admins/index.vue` | Admin list page UI and logic |
-| `src/pages/admins/components/AdminModal.vue` | Edit admin modal |
+| `src/pages/admins/edit.vue` | Admin edit page (form, save, feedback) |
 | `src/apis/admin.js` | API service (list, update, delete) |
+| `src/router/admins.js` | Route definitions (`/admins`, `/admins/:id/edit`) |
 
 ### Key Files (backend)
 
