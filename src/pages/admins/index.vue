@@ -93,12 +93,12 @@
                   </span>
                 </td>
                 <td class="px-4 py-3 text-sm">
-                  <button
+                  <router-link
+                    :to="`/admins/${admin.id}/edit`"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-primary hover:bg-primary/5"
-                    @click="openEditModal(admin)"
                   >
                     Edit
-                  </button>
+                  </router-link>
                   <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-red-600 hover:bg-red-50"
                     @click="openDeleteModal(admin.id)"
@@ -124,13 +124,6 @@
       </div>
     </div>
 
-    <AdminModal
-      v-if="showEditModal"
-      :admin="selectedAdmin"
-      :key="selectedAdmin?.id"
-      @save="saveAdmin"
-      @close="closeEditModal"
-    />
     <ConfirmDialog
       :show="showDeleteModal"
       :currentId="selectedDeleteAdminId"
@@ -143,14 +136,12 @@
 </template>
 
 <script>
-import { apiListAdmins, apiUpdateAdmin, apiDeleteAdmin } from '@/apis/admin';
-import AdminModal from '@/pages/admins/components/AdminModal.vue';
+import { apiListAdmins, apiDeleteAdmin } from '@/apis/admin';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
 
 export default {
   components: {
-    AdminModal,
     ConfirmDialog,
     Pagination,
   },
@@ -170,8 +161,6 @@ export default {
         { id: 5, title: 'Partners', value: '0', description: 'Partner-type admins' },
       ],
       admins: [],
-      showEditModal: false,
-      selectedAdmin: null,
       showDeleteModal: false,
       selectedDeleteAdminId: null,
     };
@@ -294,24 +283,6 @@ export default {
     },
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
-    },
-    openEditModal(admin) {
-      this.selectedAdmin = { ...admin };
-      this.showEditModal = true;
-    },
-    async saveAdmin(updatedAdmin) {
-      try {
-        await apiUpdateAdmin(updatedAdmin.id, updatedAdmin);
-        this.closeEditModal();
-        this.fetchAdmins();
-      } catch (error) {
-        console.error('Error updating admin:', error);
-        alert('Failed to update admin');
-      }
-    },
-    closeEditModal() {
-      this.showEditModal = false;
-      this.selectedAdmin = null;
     },
     openDeleteModal(adminId) {
       this.selectedDeleteAdminId = adminId;
