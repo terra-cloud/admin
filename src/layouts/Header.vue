@@ -30,6 +30,13 @@
             v-if="dropdownOpen"
             class="absolute right-0 top-full mt-2 bg-white shadow-lifted rounded-lg py-1 min-w-[160px] z-50 border border-gray-100"
           >
+            <router-link
+              :to="{ name: 'profileInformation' }"
+              class="w-full text-left px-4 py-2 text-sm text-text-light hover:bg-gray-50 transition-colors flex items-center gap-2"
+              @click="dropdownOpen = false"
+            >
+              <i class="fas fa-user"></i> Profile
+            </router-link>
             <button
               class="w-full text-left px-4 py-2 text-sm text-text-light hover:bg-gray-50 transition-colors flex items-center gap-2"
               @click="logout"

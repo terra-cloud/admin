@@ -8,13 +8,15 @@ import users from './users';
 import admins from './admins';
 import jobs from './jobs';
 import news from './news';
+import profile from './profile';
 const routes = [
     ...auth,
     ...dashboard,
     ...users,
     ...admins,
     ...jobs,
-    ...news
+    ...news,
+    ...profile
 ]
 
 const router = createRouter({
