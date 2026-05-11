@@ -57,21 +57,12 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Created Date Range</label>
-        <div class="flex items-center gap-2">
-          <input
-            type="date"
-            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
-            v-model="startDate"
-            placeholder="Start Date"
-          />
-          <span class="text-gray-500">to</span>
-          <input
-            type="date"
-            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
-            v-model="endDate"
-            placeholder="End Date"
-          />
-        </div>
+        <DateRangePicker
+          :startDate="startDate"
+          :endDate="endDate"
+          @update:startDate="startDate = $event"
+          @update:endDate="endDate = $event"
+        />
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Job Status</label>
@@ -152,12 +143,14 @@ import { collection, query, orderBy, limit, startAfter, onSnapshot, getCountFrom
 import Pagination from '@/components/Pagination.vue';
 import DropJobModal from './components/DropJobModal.vue';
 import MultiSelect from '@/components/forms/MultiSelect.vue';
+import DateRangePicker from '@/components/forms/DateRangePicker.vue';
 
 export default {
   components: {
     Pagination,
     DropJobModal,
     MultiSelect,
+    DateRangePicker,
   },
   data() {
     return {
