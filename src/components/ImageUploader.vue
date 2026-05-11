@@ -7,7 +7,7 @@
     @close="myDialogVisible = false"
     @cropImage="cropImage"
   />
-  <div :class="['image-background', imageBackground]">
+  <div :class="imageBackground === 'image-background-light' ? 'bg-background-light border-2 border-white' : 'bg-gray-200 border-2 border-white'">
     <input
       @change="onFilesSelected($event)"
       type="file"
@@ -15,20 +15,20 @@
       ref="fileAttachUpload"
       style="display: none"
     />
-    <div v-if="mainPhoto" class="card position-relative">
+    <div v-if="mainPhoto" class="relative border border-gray-300 rounded">
       <img
         :src="mainPhoto"
-        class="img-fluid rounded"
+        class="max-w-full h-auto rounded"
         :style="{ 'min-height': minHeight + 'px', 'max-height': maxHeight + 'px' }"
         alt="Uploaded Image"
       />
-      <div :class="['camera-button', cameraButtonClass]" v-if="showCameraButton && !disabled">
+      <div v-if="showCameraButton && !disabled" :class="cameraButtonClass" class="absolute bottom-2 right-2">
         <button
           type="button"
-          class="btn btn-primary"
+          class="inline-flex items-center gap-1 px-4 py-2 rounded bg-primary text-white text-sm hover:bg-primary/90 transition-colors"
           @click="$refs.fileAttachUpload.click()"
         >
-          <i class="fas fa-camera me-1" aria-hidden="true"></i>
+          <i class="fas fa-camera" aria-hidden="true"></i>
           {{ buttonText || '' }}
         </button>
       </div>
@@ -39,20 +39,18 @@
       @dragover.prevent="dragover = true"
       @dragenter.prevent="dragover = true"
       @dragleave.prevent="dragover = false"
-      class="card upload-message"
-      :class="{ 'drag-over': dragover }"
+      class="border border-gray-300 rounded p-8 text-center leading-relaxed text-lg transition-colors"
+      :class="{ 'bg-gray-200': dragover }"
     >
-      <div class="card-body text-center">
-        <div class="font-weight-bold mb-2">{{ dimensionText || 'Upload an Image' }}</div>
-        <button
-          type="button"
-          v-if="!disabled"
-          class="btn btn-success main-button"
-          @click="$refs.fileAttachUpload.click()"
-        >
-          <i class="fas fa-upload me-1" aria-hidden="true"></i> Upload Photo
-        </button>
-      </div>
+      <div class="font-semibold mb-2">{{ dimensionText || 'Upload an Image' }}</div>
+      <button
+        type="button"
+        v-if="!disabled"
+        class="inline-flex items-center gap-1 px-4 py-2 rounded bg-primary text-white text-sm hover:bg-primary/90 transition-colors"
+        @click="$refs.fileAttachUpload.click()"
+      >
+        <i class="fas fa-upload" aria-hidden="true"></i> Upload Photo
+      </button>
     </div>
   </div>
 </template>
@@ -133,8 +131,6 @@ export default {
       if (file && file.type.indexOf('image/') !== -1) {
         this.cropFile = file;
         this.myDialogVisible = true;
-      } else {
-        // alert('Please drop an image file');
       }
       this.dragover = false;
     },
@@ -143,57 +139,8 @@ export default {
       if (file && file.type.indexOf('image/') !== -1) {
         this.cropFile = file;
         this.myDialogVisible = true;
-      } else {
-        // alert('Please select an image file');
       }
     },
   }
 };
 </script>
-
-<style scoped>
-.image-background {
-  border: 3px solid #fff;
-}
-.image-background-dark {
-  background: #ddd;
-}
-.image-background-light {
-  background: #f6f6f6;
-}
-.upload-message {
-  border: 1px solid #ddd;
-  padding: 30px 0;
-  line-height: 1.5;
-  font-size: 18px;
-}
-.upload-message.drag-over {
-  background: #e2e6ea;
-}
-.camera-button {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-}
-.card {
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-.btn {
-  min-height: 38px;
-  line-height: 1.5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn i {
-  line-height: inherit;
-  vertical-align: middle;
-}
-.main-button {
-  margin: 8px 0;
-}
-.font-weight-bold {
-  font-weight: 600;
-}
-</style>

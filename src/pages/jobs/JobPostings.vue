@@ -1,90 +1,82 @@
 <template>
-  <div class="container-fluid">
-    <h1 class="mb-4">Job Postings</h1>
+  <div class="p-6 space-y-6">
+    <h1 class="text-2xl font-bold">Job Postings</h1>
     <!-- Summary -->
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5 class="card-title mb-0">Job Postings Summary</h5>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-12">
-            <p><strong>Total Job Postings:</strong> {{ jobs.length }}</p>
-            <p><strong>Status Breakdown:</strong></p>
-            <div>
-              <span class="badge bg-primary me-2">Open: {{ jobStatusCounts.Open }}</span>
-              <span class="badge bg-info me-2">In Progress: {{ jobStatusCounts['In Progress'] }}</span>
-              <span class="badge bg-success me-2">Completed: {{ jobStatusCounts.Completed }}</span>
-              <span class="badge bg-warning me-2">Cancelled: {{ jobStatusCounts.Cancelled }}</span>
-              <span class="badge bg-danger me-2">Dropped: {{ jobStatusCounts.Dropped }}</span>
-              <span class="badge bg-secondary">Unknown: {{ jobStatusCounts.Unknown }}</span>
-            </div>
-          </div>
-        </div>
+    <div class="bg-white rounded-xl shadow-soft p-6">
+      <h2 class="text-lg font-semibold mb-4">Job Postings Summary</h2>
+      <p class="mb-2"><strong>Total Job Postings:</strong> {{ jobs.length }}</p>
+      <p class="mb-2"><strong>Status Breakdown:</strong></p>
+      <div class="flex flex-wrap gap-2">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Open: {{ jobStatusCounts.Open }}</span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">In Progress: {{ jobStatusCounts['In Progress'] }}</span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed: {{ jobStatusCounts.Completed }}</span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Cancelled: {{ jobStatusCounts.Cancelled }}</span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Dropped: {{ jobStatusCounts.Dropped }}</span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Unknown: {{ jobStatusCounts.Unknown }}</span>
       </div>
     </div>
     <!-- Filters -->
-    <div class="row mb-4">
-      <div class="col-md-4 mb-3">
-        <label for="searchQuery" class="form-label">Search</label>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div>
+        <label for="searchQuery" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
         <input
           id="searchQuery"
           type="text"
-          class="form-control"
+          class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
           v-model="searchQuery"
           placeholder="Search by posted by, email, title, details, or keywords..."
         />
       </div>
-      <div class="col-md-4 mb-3">
-        <label class="form-label">Budget Range (₱)</label>
-        <div class="input-group">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Budget Range (₱)</label>
+        <div class="flex items-center gap-2">
           <input
             type="number"
-            class="form-control"
+            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
             v-model.number="budgetMin"
             placeholder="Min"
             min="0"
           />
-          <span class="input-group-text">to</span>
+          <span class="text-gray-500">to</span>
           <input
             type="number"
-            class="form-control"
+            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
             v-model.number="budgetMax"
             placeholder="Max"
             min="0"
           />
         </div>
       </div>
-      <div class="col-md-4 mb-3">
-        <label for="workStyle" class="form-label">Work Style</label>
-        <select id="workStyle" class="form-select" multiple v-model="filterWorkStyles">
+      <div>
+        <label for="workStyle" class="block text-sm font-medium text-gray-700 mb-1">Work Style</label>
+        <select id="workStyle" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50 h-[100px]" multiple v-model="filterWorkStyles">
           <option value="All">All</option>
           <option value="Full time">Full time</option>
           <option value="Contract">Contract</option>
           <option value="Part time">Part time</option>
         </select>
       </div>
-      <div class="col-md-4 mb-3">
-        <label class="form-label">Created Date Range</label>
-        <div class="input-group">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Created Date Range</label>
+        <div class="flex items-center gap-2">
           <input
             type="date"
-            class="form-control"
+            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
             v-model="startDate"
             placeholder="Start Date"
           />
-          <span class="input-group-text">to</span>
+          <span class="text-gray-500">to</span>
           <input
             type="date"
-            class="form-control"
+            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50"
             v-model="endDate"
             placeholder="End Date"
           />
         </div>
       </div>
-      <div class="col-md-4 mb-3">
-        <label for="jobStatus" class="form-label">Job Status</label>
-        <select id="jobStatus" class="form-select" multiple v-model="filterJobStatuses">
+      <div>
+        <label for="jobStatus" class="block text-sm font-medium text-gray-700 mb-1">Job Status</label>
+        <select id="jobStatus" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50 h-[100px]" multiple v-model="filterJobStatuses">
           <option value="All">All</option>
           <option value="Open">Open</option>
           <option value="In Progress">In Progress</option>
@@ -93,9 +85,9 @@
           <option value="Dropped">Dropped</option>
         </select>
       </div>
-      <div class="col-md-4 mb-3">
-        <label for="locationType" class="form-label">Location Type</label>
-        <select id="locationType" class="form-select" multiple v-model="filterLocationTypes">
+      <div>
+        <label for="locationType" class="block text-sm font-medium text-gray-700 mb-1">Location Type</label>
+        <select id="locationType" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50 h-[100px]" multiple v-model="filterLocationTypes">
           <option value="All">All</option>
           <option value="In person">In person</option>
           <option value="Remote">Remote</option>
@@ -103,50 +95,44 @@
       </div>
     </div>
     <!-- Job Postings -->
-    <div class="row mb-4">
-      <div v-for="job in paginatedJobs" :key="job.id" class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">
-            <h5 class="card-title mb-0">{{ job.title || 'N/A' }}</h5>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-for="job in paginatedJobs" :key="job.id" class="bg-white rounded-xl shadow-soft overflow-hidden flex flex-col">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h3 class="text-lg font-semibold">{{ job.title || 'N/A' }}</h3>
+        </div>
+        <div class="px-6 py-4 space-y-2">
+          <p><strong>Posted By:</strong> {{ job?.author?.display_name || 'N/A' }}</p>
+          <p><strong>Email:</strong> {{ job?.author?.email || 'N/A' }}</p>
+          <p><strong>Created At:</strong> {{ formatDate(job.created_at) }}</p>
+          <p><strong>Budget:</strong> ₱{{ job.budget?.budget || 'N/A' }} <span v-if="job.budget?.is_negotiable">(Negotiable)</span></p>
+          <p><strong>Details:</strong> {{ job.details?.details || 'N/A' }}</p>
+          <p><strong>Work Style:</strong> {{ mapWorkStyle(job.details?.work_style) }}</p>
+          <p><strong>Schedule:</strong> {{ formatDate(job.schedule?.date) }} ({{ job.schedule?.dateType || 'N/A' }}, {{ mapTimePreferences(job.schedule?.timePreferences) }})</p>
+          <p><strong>Job Status:</strong> {{ mapJobStatus(job.job_status) }}</p>
+          <p><strong>Location:</strong> {{ job.location?.stringified_address || 'N/A' }} ({{ mapLocationType(job.location?.type) }})</p>
+          <p><strong>Search Keywords:</strong>
+            <span v-if="job.search_keywords && job.search_keywords.length">
+              <span v-for="(keyword, index) in job.search_keywords" :key="index" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">{{ keyword }}</span>
+            </span>
+            <span v-else>N/A</span>
+          </p>
+          <div class="mt-4 flex gap-2">
+            <router-link :to="'/jobs/' + job.id" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-cyan-600 border border-cyan-200 hover:bg-cyan-50">View Full Details</router-link>
+            <button
+              v-if="job.job_status === 0 || job.job_status === 1"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-red-600 border border-red-200 hover:bg-red-50"
+              @click="showDropDialog(job.id, job.title)"
+            >
+              Drop
+            </button>
           </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-12">
-                <p><strong>Posted By:</strong> {{ job?.author?.display_name || 'N/A' }}</p>
-                <p><strong>Email:</strong> {{ job?.author?.email || 'N/A' }}</p>
-                <p><strong>Created At:</strong> {{ formatDate(job.created_at) }}</p>
-                <p><strong>Budget:</strong> ₱{{ job.budget?.budget || 'N/A' }} <span v-if="job.budget?.is_negotiable">(Negotiable)</span></p>
-                <p><strong>Details:</strong> {{ job.details?.details || 'N/A' }}</p>
-                <p><strong>Work Style:</strong> {{ mapWorkStyle(job.details?.work_style) }}</p>
-                <p><strong>Schedule:</strong> {{ formatDate(job.schedule?.date) }} ({{ job.schedule?.dateType || 'N/A' }}, {{ mapTimePreferences(job.schedule?.timePreferences) }})</p>
-                <p><strong>Job Status:</strong> {{ mapJobStatus(job.job_status) }}</p>
-                <p><strong>Location:</strong> {{ job.location?.stringified_address || 'N/A' }} ({{ mapLocationType(job.location?.type) }})</p>
-                <p><strong>Search Keywords:</strong>
-                  <span v-if="job.search_keywords && job.search_keywords.length">
-                    <span v-for="(keyword, index) in job.search_keywords" :key="index" class="badge bg-primary me-1">{{ keyword }}</span>
-                  </span>
-                  <span v-else>N/A</span>
-                </p>
-                <div class="mt-2">
-                  <router-link :to="'/jobs/' + job.id" class="btn btn-sm btn-outline-info me-2">View Full Details</router-link>
-                  <button
-                    v-if="job.job_status === 0 || job.job_status === 1"
-                    class="btn btn-sm btn-outline-danger"
-                    @click="showDropDialog(job.id, job.title)"
-                  >
-                    Drop
-                  </button>
-                </div>
-                <DropJobModal
-                  v-if="showDialog && selectedJobId === job.id"
-                  :job-id="job.id"
-                  :job-title="job.title"
-                  @confirm="confirmDrop"
-                  @close="cancelDrop"
-                />
-              </div>
-            </div>
-          </div>
+          <DropJobModal
+            v-if="showDialog && selectedJobId === job.id"
+            :job-id="job.id"
+            :job-title="job.title"
+            @confirm="confirmDrop"
+            @close="cancelDrop"
+          />
         </div>
       </div>
     </div>
@@ -424,25 +410,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.card-body p {
-  margin-bottom: 0.5rem;
-}
-.card-body strong {
-  font-weight: 600;
-}
-.badge {
-  font-size: 0.8rem;
-}
-.card.h-100 {
-  display: flex;
-  flex-direction: column;
-}
-.form-select[multiple] {
-  height: 100px;
-}
-.btn-sm.me-2 {
-  margin-right: 0.5rem;
-}
-</style>

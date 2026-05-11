@@ -1,38 +1,35 @@
 <template>
-  <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1055;">
-    <div
-      class="toast"
-      :class="type === 'success' ? 'bg-success text-white' : type === 'error' ? 'bg-danger text-white' : 'bg-warning text-dark'"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-      ref="toastElement"
-    >
-      <div class="toast-header">
-        <strong class="me-auto">{{ type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Confirm' }}</strong>
+  <div
+    v-show="!!message"
+    class="fixed top-4 left-1/2 -translate-x-1/2 z-50 min-w-[320px] rounded-lg shadow-lifted"
+    :class="type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-amber-500'"
+  >
+    <div class="flex items-center justify-between px-4 py-3 border-b border-white/20">
+      <strong class="text-white text-sm font-semibold">{{ type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Confirm' }}</strong>
+      <button
+        v-if="!showConfirmButtons"
+        class="text-white/80 hover:text-white text-lg leading-none"
+        @click="$emit('cancel')"
+        aria-label="Close"
+      >&times;</button>
+    </div>
+    <div class="px-4 py-3 text-white text-sm">
+      {{ message }}
+      <div v-if="showConfirmButtons" class="mt-2 flex gap-2">
         <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="toast"
-          aria-label="Close"
-          v-if="!showConfirmButtons"
+          class="px-3 py-1 rounded border border-white text-white text-sm hover:bg-white/10 transition-colors"
+          @click="$emit('confirm', id)"
+        >Confirm</button>
+        <button
+          class="px-3 py-1 rounded border border-white/60 text-white/80 text-sm hover:bg-white/10 transition-colors"
           @click="$emit('cancel')"
-        ></button>
-      </div>
-      <div class="toast-body">
-        {{ message }}
-        <div v-if="showConfirmButtons" class="mt-2">
-          <button class="btn btn-sm btn-outline-success me-2" @click="$emit('confirm', id)">Confirm</button>
-          <button class="btn btn-sm btn-outline-secondary" @click="$emit('cancel')">Cancel</button>
-        </div>
+        >Cancel</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { Toast } from 'bootstrap';
-
 export default {
   name: 'Toast',
   props: {
@@ -54,33 +51,28 @@ export default {
       default: null
     }
   },
+  emits: ['confirm', 'cancel'],
   data() {
     return {
-      toastInstance: null
+      timer: null
     };
   },
   watch: {
     message(newMessage) {
-      if (newMessage) {
-        this.$nextTick(() => {
-          if (this.toastInstance) {
-            this.toastInstance.hide();
-          }
-          this.toastInstance = new Toast(this.$refs.toastElement, {
-            autohide: !this.showConfirmButtons,
-            delay: 2000
-          });
-          this.toastInstance.show();
-        });
-      } else if (this.toastInstance) {
-        this.toastInstance.hide();
-        this.toastInstance = null;
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      if (newMessage && !this.showConfirmButtons) {
+        this.timer = setTimeout(() => {
+          this.$emit('cancel');
+        }, 2000);
       }
     }
   },
   beforeUnmount() {
-    if (this.toastInstance) {
-      this.toastInstance.dispose();
+    if (this.timer) {
+      clearTimeout(this.timer);
     }
   }
 };

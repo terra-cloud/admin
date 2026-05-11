@@ -1,125 +1,124 @@
 <template>
-  <div class="container-fluid">
-    <h1 class="mb-4">Job Request Details</h1>
-    <div class="row mb-4">
-      <!-- Back Button -->
-      <div class="col-12 mb-3">
-        <router-link to="/job-postings" class="btn btn-outline-secondary">
-          <i class="fas fa-arrow-left me-2"></i> Back to Job Postings
-        </router-link>
-      </div>
-      <!-- Job Request Details -->
-      <div class="col-lg-8">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Job Details</h5>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="py-6">
+      <router-link to="/job-postings" class="inline-flex items-center gap-2 text-text-muted-light hover:text-text-light mb-6">
+        <i class="fas fa-arrow-left"></i> Back to Job Postings
+      </router-link>
+
+      <div class="bg-white rounded-xl shadow-soft overflow-hidden">
+        <div class="flex border-b border-gray-200">
+          <button
+            @click="activeTab = 'poster'"
+            class="px-6 py-3 text-sm font-medium transition-colors"
+            :class="activeTab === 'poster' ? 'border-b-2 border-primary text-primary' : 'text-text-muted-light hover:text-text-light'"
+          >
+            Poster Information
+          </button>
+          <button
+            @click="activeTab = 'job'"
+            class="px-6 py-3 text-sm font-medium transition-colors"
+            :class="activeTab === 'job' ? 'border-b-2 border-primary text-primary' : 'text-text-muted-light hover:text-text-light'"
+          >
+            Job Information
+          </button>
+          <button
+            @click="activeTab = 'offers'"
+            class="px-6 py-3 text-sm font-medium transition-colors"
+            :class="activeTab === 'offers' ? 'border-b-2 border-primary text-primary' : 'text-text-muted-light hover:text-text-light'"
+          >
+            Offers and Counter-Offers
+          </button>
+        </div>
+
+        <div class="p-6">
+          <div v-if="activeTab === 'poster'" class="space-y-3">
+            <h6 class="text-sm font-semibold text-text-muted-light mb-2">Poster Information</h6>
+            <p>
+              <span class="font-medium text-text-light">Photo:</span>
+              <span v-if="job.author?.photo_url">
+                <img :src="job.author?.photo_url" class="w-10 h-10 rounded-full object-cover inline-block ml-2" alt="Poster Photo" />
+              </span>
+              <span v-else class="text-text-muted-light ml-2">N/A</span>
+            </p>
+            <p><span class="font-medium text-text-light">Posted By:</span><span class="text-text-muted-light ml-2">{{ job.author?.display_name || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Email:</span><span class="text-text-muted-light ml-2">{{ job.author?.email || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Name:</span><span class="text-text-muted-light ml-2">{{ job.author?.name || 'N/A' }} {{ job.author?.last_name || '' }}</span></p>
+            <p><span class="font-medium text-text-light">Account Type:</span><span class="text-text-muted-light ml-2">{{ mapAccountType(job.author?.account_type) }}</span></p>
+            <p><span class="font-medium text-text-light">KYC Status:</span><span class="text-text-muted-light ml-2">{{ displayStatus(job.author?.kyc_validated) }}</span></p>
+            <p><span class="font-medium text-text-light">Birthdate:</span><span class="text-text-muted-light ml-2">{{ formatDate(job.author?.birthdate) }}</span></p>
+            <p><span class="font-medium text-text-light">Gender:</span><span class="text-text-muted-light ml-2">{{ job.author?.gender || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Phone Number:</span><span class="text-text-muted-light ml-2">{{ job.author?.phone_number || 'N/A' }}</span></p>
           </div>
-          <div class="card-body">
-            <!-- Tab Navigation -->
-            <ul class="nav nav-tabs mb-3" id="jobDetailsTabs" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="poster-tab" data-bs-toggle="tab" data-bs-target="#poster" type="button" role="tab" aria-controls="poster" aria-selected="true">Poster Information</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="job-tab" data-bs-toggle="tab" data-bs-target="#job" type="button" role="tab" aria-controls="job" aria-selected="false">Job Information</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="offers-tab" data-bs-toggle="tab" data-bs-target="#offers" type="button" role="tab" aria-controls="offers" aria-selected="false">Offers and Counter-Offers</button>
-              </li>
-            </ul>
-            <!-- Tab Content -->
-            <div class="tab-content" id="jobDetailsTabContent">
-              <!-- Poster Information Tab -->
-              <div class="tab-pane fade show active" id="poster" role="tabpanel" aria-labelledby="poster-tab">
-                <h6 class="card-subtitle mb-2 text-muted">Poster Information</h6>
+
+          <div v-if="activeTab === 'job'" class="space-y-3">
+            <h6 class="text-sm font-semibold text-text-muted-light mb-2">Job Information</h6>
+            <p><span class="font-medium text-text-light">Title:</span><span class="text-text-muted-light ml-2">{{ job.job_request?.title || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Details:</span><span class="text-text-muted-light ml-2">{{ job.details?.details || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Work Style:</span><span class="text-text-muted-light ml-2">{{ mapWorkStyle(job.details?.work_style) }}</span></p>
+            <p><span class="font-medium text-text-light">Budget:</span><span class="text-text-muted-light ml-2">₱{{ job.budget?.budget || 'N/A' }} <span v-if="job.budget?.is_negotiable">(Negotiable)</span></span></p>
+            <p><span class="font-medium text-text-light">Created At:</span><span class="text-text-muted-light ml-2">{{ formatDate(job.created_at) }}</span></p>
+            <p><span class="font-medium text-text-light">Schedule Date:</span><span class="text-text-muted-light ml-2">{{ formatDate(job.job_request?.schedule?.date) }}</span></p>
+            <p><span class="font-medium text-text-light">Date Type:</span><span class="text-text-muted-light ml-2">{{ job.job_request?.schedule?.dateType || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Time Preferences:</span><span class="text-text-muted-light ml-2">{{ mapTimePreferences(job.job_request?.schedule?.timePreferences) }}</span></p>
+            <p><span class="font-medium text-text-light">Job Status:</span><span class="text-text-muted-light ml-2">{{ mapJobStatus(job.job_request?.job_status) }}</span></p>
+            <p><span class="font-medium text-text-light">Location Address:</span><span class="text-text-muted-light ml-2">{{ job.location?.stringified_address || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Location Type:</span><span class="text-text-muted-light ml-2">{{ mapLocationType(job.location?.type) }}</span></p>
+            <p><span class="font-medium text-text-light">Coordinates:</span><span class="text-text-muted-light ml-2">{{ job.location?.coordinates || 'N/A' }}</span></p>
+            <p><span class="font-medium text-text-light">Accepted Offer ID:</span><span class="text-text-muted-light ml-2">{{ job.accepted_offer_id || 'N/A' }}</span></p>
+            <p>
+              <span class="font-medium text-text-light">Search Keywords:</span>
+              <span v-if="job.search_keywords && job.search_keywords.length" class="ml-2">
+                <span v-for="(keyword, index) in job.search_keywords" :key="index" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">{{ keyword }}</span>
+              </span>
+              <span v-else class="text-text-muted-light ml-2">N/A</span>
+            </p>
+          </div>
+
+          <div v-if="activeTab === 'offers'" class="space-y-3">
+            <h6 class="text-sm font-semibold text-text-muted-light mb-2">Offers and Counter-Offers</h6>
+            <div v-if="jobOffers.length">
+              <div v-for="offer in jobOffers" :key="offer.id" class="border-b border-gray-200 pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0">
+                <h6 class="text-sm font-semibold text-text-muted-light mb-2">Offer {{ offer.id }}</h6>
                 <p>
-                  <strong>Photo:</strong>
-                  <span v-if="job.author?.photo_url">
-                    <img :src="job.author?.photo_url" class="user-photo" alt="Poster Photo" />
+                  <span class="font-medium text-text-light">Offerer Photo:</span>
+                  <span v-if="offer.author?.photo_url">
+                    <img :src="offer.author?.photo_url" class="w-10 h-10 rounded-full object-cover inline-block ml-2" alt="Offerer Photo" />
                   </span>
-                  <span v-else>N/A</span>
+                  <span v-else class="text-text-muted-light ml-2">N/A</span>
                 </p>
-                <p><strong>Posted By:</strong> {{ job.author?.display_name || 'N/A' }}</p>
-                <p><strong>Email:</strong> {{ job.author?.email || 'N/A' }}</p>
-                <p><strong>Name:</strong> {{ job.author?.name || 'N/A' }} {{ job.author?.last_name || '' }}</p>
-                <p><strong>Account Type:</strong> {{ mapAccountType(job.author?.account_type) }}</p>
-                <p><strong>KYC Status:</strong> {{ displayStatus(job.author?.kyc_validated) }}</p>
-                <p><strong>Birthdate:</strong> {{ formatDate(job.author?.birthdate) }}</p>
-                <p><strong>Gender:</strong> {{ job.author?.gender || 'N/A' }}</p>
-                <p><strong>Phone Number:</strong> {{ job.author?.phone_number || 'N/A' }}</p>
-              </div>
-              <!-- Job Information Tab -->
-              <div class="tab-pane fade" id="job" role="tabpanel" aria-labelledby="job-tab">
-                <h6 class="card-subtitle mb-2 text-muted">Job Information</h6>
-                <p><strong>Title:</strong> {{ job.job_request?.title || 'N/A' }}</p>
-                <p><strong>Details:</strong> {{ job.details?.details || 'N/A' }}</p>
-                <p><strong>Work Style:</strong> {{ mapWorkStyle(job.details?.work_style) }}</p>
-                <p><strong>Budget:</strong> ₱{{ job.budget?.budget || 'N/A' }} <span v-if="job.budget?.is_negotiable">(Negotiable)</span></p>
-                <p><strong>Created At:</strong> {{ formatDate(job.created_at) }}</p>
-                <p><strong>Schedule Date:</strong> {{ formatDate(job.job_request?.schedule?.date) }}</p>
-                <p><strong>Date Type:</strong> {{ job.job_request?.schedule?.dateType || 'N/A' }}</p>
-                <p><strong>Time Preferences:</strong> {{ mapTimePreferences(job.job_request?.schedule?.timePreferences) }}</p>
-                <p><strong>Job Status:</strong> {{ mapJobStatus(job.job_request?.job_status) }}</p>
-                <p><strong>Location Address:</strong> {{ job.location?.stringified_address || 'N/A' }}</p>
-                <p><strong>Location Type:</strong> {{ mapLocationType(job.location?.type) }}</p>
-                <p><strong>Coordinates:</strong> {{ job.location?.coordinates || 'N/A' }}</p>
-                <p><strong>Accepted Offer ID:</strong> {{ job.accepted_offer_id || 'N/A' }}</p>
-                <p><strong>Search Keywords:</strong>
-                  <span v-if="job.search_keywords && job.search_keywords.length">
-                    <span v-for="(keyword, index) in job.search_keywords" :key="index" class="badge bg-primary me-1">{{ keyword }}</span>
-                  </span>
-                  <span v-else>N/A</span>
-                </p>
-              </div>
-              <!-- Offers and Counter-Offers Tab -->
-              <div class="tab-pane fade" id="offers" role="tabpanel" aria-labelledby="offers-tab">
-                <h6 class="card-subtitle mb-2 text-muted">Offers and Counter-Offers</h6>
-                <div v-if="jobOffers.length">
-                  <div v-for="offer in jobOffers" :key="offer.id" class="mb-4 offer-section">
-                    <h6 class="card-subtitle mb-2 text-muted">Offer {{ offer.id }}</h6>
+                <p><span class="font-medium text-text-light">Offerer:</span><span class="text-text-muted-light ml-2">{{ offer.author?.display_name || 'N/A' }}</span></p>
+                <p><span class="font-medium text-text-light">Email:</span><span class="text-text-muted-light ml-2">{{ offer.author?.email || 'N/A' }}</span></p>
+                <p><span class="font-medium text-text-light">Name:</span><span class="text-text-muted-light ml-2">{{ offer.author?.name || 'N/A' }} {{ offer.author?.last_name || '' }}</span></p>
+                <p><span class="font-medium text-text-light">Phone Number:</span><span class="text-text-muted-light ml-2">{{ offer.author?.phone_number || 'N/A' }}</span></p>
+                <p><span class="font-medium text-text-light">Counter Offer:</span><span class="text-text-muted-light ml-2">₱{{ offer.counter_offer || 'N/A' }}</span></p>
+                <p><span class="font-medium text-text-light">Offer Created At:</span><span class="text-text-muted-light ml-2">{{ formatDate(offer.created_at) }}</span></p>
+                <p><span class="font-medium text-text-light">Offer Details:</span><span class="text-text-muted-light ml-2">{{ offer.details || 'N/A' }}</span></p>
+                <p v-if="offer.doc_id !== offer.id"><span class="font-medium text-text-light">Internal Offer ID:</span><span class="text-text-muted-light ml-2">{{ offer.doc_id || 'N/A' }}</span></p>
+                <p><span class="font-medium text-text-light">Job ID:</span><span class="text-text-muted-light ml-2">{{ offer.job_id || 'N/A' }}</span></p>
+                <div v-if="offer.counterOffers && offer.counterOffers.length" class="ml-6 pl-4 border-l-2 border-gray-200 mt-3">
+                  <h6 class="text-sm font-semibold text-text-muted-light mb-2">Counter-Offers</h6>
+                  <div v-for="counterOffer in offer.counterOffers" :key="counterOffer.id" class="mb-3">
+                    <h6 class="text-sm font-semibold text-text-muted-light mb-2">Counter-Offer {{ counterOffer.id }}</h6>
                     <p>
-                      <strong>Offerer Photo:</strong>
-                      <span v-if="offer.author?.photo_url">
-                        <img :src="offer.author?.photo_url" class="user-photo" alt="Offerer Photo" />
+                      <span v-if="counterOffer.author?.photo_url">
+                        <img :src="counterOffer.author?.photo_url" class="w-10 h-10 rounded-full object-cover inline-block ml-2" alt="Counter-Offerer Photo" />
                       </span>
-                      <span v-else>N/A</span>
+                      <span v-else class="text-text-muted-light">N/A</span>
                     </p>
-                    <p><strong>Offerer:</strong> {{ offer.author?.display_name || 'N/A' }}</p>
-                    <p><strong>Email:</strong> {{ offer.author?.email || 'N/A' }}</p>
-                    <p><strong>Name:</strong> {{ offer.author?.name || 'N/A' }} {{ offer.author?.last_name || '' }}</p>
-                    <p><strong>Phone Number:</strong> {{ offer.author?.phone_number || 'N/A' }}</p>
-                    <p><strong>Counter Offer:</strong> ₱{{ offer.counter_offer || 'N/A' }}</p>
-                    <p><strong>Offer Created At:</strong> {{ formatDate(offer.created_at) }}</p>
-                    <p><strong>Offer Details:</strong> {{ offer.details || 'N/A' }}</p>
-                    <p v-if="offer.doc_id !== offer.id"><strong>Internal Offer ID:</strong> {{ offer.doc_id || 'N/A' }}</p>
-                    <p><strong>Job ID:</strong> {{ offer.job_id || 'N/A' }}</p>
-                    <!-- Counter-Offers -->
-                    <div v-if="offer.counterOffers && offer.counterOffers.length" class="counter-offer-section">
-                      <h6 class="card-subtitle mb-2 text-muted">Counter-Offers</h6>
-                      <div v-for="counterOffer in offer.counterOffers" :key="counterOffer.id" class="mb-3">
-                        <h6 class="card-subtitle mb-2 text-muted">Counter-Offer {{ counterOffer.id }}</h6>
-                        <p>
-                          <span v-if="counterOffer.author?.photo_url">
-                            <img :src="counterOffer.author?.photo_url" class="user-photo" alt="Counter-Offerer Photo" />
-                          </span>
-                          <span v-else>N/A</span>
-                        </p>
-                        <p><strong>Counter-Offerer:</strong> {{ counterOffer.author?.display_name || 'N/A' }}</p>
-                        <p><strong>Email:</strong> {{ counterOffer.author?.email || 'N/A' }}</p>
-                        <p><strong>Name:</strong> {{ counterOffer.author?.name || 'N/A' }} {{ counterOffer.author?.last_name || '' }}</p>
-                        <p><strong>Phone Number:</strong> {{ counterOffer.author?.phone_number || 'N/A' }}</p>
-                        <p><strong>Counter Offer:</strong> ₱{{ counterOffer.counter_offer || 'N/A' }}</p>
-                        <p><strong>Counter-Offer Created At:</strong> {{ formatDate(counterOffer.created_at) }}</p>
-                        <p><strong>Counter-Offer Details:</strong> {{ counterOffer.details || 'N/A' }}</p>
-                        <p><strong>Job Offer ID:</strong> {{ counterOffer.job_offer_id || 'N/A' }}</p>
-                      </div>
-                    </div>
-                    <p v-else class="counter-offer-section">No counter-offers available for this offer.</p>
+                    <p><span class="font-medium text-text-light">Counter-Offerer:</span><span class="text-text-muted-light ml-2">{{ counterOffer.author?.display_name || 'N/A' }}</span></p>
+                    <p><span class="font-medium text-text-light">Email:</span><span class="text-text-muted-light ml-2">{{ counterOffer.author?.email || 'N/A' }}</span></p>
+                    <p><span class="font-medium text-text-light">Name:</span><span class="text-text-muted-light ml-2">{{ counterOffer.author?.name || 'N/A' }} {{ counterOffer.author?.last_name || '' }}</span></p>
+                    <p><span class="font-medium text-text-light">Phone Number:</span><span class="text-text-muted-light ml-2">{{ counterOffer.author?.phone_number || 'N/A' }}</span></p>
+                    <p><span class="font-medium text-text-light">Counter Offer:</span><span class="text-text-muted-light ml-2">₱{{ counterOffer.counter_offer || 'N/A' }}</span></p>
+                    <p><span class="font-medium text-text-light">Counter-Offer Created At:</span><span class="text-text-muted-light ml-2">{{ formatDate(counterOffer.created_at) }}</span></p>
+                    <p><span class="font-medium text-text-light">Counter-Offer Details:</span><span class="text-text-muted-light ml-2">{{ counterOffer.details || 'N/A' }}</span></p>
+                    <p><span class="font-medium text-text-light">Job Offer ID:</span><span class="text-text-muted-light ml-2">{{ counterOffer.job_offer_id || 'N/A' }}</span></p>
                   </div>
                 </div>
-                <p v-else>No offers available for this job.</p>
+                <p v-else class="ml-6 pl-4 border-l-2 border-gray-200 mt-3 text-text-muted-light">No counter-offers available for this offer.</p>
               </div>
             </div>
+            <p v-else class="text-text-muted-light">No offers available for this job.</p>
           </div>
         </div>
       </div>
@@ -136,6 +135,7 @@ export default {
     return {
       job: {},
       jobOffers: [],
+      activeTab: 'poster',
     };
   },
   methods: {
@@ -166,15 +166,14 @@ export default {
         const offers = querySnapshot.docs.map(doc => {
           const data = doc.data();
           return {
-            reference_id: doc.id, // Firestore document ID (e.g., "1752548039259")
+            reference_id: doc.id,
             id: doc.id,
-            doc_id: data.id, // Internal id field (e.g., "1752548039259")
+            doc_id: data.id,
             ...data,
             counterOffers: [],
           };
         });
 
-        // Log all job_offer_id values in job-counter-offers for debugging
         const allCounterOffersQuery = query(collection(db, 'job-counter-offers'));
         const allCounterOffersSnapshot = await getDocs(allCounterOffersQuery);
         const allJobOfferIds = allCounterOffersSnapshot.docs.map(doc => doc.data().job_offer_id);
@@ -182,11 +181,11 @@ export default {
         for (const offer of offers) {
           const counterOffersQuery = query(
             collection(db, 'job-counter-offers'),
-            where('job_offer_id', '==', offer.reference_id) // Uses Firestore document ID
+            where('job_offer_id', '==', offer.reference_id)
           );
           const counterOffersSnapshot = await getDocs(counterOffersQuery);
           offer.counterOffers = counterOffersSnapshot.docs.map(doc => ({
-            id: doc.id, // Firestore document ID for counter-offer
+            id: doc.id,
             ...doc.data(),
           }));
           if (offer.counterOffers.length === 0) {
@@ -261,41 +260,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.card-body p {
-  margin-bottom: 0.5rem;
-}
-.card-body strong {
-  font-weight: 600;
-}
-.badge {
-  font-size: 0.8rem;
-}
-.user-photo {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  vertical-align: middle;
-  margin-left: 0.5rem;
-}
-.tab-content {
-  padding: 1rem;
-}
-.nav-tabs .nav-link {
-  color: #495057;
-}
-.nav-tabs .nav-link.active {
-  color: #0d6efd;
-}
-.offer-section {
-  border-bottom: 1px solid #dee2e6;
-  padding-bottom: 1rem;
-}
-.counter-offer-section {
-  margin-left: 1.5rem;
-  padding-left: 1rem;
-  border-left: 2px solid #dee2e6;
-}
-</style>

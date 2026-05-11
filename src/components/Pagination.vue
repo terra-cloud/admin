@@ -1,29 +1,39 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center mt-3 flex-column">
-    <!-- <div class="pagination-count mb-2">{{ tableData.from }}-{{ tableData.to }} of {{ tableData.totalItems }}</div> -->
+  <div class="flex flex-col items-center mt-3">
     <nav>
-      <ul class="pagination">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="page-link" @click="$emit('firstPage')">First Page</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="page-link" @click="$emit('prevPage')">Previous</button>
-        </li>
-        <li
-          class="page-item"
+      <div class="flex gap-1">
+        <button
+          class="px-3 py-1.5 rounded border border-gray-300 text-sm leading-tight transition-colors"
+          :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'"
+          :disabled="currentPage === 1"
+          @click="$emit('firstPage')"
+        >First Page</button>
+        <button
+          class="px-3 py-1.5 rounded border border-gray-300 text-sm leading-tight transition-colors"
+          :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'"
+          :disabled="currentPage === 1"
+          @click="$emit('prevPage')"
+        >Previous</button>
+        <button
           v-for="page in totalPages"
           :key="page"
-          :class="{ active: currentPage === page }"
-        >
-          <button class="page-link" @click="$emit('setPage', page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="page-link" @click="$emit('nextPage')">Next</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="page-link" @click="$emit('lastPage')">Last Page</button>
-        </li>
-      </ul>
+          class="px-3 py-1.5 rounded border border-gray-300 text-sm leading-tight transition-colors"
+          :class="currentPage === page ? 'bg-primary text-white border-primary' : 'hover:bg-gray-100'"
+          @click="$emit('setPage', page)"
+        >{{ page }}</button>
+        <button
+          class="px-3 py-1.5 rounded border border-gray-300 text-sm leading-tight transition-colors"
+          :class="currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'"
+          :disabled="currentPage === totalPages"
+          @click="$emit('nextPage')"
+        >Next</button>
+        <button
+          class="px-3 py-1.5 rounded border border-gray-300 text-sm leading-tight transition-colors"
+          :class="currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'"
+          :disabled="currentPage === totalPages"
+          @click="$emit('lastPage')"
+        >Last Page</button>
+      </div>
     </nav>
   </div>
 </template>
@@ -50,9 +60,3 @@ export default {
   emits: ['setPage', 'prevPage', 'nextPage', 'firstPage', 'lastPage'],
 };
 </script>
-
-<style scoped>
-.pagination-count {
-  text-align: center;
-}
-</style>

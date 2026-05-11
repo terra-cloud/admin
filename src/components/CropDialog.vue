@@ -1,34 +1,33 @@
 <template>
-  <div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="cropModalLabel">
-            <i class="fas fa-crop me-2" aria-hidden="true"></i>{{ title }}
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="$emit('close')"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12">
-              <vue-cropper
-                ref="cropper"
-                :aspect-ratio="mainAspectRatio"
-                :src="imgSrc"
-                preview=".preview"
-                class="cropper-container"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer sticky">
-          <button type="button" class="btn btn-secondary" @click="$emit('close')">
-            Cancel
-          </button>
-          <button type="button" class="btn btn-success" @click="cropImage">
-            <i class="fas fa-crop me-1" aria-hidden="true"></i> Crop
-          </button>
-        </div>
+  <div v-if="dialogVisible" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 bg-black/50"></div>
+    <div class="relative bg-card-light rounded-lg shadow-lifted w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+        <h5 class="text-lg font-semibold text-text-light flex items-center gap-2">
+          <i class="fas fa-crop" aria-hidden="true"></i>{{ title }}
+        </h5>
+        <button class="text-gray-400 hover:text-gray-600 text-xl leading-none" @click="$emit('close')" aria-label="Close">&times;</button>
+      </div>
+      <div class="p-6 overflow-y-auto">
+        <vue-cropper
+          ref="cropper"
+          :aspect-ratio="mainAspectRatio"
+          :src="imgSrc"
+          preview=".preview"
+          class="cropper-container"
+        />
+      </div>
+      <div class="sticky bottom-0 bg-card-light px-6 py-4 border-t border-gray-200 flex justify-end gap-2 shrink-0">
+        <button
+          class="px-4 py-2 rounded bg-gray-200 text-gray-800 text-sm hover:bg-gray-300 transition-colors"
+          @click="$emit('close')"
+        >Cancel</button>
+        <button
+          class="px-4 py-2 rounded bg-primary text-white text-sm hover:bg-primary/90 transition-colors inline-flex items-center gap-1"
+          @click="cropImage"
+        >
+          <i class="fas fa-crop" aria-hidden="true"></i> Crop
+        </button>
       </div>
     </div>
   </div>
@@ -37,7 +36,6 @@
 <script>
 import VueCropper from 'vue-cropperjs';
 import 'cropperjs/dist/cropper.css';
-import { Modal } from 'bootstrap';
 
 export default {
   components: { VueCropper },
@@ -64,36 +62,7 @@ export default {
     return {
       imgSrc: '',
       cropImg: '',
-      modal: null,
     };
-  },
-  computed: {
-    intDialogVisible: {
-      get() {
-        return this.dialogVisible;
-      },
-      set(value) {
-        if (!value) {
-          this.$emit('close');
-        }
-      },
-    },
-  },
-  watch: {
-    dialogVisible(newVal) {
-      if (this.modal) {
-        if (newVal) {
-          this.modal.show();
-        } else {
-          this.modal.hide();
-        }
-      }
-    },
-    passFile(newSrc) {
-      if (newSrc) {
-        this.setImage(newSrc);
-      }
-    },
   },
   methods: {
     cropImage() {
@@ -122,21 +91,16 @@ export default {
       }
     },
   },
+  watch: {
+    passFile(newSrc) {
+      if (newSrc) {
+        this.setImage(newSrc);
+      }
+    },
+  },
   mounted() {
-    this.modal = new Modal(document.getElementById('cropModal'), {
-      backdrop: 'static',
-      keyboard: false
-    });
-    if (this.dialogVisible) {
-      this.modal.show();
-    }
     if (this.passFile) {
       this.setImage(this.passFile);
-    }
-  },
-  beforeUnmount() {
-    if (this.modal) {
-      this.modal.dispose();
     }
   },
 };
@@ -145,34 +109,6 @@ export default {
 <style scoped>
 .cropper-container {
   max-height: 400px;
-  margin: 20px 0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
   width: 100%;
-}
-.preview-container {
-  text-align: center;
-  margin-top: 20px;
-}
-.preview {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-.btn {
-  min-height: 38px;
-  line-height: 1.5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn i {
-  line-height: inherit;
-  vertical-align: middle;
-}
-.sticky {
-  position: sticky;
-  bottom: 0;
-  background: white;
-  padding: 10px 0;
 }
 </style>

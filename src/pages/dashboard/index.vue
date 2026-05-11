@@ -3,28 +3,100 @@
 
   <!-- Main Content -->
   <div :class="{ collapsed: !sidebarOpen }">
-    <!-- Dashboard Page -->
-    <div>
-      <h1 class="mb-4">Dashboard</h1>
-      <div class="row">
-        <div class="col-md-4" v-for="metric in metrics" :key="metric.id">
-          <div class="card mb-4">
-            <div class="card-body">
-              <h5 class="card-title">{{ metric.title }}</h5>
-              <h2 class="card-text">{{ metric.value }}</h2>
-              <p class="text-muted">{{ metric.description }}</p>
-            </div>
-          </div>
+    <div class="p-6">
+      <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
+      <!-- Metric Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div v-for="metric in metrics" :key="metric.id" class="bg-white rounded-xl shadow-soft p-6">
+          <h5 class="text-sm font-medium text-gray-500">{{ metric.title }}</h5>
+          <h2 class="text-3xl font-bold mt-2">{{ metric.value }}</h2>
+          <p class="text-sm text-gray-400 mt-1">{{ metric.description }}</p>
         </div>
       </div>
-      <div class="card mb-4">
-        <div class="card-body">
-          <h5 class="card-title">User Activity</h5>
-          <!-- <canvas id="activityChart"></canvas> -->
+
+      <!-- User Activity -->
+      <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
+        <h5 class="text-lg font-semibold mb-4">User Activity</h5>
+      </div>
+
+      <!-- Users Table -->
+      <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h5 class="text-lg font-semibold">Users</h5>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search users..."
+            class="w-64 px-4 py-3 rounded-lg bg-gray-100 border-none text-sm"
+          />
         </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer" @click="sort('id')">
+                  ID <i :class="['fas', sortIcon('id')]"></i>
+                </th>
+                <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer" @click="sort('name')">
+                  Name <i :class="['fas', sortIcon('name')]"></i>
+                </th>
+                <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer" @click="sort('email')">
+                  Email <i :class="['fas', sortIcon('email')]"></i>
+                </th>
+                <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer" @click="sort('role')">
+                  Role <i :class="['fas', sortIcon('role')]"></i>
+                </th>
+                <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in filteredUsers" :key="user.id" class="border-b border-gray-100 hover:bg-gray-50 transition">
+                <td class="py-3 px-4 text-sm">{{ user.id }}</td>
+                <td class="py-3 px-4 text-sm font-medium">{{ user.name }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600">{{ user.email }}</td>
+                <td class="py-3 px-4 text-sm">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="{
+                    'bg-blue-100 text-blue-800': user.role === 'Admin',
+                    'bg-green-100 text-green-800': user.role === 'User',
+                    'bg-purple-100 text-purple-800': user.role === 'Editor'
+                  }">{{ user.role }}</span>
+                </td>
+                <td class="py-3 px-4 text-right">
+                  <button @click="editUser(user)" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button @click="deleteUser(user.id)" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="filteredUsers.length === 0">
+                <td colspan="5" class="py-6 text-center text-sm text-gray-400">No users found</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="bg-white rounded-xl shadow-soft p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h5 class="text-lg font-semibold">Notifications</h5>
+          <label class="inline-flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" v-model="emailNotifications" class="rounded border-gray-300" />
+            Email notifications
+          </label>
+        </div>
+        <ul class="space-y-3">
+          <li v-for="notif in notifications" :key="notif.id" class="flex items-center gap-3 text-sm text-gray-700">
+            <i class="fas fa-bell text-gray-400"></i>
+            {{ notif.message }}
+          </li>
+        </ul>
       </div>
     </div>
-
   </div>
 </div>
 </template>
@@ -82,12 +154,7 @@ export default {
       this.mobileSidebarOpen = !this.mobileSidebarOpen;
     },
     toggleTheme() {
-      document.body.classList.toggle('bg-dark', this.darkMode);
-      document.body.classList.toggle('text-white', this.darkMode);
-      document.querySelectorAll('.card').forEach(card => {
-        card.classList.toggle('bg-dark', this.darkMode);
-        card.classList.toggle('text-white', this.darkMode);
-      });
+      document.documentElement.classList.toggle('dark', this.darkMode);
     },
     sort(key) {
       if (this.sortKey === key) {
