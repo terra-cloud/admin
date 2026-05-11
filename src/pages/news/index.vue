@@ -36,32 +36,20 @@
           />
         </div>
         <div>
-          <label for="filterStatus" class="block text-sm font-medium text-text-muted-light mb-1.5">Filter by Status</label>
-          <select
-            id="filterStatus"
-            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none"
-            multiple
+          <label class="block text-sm font-medium text-text-muted-light mb-1.5">Filter by Status</label>
+          <MultiSelect
+            :options="statusOptions"
+            placeholder="Filter by status..."
             v-model="filterStatuses"
-          >
-            <option value="All">All</option>
-            <option value="Draft">Draft</option>
-            <option value="Published">Published</option>
-            <option value="Archived">Archived</option>
-          </select>
+          />
         </div>
         <div>
-          <label for="filterType" class="block text-sm font-medium text-text-muted-light mb-1.5">Filter by Type</label>
-          <select
-            id="filterType"
-            class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none focus:ring-2 focus:ring-primary/50 outline-none"
-            multiple
+          <label class="block text-sm font-medium text-text-muted-light mb-1.5">Filter by Type</label>
+          <MultiSelect
+            :options="typeOptions"
+            placeholder="Filter by type..."
             v-model="filterTypes"
-          >
-            <option value="All">All</option>
-            <option value="General">General</option>
-            <option value="Event">Event</option>
-            <option value="Update">Update</option>
-          </select>
+          />
         </div>
       </div>
 
@@ -219,13 +207,15 @@ import Pagination from '@/components/Pagination.vue';
 import Toast from '@/components/Toast.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
+import MultiSelect from '@/components/forms/MultiSelect.vue';
 
 export default {
   components: {
     Pagination,
     Toast,
     ConfirmDialog,
-    ImageUploader
+    ImageUploader,
+    MultiSelect
   },
   data() {
     return {
@@ -252,7 +242,17 @@ export default {
       sortOrder: 'asc',
       searchQuery: '',
       filterStatuses: [],
-      filterTypes: []
+      filterTypes: [],
+      statusOptions: [
+        { value: 'Draft', label: 'Draft' },
+        { value: 'Published', label: 'Published' },
+        { value: 'Archived', label: 'Archived' },
+      ],
+      typeOptions: [
+        { value: 'General', label: 'General' },
+        { value: 'Event', label: 'Event' },
+        { value: 'Update', label: 'Update' },
+      ]
     };
   },
   computed: {
@@ -266,10 +266,8 @@ export default {
         const matchesText = searchQuery === '' ||
           title.includes(searchQuery) ||
           description.includes(searchQuery);
-        const effectiveStatuses = this.filterStatuses.includes('All') ? ['Draft', 'Published', 'Archived'] : this.filterStatuses;
-        const effectiveTypes = this.filterTypes.includes('All') ? ['General', 'Event', 'Update'] : this.filterTypes;
-        const matchesStatus = effectiveStatuses.length === 0 || effectiveStatuses.includes(this.mapStatus(news.status));
-        const matchesType = effectiveTypes.length === 0 || effectiveTypes.includes(news.type);
+        const matchesStatus = this.filterStatuses.length === 0 || this.filterStatuses.includes(this.mapStatus(news.status));
+        const matchesType = this.filterTypes.length === 0 || this.filterTypes.includes(news.type);
         return matchesText && matchesStatus && matchesType;
       });
     },
