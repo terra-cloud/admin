@@ -5,7 +5,7 @@
     @click="$emit('toggle-sidebar')"
   />
   <aside
-    class="fixed left-0 top-0 h-full bg-slate-800 transition-all duration-300 font-display flex flex-col z-50 lg:z-30"
+    class="fixed left-0 top-0 h-full bg-slate-800 transition-all duration-300 font-display flex flex-col z-50 lg:z-50"
     :class="[
       sidebarOpen ? 'lg:w-64' : 'lg:w-[70px]',
       'w-64',
