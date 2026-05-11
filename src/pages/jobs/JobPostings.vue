@@ -48,13 +48,12 @@
         </div>
       </div>
       <div>
-        <label for="workStyle" class="block text-sm font-medium text-gray-700 mb-1">Work Style</label>
-        <select id="workStyle" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50 h-[100px]" multiple v-model="filterWorkStyles">
-          <option value="All">All</option>
-          <option value="Full time">Full time</option>
-          <option value="Contract">Contract</option>
-          <option value="Part time">Part time</option>
-        </select>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Work Style</label>
+        <MultiSelect
+          :options="workStyleOptions"
+          placeholder="Filter by work style..."
+          v-model="filterWorkStyles"
+        />
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Created Date Range</label>
@@ -75,23 +74,20 @@
         </div>
       </div>
       <div>
-        <label for="jobStatus" class="block text-sm font-medium text-gray-700 mb-1">Job Status</label>
-        <select id="jobStatus" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50 h-[100px]" multiple v-model="filterJobStatuses">
-          <option value="All">All</option>
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
-          <option value="Dropped">Dropped</option>
-        </select>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Job Status</label>
+        <MultiSelect
+          :options="jobStatusOptions"
+          placeholder="Filter by job status..."
+          v-model="filterJobStatuses"
+        />
       </div>
       <div>
-        <label for="locationType" class="block text-sm font-medium text-gray-700 mb-1">Location Type</label>
-        <select id="locationType" class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none text-text-light focus:ring-2 focus:ring-primary/50 h-[100px]" multiple v-model="filterLocationTypes">
-          <option value="All">All</option>
-          <option value="In person">In person</option>
-          <option value="Remote">Remote</option>
-        </select>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Location Type</label>
+        <MultiSelect
+          :options="locationTypeOptions"
+          placeholder="Filter by location type..."
+          v-model="filterLocationTypes"
+        />
       </div>
     </div>
     <!-- Job Postings -->
@@ -155,11 +151,13 @@ import { db } from '@/firebase';
 import { collection, query, orderBy, limit, startAfter, onSnapshot, getCountFromServer, doc, setDoc } from 'firebase/firestore';
 import Pagination from '@/components/Pagination.vue';
 import DropJobModal from './components/DropJobModal.vue';
+import MultiSelect from '@/components/forms/MultiSelect.vue';
 
 export default {
   components: {
     Pagination,
     DropJobModal,
+    MultiSelect,
   },
   data() {
     return {
@@ -184,6 +182,22 @@ export default {
       showDialog: false,
       selectedJobId: null,
       selectedJobTitle: '',
+      workStyleOptions: [
+        { value: 'Full time', label: 'Full time' },
+        { value: 'Contract', label: 'Contract' },
+        { value: 'Part time', label: 'Part time' },
+      ],
+      jobStatusOptions: [
+        { value: 'Open', label: 'Open' },
+        { value: 'In Progress', label: 'In Progress' },
+        { value: 'Completed', label: 'Completed' },
+        { value: 'Cancelled', label: 'Cancelled' },
+        { value: 'Dropped', label: 'Dropped' },
+      ],
+      locationTypeOptions: [
+        { value: 'In person', label: 'In person' },
+        { value: 'Remote', label: 'Remote' },
+      ],
     };
   },
   computed: {
@@ -222,8 +236,7 @@ export default {
                              (!this.budgetMax || budget <= this.budgetMax);
 
         const workStyle = this.mapWorkStyle(job.details?.work_style);
-        const effectiveWorkStyles = this.filterWorkStyles.includes('All') ? ['Full time', 'Contract', 'Part time'] : this.filterWorkStyles;
-        const matchesWorkStyle = !this.filterWorkStyles.length || effectiveWorkStyles.includes(workStyle);
+        const matchesWorkStyle = !this.filterWorkStyles.length || this.filterWorkStyles.includes(workStyle);
 
         const jobDate = job.created_at ? new Date(job.created_at).toISOString().split('T')[0] : null;
         const startDate = this.startDate || null;
@@ -232,12 +245,10 @@ export default {
                            (!endDate || !jobDate || jobDate < endDate);
 
         const jobStatus = this.mapJobStatus(job.job_status);
-        const effectiveJobStatuses = this.filterJobStatuses.includes('All') ? ['Open', 'In Progress', 'Completed', 'Cancelled', 'Dropped'] : this.filterJobStatuses;
-        const matchesJobStatus = !this.filterJobStatuses.length || effectiveJobStatuses.includes(jobStatus);
+        const matchesJobStatus = !this.filterJobStatuses.length || this.filterJobStatuses.includes(jobStatus);
 
         const locationType = this.mapLocationType(job.location?.type);
-        const effectiveLocationTypes = this.filterLocationTypes.includes('All') ? ['Unknown', 'In person', 'Remote'] : this.filterLocationTypes;
-        const matchesLocationType = !this.filterLocationTypes.length || effectiveLocationTypes.includes(locationType);
+        const matchesLocationType = !this.filterLocationTypes.length || this.filterLocationTypes.includes(locationType);
 
         return matchesSearch && matchesBudget && matchesWorkStyle && matchesDate && matchesJobStatus && matchesLocationType;
       });
