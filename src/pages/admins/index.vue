@@ -28,19 +28,12 @@
             />
           </div>
           <div>
-            <label for="filterStatus" class="block text-sm font-medium text-text-light mb-1">Filter by Status</label>
-            <select
-              id="filterStatus"
-              class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none h-[100px]"
-              multiple
+            <label class="block text-sm font-medium text-text-light mb-1">Filter by Status</label>
+            <MultiSelect
+              :options="statusOptions"
+              placeholder="Filter by status..."
               v-model="filterStatuses"
-            >
-              <option value="All">All</option>
-              <option value="pending">Pending</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+            />
           </div>
         </div>
 
@@ -139,16 +132,24 @@
 import { apiListAdmins, apiDeleteAdmin } from '@/apis/admin';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
+import MultiSelect from '@/components/forms/MultiSelect.vue';
 
 export default {
   components: {
     ConfirmDialog,
     Pagination,
+    MultiSelect,
   },
   data() {
     return {
       searchQuery: '',
       filterStatuses: [],
+      statusOptions: [
+        { value: 'pending', label: 'Pending' },
+        { value: 'active', label: 'Active' },
+        { value: 'suspended', label: 'Suspended' },
+        { value: 'cancelled', label: 'Cancelled' },
+      ],
       sortKey: 'email',
       sortOrder: 'asc',
       currentPage: 1,
@@ -180,12 +181,8 @@ export default {
           lastname.includes(query) ||
           email.includes(query);
 
-        const effectiveStatuses = this.filterStatuses.includes('All')
-          ? ['pending', 'active', 'suspended', 'cancelled']
-          : this.filterStatuses;
-
-        const matchesStatus = effectiveStatuses.length === 0 ||
-          effectiveStatuses.includes(admin.status);
+        const matchesStatus = this.filterStatuses.length === 0 ||
+          this.filterStatuses.includes(admin.status);
 
         return matchesText && matchesStatus;
       });
