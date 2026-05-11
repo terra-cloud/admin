@@ -28,31 +28,20 @@
             />
           </div>
           <div>
-            <label for="filterType" class="block text-sm font-medium text-text-light mb-1">Filter by Type</label>
-            <select
-              id="filterType"
-              class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none h-[100px]"
-              multiple
+            <label class="block text-sm font-medium text-text-light mb-1">Filter by Type</label>
+            <MultiSelect
+              :options="typeOptions"
+              placeholder="Filter by type..."
               v-model="filterTypes"
-            >
-              <option value="All">All</option>
-              <option value="User">User</option>
-              <option value="Employer">Employer</option>
-            </select>
+            />
           </div>
           <div>
-            <label for="filterKycStatus" class="block text-sm font-medium text-text-light mb-1">Filter by KYC Status</label>
-            <select
-              id="filterKycStatus"
-              class="w-full px-4 py-2.5 rounded-lg bg-input-light border-none h-[100px]"
-              multiple
+            <label class="block text-sm font-medium text-text-light mb-1">Filter by KYC Status</label>
+            <MultiSelect
+              :options="kycStatusOptions"
+              placeholder="Filter by KYC status..."
               v-model="filterKycStatuses"
-            >
-              <option value="All">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
+            />
           </div>
         </div>
 
@@ -172,6 +161,7 @@ import UserModal from '@/pages/users/components/UserModal.vue';
 import KycStatusModal from '@/pages/users/components/KycStatusModal.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
+import MultiSelect from '@/components/forms/MultiSelect.vue';
 
 export default {
   components: {
@@ -179,6 +169,7 @@ export default {
     KycStatusModal,
     ConfirmDialog,
     Pagination,
+    MultiSelect,
   },
   data() {
     return {
@@ -188,6 +179,15 @@ export default {
       searchQuery: '',
       filterTypes: [],
       filterKycStatuses: [],
+      typeOptions: [
+        { value: 'User', label: 'User' },
+        { value: 'Employer', label: 'Employer' },
+      ],
+      kycStatusOptions: [
+        { value: 'Pending', label: 'Pending' },
+        { value: 'Approved', label: 'Approved' },
+        { value: 'Rejected', label: 'Rejected' },
+      ],
       sortKey: 'name',
       sortOrder: 'asc',
       currentPage: 1,
@@ -237,10 +237,8 @@ export default {
           userType.includes(searchQuery) ||
           kycStatus.includes(searchQuery) ||
           kycRejectionReason.includes(searchQuery);
-        const effectiveTypes = this.filterTypes.includes('All') ? ['User', 'Employer'] : this.filterTypes;
-        const effectiveKycStatuses = this.filterKycStatuses.includes('All') ? ['Pending', 'Approved', 'Rejected'] : this.filterKycStatuses;
-        const matchesType = effectiveTypes.length === 0 || effectiveTypes.includes(this.mapAccountType(user.account_type));
-        const matchesKycStatus = effectiveKycStatuses.length === 0 || effectiveKycStatuses.includes(this.displayStatus(user.kyc_validated));
+        const matchesType = this.filterTypes.length === 0 || this.filterTypes.includes(this.mapAccountType(user.account_type));
+        const matchesKycStatus = this.filterKycStatuses.length === 0 || this.filterKycStatuses.includes(this.displayStatus(user.kyc_validated));
         return matchesText && matchesType && matchesKycStatus;
       });
     },
