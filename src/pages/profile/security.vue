@@ -63,34 +63,61 @@
         <form @submit.prevent="updatePassword">
           <div class="mb-4">
             <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-            <input
-              type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              id="currentPassword"
-              v-model="passwordForm.current_password"
-              required
-            />
+            <div class="relative flex items-center">
+              <input
+                :type="showCurrentPassword ? 'text' : 'password'"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm pr-10"
+                id="currentPassword"
+                v-model="passwordForm.current_password"
+                required
+              />
+              <button
+                type="button"
+                class="absolute right-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                @click="showCurrentPassword = !showCurrentPassword"
+              >
+                <i :class="showCurrentPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
           </div>
           <div class="mb-4">
             <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-            <input
-              type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              id="newPassword"
-              v-model="passwordForm.new_password"
-              required
-              minlength="8"
-            />
+            <div class="relative flex items-center">
+              <input
+                :type="showNewPassword ? 'text' : 'password'"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm pr-10"
+                id="newPassword"
+                v-model="passwordForm.new_password"
+                required
+                minlength="8"
+              />
+              <button
+                type="button"
+                class="absolute right-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                @click="showNewPassword = !showNewPassword"
+              >
+                <i :class="showNewPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
           </div>
           <div class="mb-4">
             <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-            <input
-              type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              id="confirmPassword"
-              v-model="passwordForm.new_password_confirmation"
-              required
-            />
+            <div class="relative flex items-center">
+              <input
+                :type="showConfirmPassword ? 'text' : 'password'"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm pr-10"
+                id="confirmPassword"
+                v-model="passwordForm.new_password_confirmation"
+                required
+              />
+              <button
+                type="button"
+                class="absolute right-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                @click="showConfirmPassword = !showConfirmPassword"
+              >
+                <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
           </div>
           <div class="flex items-center justify-end">
             <button
@@ -125,6 +152,9 @@ export default {
         new_password: '',
         new_password_confirmation: '',
       },
+      showCurrentPassword: false,
+      showNewPassword: false,
+      showConfirmPassword: false,
       passwordSaving: false,
       passwordSaved: false,
       passwordError: null,
