@@ -10,11 +10,7 @@
           Manage and monitor all professional service listings across the Terra PH marketplace ecosystem.
         </p>
       </div>
-      <button class="relative flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 overflow-hidden group/btn">
-        <span class="absolute inset-0 bg-white/10 opacity-0 group-hover/btn:opacity-100 transition-opacity rounded-xl"></span>
-        <span class="material-symbols-outlined text-lg relative z-10">add</span>
-        <span class="relative z-10">Create New Service</span>
-      </button>
+
     </div>
 
     <!-- Stats Bar -->
