@@ -292,7 +292,58 @@
             <span class="material-symbols-outlined text-sm">location_on</span>
             Location
           </h3>
-          <p class="text-sm text-text-light">{{ service.location.stringified_address || 'No address provided' }}</p>
+
+          <!-- Map -->
+          <div v-if="locationLat && locationLng" class="rounded-lg overflow-hidden border border-gray-200 h-48">
+            <iframe
+              :src="`https://www.openstreetmap.org/export/embed.html?bbox=${locationLng - 0.01},${locationLat - 0.01},${locationLng + 0.01},${locationLat + 0.01}&amp;layer=mapnik&amp;marker=${locationLat},${locationLng}`"
+              class="w-full h-full"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
+
+          <!-- Address -->
+          <p class="text-sm text-text-light">{{ locationAddress }}</p>
+
+          <!-- Details Grid -->
+          <div v-if="service.location.details" class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+            <div v-if="service.location.details.street" class="col-span-2">
+              <span class="text-text-muted-light">Street</span>
+              <p class="text-text-light font-medium">{{ service.location.details.street }}</p>
+            </div>
+            <div v-if="service.location.details.barangay">
+              <span class="text-text-muted-light">Barangay</span>
+              <p class="text-text-light font-medium">{{ service.location.details.barangay }}</p>
+            </div>
+            <div v-if="service.location.details.city">
+              <span class="text-text-muted-light">City</span>
+              <p class="text-text-light font-medium">{{ service.location.details.city }}</p>
+            </div>
+            <div v-if="service.location.details.province">
+              <span class="text-text-muted-light">Province</span>
+              <p class="text-text-light font-medium">{{ service.location.details.province }}</p>
+            </div>
+            <div v-if="service.location.details.region">
+              <span class="text-text-muted-light">Region</span>
+              <p class="text-text-light font-medium">{{ service.location.details.region }}</p>
+            </div>
+            <div v-if="service.location.details.postalCode">
+              <span class="text-text-muted-light">Postal Code</span>
+              <p class="text-text-light font-medium">{{ service.location.details.postalCode }}</p>
+            </div>
+            <div v-if="service.location.details.country" class="col-span-2">
+              <span class="text-text-muted-light">Country</span>
+              <p class="text-text-light font-medium">{{ service.location.details.country }}</p>
+            </div>
+          </div>
+
+          <!-- Coordinates -->
+          <div v-if="locationLat && locationLng" class="flex items-center gap-1.5 text-xs text-text-muted-light">
+            <span class="material-symbols-outlined text-[14px]">pin_drop</span>
+            <span>{{ locationLat }}, {{ locationLng }}</span>
+          </div>
+
           <div v-if="service.location.type" class="flex gap-2">
             <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
               {{ service.location.type }}
@@ -408,6 +459,31 @@ export default {
       if (idx === -1) return 0;
       if (idx === 4) return 100;
       return (idx / 4) * 100;
+    },
+    locationLat() {
+      const loc = this.service?.location;
+      if (!loc) return null;
+      if (loc.details?.latitude != null) return loc.details.latitude;
+      if (loc.coordinates) {
+        const parts = loc.coordinates.split(',');
+        return parts[0] ? parseFloat(parts[0].trim()) : null;
+      }
+      return null;
+    },
+    locationLng() {
+      const loc = this.service?.location;
+      if (!loc) return null;
+      if (loc.details?.longitude != null) return loc.details.longitude;
+      if (loc.coordinates) {
+        const parts = loc.coordinates.split(',');
+        return parts[1] ? parseFloat(parts[1].trim()) : null;
+      }
+      return null;
+    },
+    locationAddress() {
+      const loc = this.service?.location;
+      if (!loc) return '';
+      return loc.details?.address || loc.stringified_address || 'No address provided';
     },
   },
   methods: {
