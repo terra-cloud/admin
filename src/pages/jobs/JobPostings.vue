@@ -172,18 +172,6 @@
             >
               {{ displayStatus(service.status) }}
             </span>
-            <button
-              @click.stop="toggleFavorite(service.id)"
-              class="p-1 rounded-md hover:bg-gray-50 transition-colors -mr-1"
-            >
-              <span
-                class="material-symbols-outlined text-lg"
-                :class="favorites.has(service.id) ? 'text-red-500' : 'text-gray-300'"
-                :style="favoriteStyle(service.id)"
-              >
-                favorite
-              </span>
-            </button>
           </div>
 
           <!-- Title -->
@@ -270,7 +258,7 @@
 import { db } from '@/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Pagination from '@/components/Pagination.vue';
-import { formatText } from '@/utils/format';
+import { formatText } from '@/utils/format.js';
 
 export default {
   components: { Pagination },
@@ -350,6 +338,7 @@ export default {
     },
   },
   methods: {
+    formatText,
     fetchServices() {
       this.loading = true;
       const q = query(collection(db, 'service-listings'), orderBy('createdAt', 'desc'));
@@ -364,12 +353,6 @@ export default {
         this.loading = false;
       });
     },
-    formatText(text) {
-      if (!text) return '';
-      return text
-        .replace(/[_-]/g, ' ')
-        .replace(/\b\w/g, c => c.toUpperCase());
-    },
     displayStatus(status) {
       const map = {
         active: 'Active',
@@ -377,6 +360,7 @@ export default {
         pending: 'Pending',
         closed: 'Closed',
         flagged: 'Flagged',
+        completed: 'Completed',
       };
       return map[(status || '').toLowerCase()] || 'Unknown';
     },
@@ -388,6 +372,7 @@ export default {
         pending: 'bg-blue-50 text-blue-700 border border-blue-200/50',
         closed: 'bg-red-50 text-red-600 border border-red-200/50',
         flagged: 'bg-red-50 text-red-600 border border-red-200/50',
+        completed: 'bg-green-50 text-green-600 border border-green-200/50',
       };
       return map[s] || 'bg-gray-50 text-gray-500 border border-gray-200/50';
     },
