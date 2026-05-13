@@ -12,6 +12,7 @@ import profile from './profile';
 import vehicleListings from './vehicleListings';
 import listings from './listings';
 import userManagement from './userManagement';
+import serviceBookings from './serviceBookings';
 const routes = [
     ...auth,
     ...dashboard,
@@ -22,7 +23,8 @@ const routes = [
     ...jobs,
     ...news,
     ...profile,
-    ...vehicleListings
+    ...vehicleListings,
+    ...serviceBookings
 ]
 
 const router = createRouter({
