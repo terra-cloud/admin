@@ -13,7 +13,7 @@
     </div>
 
     <!-- Stats Bar -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
       <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-primary hover:shadow-lifted transition-shadow">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Total Services</span>
@@ -30,6 +30,14 @@
         <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.active) }}</p>
         <p class="text-xs text-text-muted-light mt-1">{{ activePercent }}% of total</p>
       </div>
+      <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-green-600 hover:shadow-lifted transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Completed</span>
+          <span class="material-symbols-outlined text-green-600 text-xl">task_alt</span>
+        </div>
+        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.completed) }}</p>
+        <p class="text-xs text-text-muted-light mt-1">Finished services</p>
+      </div>
       <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-amber-400 hover:shadow-lifted transition-shadow">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Pending Drafts</span>
@@ -45,6 +53,14 @@
         </div>
         <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.closed + statusCounts.flagged) }}</p>
         <p class="text-xs text-text-muted-light mt-1">Inactive listings</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-gray-400 hover:shadow-lifted transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Unknown</span>
+          <span class="material-symbols-outlined text-gray-400 text-xl">help</span>
+        </div>
+        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.unknown) }}</p>
+        <p class="text-xs text-text-muted-light mt-1">Uncategorized</p>
       </div>
     </div>
 
@@ -78,6 +94,8 @@
             <option value="closed">Closed</option>
             <option value="pending">Pending</option>
             <option value="flagged">Flagged</option>
+            <option value="completed">Completed</option>
+            <option value="unknown">Unknown</option>
           </select>
         </div>
       </div>
@@ -410,7 +428,7 @@ export default {
       return count;
     },
     statusCounts() {
-      const counts = { active: 0, draft: 0, pending: 0, closed: 0, flagged: 0, unknown: 0 };
+      const counts = { active: 0, draft: 0, pending: 0, closed: 0, flagged: 0, completed: 0, unknown: 0 };
       this.services.forEach(s => {
         const st = (s.status || 'unknown').toLowerCase();
         if (st in counts) counts[st]++;
@@ -429,7 +447,11 @@ export default {
           (s.keywords || []).join(' ').toLowerCase().includes(q);
 
         const matchesCategory = !this.filterCategory || s.category === this.filterCategory;
-        const matchesStatus = !this.filterStatus || (s.status || '').toLowerCase() === this.filterStatus;
+        const matchesStatus = !this.filterStatus || (
+          this.filterStatus === 'unknown'
+            ? !s.status || !['active', 'draft', 'pending', 'closed', 'flagged', 'completed'].includes(s.status.toLowerCase())
+            : (s.status || '').toLowerCase() === this.filterStatus
+        );
 
         return matchesSearch && matchesCategory && matchesStatus;
       });
