@@ -4,13 +4,14 @@
 
 The Vehicle Listings Management page at `/vehicle-listings` provides a full admin dashboard for managing all vehicle rental listings on the platform. It reads from two Firestore collections (`vehicle-listings` and `vehicle-listing-details`) using real-time subscriptions.
 
-Route (`src/router/vehicleListings.js`):
+Routes (`src/router/vehicleListings.js`):
 
 | Path | Component | Name |
 |------|-----------|------|
 | `/vehicle-listings` | `@/pages/vehicle-listings/index.vue` | `vehicleListings` |
+| `/vehicle-listings/:id` | `@/pages/vehicle-listings/_id.vue` | `vehicleListingDetails` |
 
-Requires auth, uses `LayoutDefault`.
+All routes require auth and use `LayoutDefault`.
 
 ---
 
@@ -25,7 +26,7 @@ Key fields:
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | string | Document ID (same as `vehicle-listing-details`) |
-| `title` | string | Listing title (e.g., "Ford Everest 2021 Automatic 2.2L") |
+| `title` | string | Listing title |
 | `description` | string | Full listing description |
 | `images` | string[] | Array of image URLs |
 | `category` | string | Vehicle category (SUV, Sedan, Van, etc.) |
@@ -57,15 +58,22 @@ Key fields:
 |-------|------|-------------|
 | `plateNumber` | string | License plate |
 | `transmission` | string | Automatic, Manual, CVT |
-| `fuelType` | string | Gasoline, Diesel, Electric, Hybrid |
 | `seatingCapacity` | number | Number of seats |
-| `engineCapacity` | string | Engine displacement |
 | `year` | number | Model year |
-| `drive_types` | string | Drivetrain type |
-| `pricing` | object | Rate details `{ dailyRate, weeklyRate, monthlyRate }` |
+| `model` | string | Vehicle model (e.g. "Everest") |
+| `type` | string | Vehicle body type (e.g. "carSedan") |
+| `odoMeter` | number | Odometer reading in km |
+| `isReservable` | boolean | Whether reservation is allowed |
+| `drive_types` | string[] | Drivetrain types (e.g. `["selfDrive"]`) |
+| `fuel_policy` | string | Fuel policy (e.g. "fullTankUponReturn") |
+| `insurance` | string | Insurance info (e.g. "included") |
+| `unlimited_mileage` | boolean | Whether mileage is unlimited |
 | `reservationFee` | number | Booking fee |
-| `inclusions` | string | What's included |
-| `info` | string | Additional information |
+| `info` | object | Nested map: `{ brand, engineCapacity, fuelType }` |
+| `pricing` | object | Rate details: `{ dailyRate, weeklyRate, monthlyRate, rate8Hours, rate12Hours, extensionPerHour, penaltyPerHour, depositRequired }` |
+| `inclusions` | string (JSON) \| object | Parsed as key-value pairs (insurance, unlimited_mileage, fuel_policy, drive_types) |
+| `location` | object | Nested: `{ coordinates, type, details: { address, barangay, city, province, region, postalCode, country, latitude, longitude } }` |
+| `images` | string[] | Additional detail images |
 
 ---
 
@@ -76,22 +84,22 @@ Key fields:
 ```
 src/pages/vehicle-listings/
 ├── index.vue                      # Main page (header, stats, filters, table, modals)
+├── _id.vue                        # Listing details page (full-page, no longer a drawer)
 └── components/
-    ├── ListingActions.vue         # Per-row action dropdown menu
-    └── ListingDetailsDrawer.vue   # Slide-over details panel
+    └── ListingActions.vue         # Per-row action dropdown menu
 
 src/services/
 └── VehicleListingsDataService.js  # Firestore service layer
 
 src/router/
-└── vehicleListings.js             # Route definition
+└── vehicleListings.js             # Route definitions
 ```
 
 ### Component Breakdown
 
 #### `index.vue` — Main Page
 
-Orchestrates all features. Contains inline modals for suspend reason and delete confirmation. Delegates to child components for the action menu and details drawer.
+Orchestrates all features. Contains inline modals for suspend reason and delete confirmation. Delegates to child components for the action menu.
 
 | State | Condition | UI |
 |-------|-----------|----|
@@ -101,12 +109,29 @@ Orchestrates all features. Contains inline modals for suspend reason and delete 
 | **No filters match** | `filteredListings.length === 0` | `search_off` icon + "Clear all filters" link |
 | **Success** | Listings exist + filtered | Data table (desktop) or card grid (mobile) |
 
-**Desktop** (`lg:` breakpoint and up): Full data table with all 11 columns.
+**Desktop** (`lg:` breakpoint and up): Full data table.
 **Tablet/Phone** (`<lg:`): 2-column card grid with thumbnail, status, owner, pricing, meta.
+
+#### `_id.vue` — Listing Details Page
+
+Full-page view of a single listing, navigated via `/vehicle-listings/:id`. Fetches both the listing document and its details document on mount.
+
+| Section | Content |
+|---------|---------|
+| **Image gallery** | Carousel with thumbnail strip, prev/next arrows, image counter |
+| **Status badge** | Color-coded overlay on the hero image |
+| **Title & price** | Listing title + daily rate |
+| **Quick info** | Vehicle brand (from `details.info.brand`), category |
+| **Vehicle specs** | Model, type, transmission, fuel type, seating, engine capacity, year, plate number, odometer, reservable flag, drive types as badges |
+| **Description** | Full text description |
+| **Booking settings** | Pricing tiers (daily, weekly, monthly), reservation fee, inclusions (parsed from JSON and displayed as readable key-value pairs with icons) |
+| **Owner card** | Avatar, display name, account type (sidebar) |
+| **Location card** | OpenStreetMap embed (when coordinates available), address, details grid (street, barangay, city, province, region, postal code, country), coordinates, type badge |
+| **Listing info** | ID, timestamps, views, reviews, availability (sidebar) |
 
 #### `ListingActions.vue` — Action Dropdown
 
-Fixed-position dropdown menu attached to each table row. Auto-positions to stay within viewport.
+Absolute-positioned dropdown menu attached to each table row, matching the header dropdown pattern.
 
 | Action | Condition | Icon Color |
 |--------|-----------|------------|
@@ -116,32 +141,18 @@ Fixed-position dropdown menu attached to each table row. Auto-positions to stay 
 | Suspend Listing | Status = `active` or `pending` | Amber |
 | Activate Listing | Status = `suspended` or `archived` | Blue |
 | Archive Listing | Status = `active` or `pending` | Gray |
+| Set None | Status is set | Gray |
 | Delete Listing | Always | Red |
 | View Owner | Always | Gray |
-| Copy Listing ID | Always | Gray |
 
-#### `ListingDetailsDrawer.vue` — Details Panel
-
-Slide-over panel from the right edge. Fetches secondary data from `vehicle-listing-details/{id}` on open.
-
-Sections displayed:
-- Image gallery (first image + dot indicators for more)
-- Status badge overlay
-- Title and daily rate
-- Quick info (brand, category)
-- Vehicle specs (transmission, fuel, seating, engine, year, plate)
-- Description
-- Owner details (avatar, name, type)
-- Location
-- Booking settings (pricing, reservation fee, inclusions)
-- Metadata (ID, timestamps, views, reviews, availability)
+The menu renders with `absolute right-0 top-full mt-1` positioning. Click-outside detection via `document.addEventListener('click', ...)` closes the menu.
 
 #### `VehicleListingsDataService.js` — Service Layer
 
 | Method | Description |
 |--------|-------------|
 | `getAll(callback, errorCallback)` | Real-time `onSnapshot` listener |
-| `getById(id)` | Single doc fetch |
+| `getById(id)` | Single doc fetch from `vehicle-listings` |
 | `getDetails(id)` | Fetch from `vehicle-listing-details` |
 | `updateStatus(id, data)` | Update listing fields + `updatedAt` |
 | `bulkUpdateStatus(ids, data)` | Batch update for bulk actions |
@@ -196,7 +207,7 @@ Stats are computed client-side from the real-time listings data.
 
 ### Data Table
 
-11 columns, responsive:
+Columns:
 
 | Column | Content |
 |--------|---------|
@@ -208,8 +219,6 @@ Stats are computed client-side from the real-time listings data.
 | Date Created | Formatted date |
 | Status | Color-coded pill badge |
 | Avail. | Check/cross icon in colored circle |
-| Views | `totalViews` |
-| Reviews | `totalReviews` |
 | Actions | `ListingActions` dropdown |
 
 ### Status Badges
@@ -220,6 +229,7 @@ Stats are computed client-side from the real-time listings data.
 | Pending | `bg-amber-50 text-amber-700 border-amber-200/50` |
 | Suspended | `bg-red-50 text-red-700 border-red-200/50` |
 | Archived | `bg-gray-100 text-gray-600 border-gray-200/50` |
+| None/Empty | `Unknown` (falls through to `listing.status` or `'Unknown'`) |
 
 ### Bulk Actions
 
@@ -246,7 +256,6 @@ Server-ready pagination with client-side slicing:
 |-------|---------|---------|
 | **Suspend Reason** | Action → Suspend | Reason dropdown (violation, inaccurate info, spam, verification, safety, complaint, Other) + custom textarea |
 | **Delete Confirm** | Action → Delete or Bulk Delete | Uses shared `ConfirmDialog` component with customizable message |
-| **Details Drawer** | Action → View Listing | Full slide-over panel with all listing + details fields |
 
 ### Export
 
@@ -259,10 +268,10 @@ CSV export with columns: ID, Title, Category, Brand, Plate Number, Owner, Owner 
 | File | Purpose |
 |------|---------|
 | `src/pages/vehicle-listings/index.vue` | Main page UI and business logic |
+| `src/pages/vehicle-listings/_id.vue` | Listing details page (full-page view) |
 | `src/pages/vehicle-listings/components/ListingActions.vue` | Row action dropdown menu |
-| `src/pages/vehicle-listings/components/ListingDetailsDrawer.vue` | Details slide-over panel |
 | `src/services/VehicleListingsDataService.js` | Firestore CRUD service |
-| `src/router/vehicleListings.js` | Route definition |
+| `src/router/vehicleListings.js` | Route definitions |
 | `src/router/index.js` | Route registration |
 | `src/layouts/LeftSidebar.vue` | Sidebar navigation link |
 

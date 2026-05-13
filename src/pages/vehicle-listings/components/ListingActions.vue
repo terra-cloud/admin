@@ -52,6 +52,14 @@
         <span class="material-symbols-outlined text-lg text-text-muted-light">archive</span>
         Archive Listing
       </button>
+      <button
+        v-if="canSetNone"
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors text-left"
+        @click="emitAction('none')"
+      >
+        <span class="material-symbols-outlined text-lg text-text-muted-light">remove_circle_outline</span>
+        Set None
+      </button>
       <div class="h-px bg-gray-100 my-1"></div>
       <button
         class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50 transition-colors text-left"
@@ -109,6 +117,9 @@ export default {
     },
     canArchive() {
       return this.status === 'active' || this.status === 'pending';
+    },
+    canSetNone() {
+      return !!this.status;
     }
   },
   methods: {

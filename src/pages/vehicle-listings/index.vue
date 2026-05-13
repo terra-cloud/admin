@@ -20,24 +20,7 @@
             Manage and monitor all vehicle rental listings across the Philippines.
           </p>
         </div>
-        <div class="flex items-center gap-2.5">
-          <button
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors border border-gray-200 text-text-muted-light hover:bg-gray-50 hover:text-text-light"
-            @click="exportData"
-            :disabled="exporting"
-          >
-            <i v-if="exporting" class="fas fa-spinner fa-spin"></i>
-            <span v-else class="material-symbols-outlined text-lg">file_download</span>
-            {{ exporting ? 'Exporting...' : 'Export Data' }}
-          </button>
-          <button
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-primary text-white hover:bg-primary/90 shadow-sm"
-            @click="openCreateModal"
-          >
-            <span class="material-symbols-outlined text-lg">add</span>
-            Create Listing
-          </button>
-        </div>
+        
       </div>
 
       <!-- Stats Cards -->
@@ -451,7 +434,7 @@
                           <span class="text-sm text-text-light truncate max-w-[100px]">{{ listing.author?.display_name || 'Unknown' }}</span>
                           <span v-if="listing.author?.kyc_validated === 1 || listing.author?.kyc_validated === 'Approved'" class="material-symbols-outlined text-xs text-primary" title="KYC Verified">verified</span>
                         </div>
-                        <p class="text-xs text-text-muted-light">{{ listing.author?.account_type || 'User' }}</p>
+                        <p class="text-xs text-text-muted-light">{{ listing.author?.account_type == 2 ? 'Employer' : 'Job Seeker' }}</p>
                       </div>
                     </div>
                   </td>
@@ -1015,6 +998,9 @@ export default {
         case 'archive':
           this.archiveListing(listing);
           break;
+        case 'none':
+          this.clearStatus(listing);
+          break;
         case 'delete':
           this.openDeleteConfirm(listing);
           break;
@@ -1095,6 +1081,18 @@ export default {
         this.showToast('Listing archived successfully', 'success');
       } catch (err) {
         this.showToast('Failed to archive listing', 'error');
+      }
+    },
+
+    async clearStatus(listing) {
+      try {
+        await VehicleListingsDataService.updateStatus(listing.id, {
+          status: '',
+          is_suspended: false
+        });
+        this.showToast('Listing status cleared', 'success');
+      } catch (err) {
+        this.showToast('Failed to clear status', 'error');
       }
     },
 
