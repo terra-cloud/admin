@@ -93,12 +93,12 @@
                 <td class="px-4 py-3 text-sm text-text-primary">{{ user.type }}</td>
                 <td class="px-4 py-3 text-sm text-text-primary">{{ displayStatus(user.kyc_validated) }}</td>
                 <td class="px-4 py-3 text-sm">
-                  <button
+                  <router-link
+                    :to="`/users/${user.id}/edit`"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-primary hover:bg-primary/5"
-                    @click="openEditModal(user)"
                   >
                     Edit
-                  </button>
+                  </router-link>
                   <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-amber-600 hover:bg-amber-50"
                     @click="openKycModal(user)"
@@ -130,13 +130,6 @@
       </div>
     </div>
 
-    <UserModal
-      v-if="showEditModal"
-      :user="selectedUser"
-      :key="selectedUser?.id"
-      @save="saveUser"
-      @close="closeEditModal"
-    />
     <KycStatusModal
       v-if="showKycModal"
       :user="selectedKycUser"
@@ -157,7 +150,6 @@
 <script>
 import { db } from '@/firebase';
 import { collection, query, orderBy, limit, startAfter, onSnapshot, deleteDoc, doc, setDoc, getCountFromServer } from 'firebase/firestore';
-import UserModal from '@/pages/users/components/UserModal.vue';
 import KycStatusModal from '@/pages/users/components/KycStatusModal.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
@@ -165,7 +157,6 @@ import MultiSelect from '@/components/forms/MultiSelect.vue';
 
 export default {
   components: {
-    UserModal,
     KycStatusModal,
     ConfirmDialog,
     Pagination,
@@ -208,8 +199,6 @@ export default {
         { value: 1, message: 'Approved' },
         { value: -1, message: 'Rejected' },
       ],
-      showEditModal: false,
-      selectedUser: null,
       showKycModal: false,
       selectedKycUser: null,
       showDeleteModal: false,
@@ -372,34 +361,6 @@ export default {
         return this.sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
       }
       return 'fa-sort';
-    },
-    openEditModal(user) {
-      this.selectedUser = { ...user };
-      this.showEditModal = true;
-    },
-    async saveUser(updatedUser) {
-      try {
-        await setDoc(doc(db, 'users', updatedUser.id), {
-          name: updatedUser.name,
-          last_name: updatedUser.last_name,
-          email: updatedUser.email,
-          birthdate: updatedUser.birthdate,
-          gender: updatedUser.gender,
-          account_type: parseInt(updatedUser.account_type),
-          kyc_validated: parseInt(updatedUser.kyc_validated),
-          kyc_rejection_reason: updatedUser.kyc_rejection_reason || '',
-          photo_url: updatedUser.photo_url || '',
-        }, { merge: true });
-        this.closeEditModal();
-        this.fetchUsers();
-      } catch (error) {
-        console.error('Error updating user:', error);
-        alert('Failed to update user');
-      }
-    },
-    closeEditModal() {
-      this.showEditModal = false;
-      this.selectedUser = null;
     },
     openKycModal(user) {
       this.selectedKycUser = { ...user };
