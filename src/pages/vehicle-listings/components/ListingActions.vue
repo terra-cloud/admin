@@ -9,8 +9,7 @@
     </button>
     <div
       v-if="isOpen"
-      class="fixed z-50 w-56 rounded-xl bg-white shadow-lifted border border-gray-100 py-1.5"
-      :style="menuPosition"
+      class="absolute right-0 top-full mt-1 z-50 w-56 rounded-xl bg-white shadow-lifted border border-gray-100 py-1.5"
       @click.stop
     >
       <button
@@ -87,10 +86,6 @@ export default {
   data() {
     return {
       isOpen: false,
-      menuPosition: {
-        top: '0px',
-        left: '0px'
-      }
     };
   },
   computed: {
@@ -119,58 +114,23 @@ export default {
   methods: {
     formatText,
     toggleMenu() {
-      if (this.isOpen) {
-        this.closeMenu();
-      } else {
-        this.openMenu();
-      }
+      this.isOpen = !this.isOpen;
     },
-    openMenu() {
-      this.isOpen = true;
-      this.$nextTick(() => {
-        this.positionMenu();
-      });
-      document.addEventListener('click', this.handleOutsideClick);
-    },
-    closeMenu() {
-      this.isOpen = false;
-      document.removeEventListener('click', this.handleOutsideClick);
-    },
-    positionMenu() {
-      const btn = this.$el.querySelector('button');
-      if (!btn) return;
-      const rect = btn.getBoundingClientRect();
-      const menuWidth = 224;
-      const menuHeight = 360;
-      let top = rect.bottom + 4;
-      let left = rect.right - menuWidth;
-
-      if (left < 8) left = 8;
-      if (left + menuWidth > window.innerWidth - 8) {
-        left = rect.left - menuWidth;
-      }
-      if (top + menuHeight > window.innerHeight - 8) {
-        top = rect.top - menuHeight - 4;
-      }
-      if (top < 8) top = 8;
-
-      this.menuPosition = {
-        top: top + 'px',
-        left: left + 'px'
-      };
-    },
-    handleOutsideClick(e) {
-      if (this.$el && !this.$el.contains(e.target)) {
-        this.closeMenu();
+    handleClickOutside(e) {
+      if (this.$refs.dropdownRef && !this.$refs.dropdownRef.contains(e.target)) {
+        this.isOpen = false;
       }
     },
     emitAction(action) {
-      this.closeMenu();
+      this.isOpen = false;
       this.$emit('action', { action, listing: this.listing });
     }
   },
+  mounted() {
+    document.addEventListener('click', this.handleClickOutside);
+  },
   beforeUnmount() {
-    document.removeEventListener('click', this.handleOutsideClick);
+    document.removeEventListener('click', this.handleClickOutside);
   }
 };
 </script>
