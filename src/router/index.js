@@ -11,9 +11,11 @@ import news from './news';
 import profile from './profile';
 import vehicleListings from './vehicleListings';
 import listings from './listings';
+import userManagement from './userManagement';
 const routes = [
     ...auth,
     ...dashboard,
+    ...userManagement,
     ...users,
     ...admins,
     ...listings,

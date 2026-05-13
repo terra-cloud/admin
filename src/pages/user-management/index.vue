@@ -4,10 +4,10 @@
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-text-light tracking-tight">
-            Listings
+            User Management
           </h1>
           <p class="text-sm text-text-muted-light mt-1 max-w-2xl leading-relaxed">
-            Manage all marketplace listings across Terra PH.
+            Manage users, admins, and their roles across the platform.
           </p>
         </div>
       </div>
@@ -26,33 +26,33 @@
         </nav>
       </div>
 
-      <div v-if="activeTab === 'jobs'">
-        <JobPostings />
+      <div v-if="activeTab === 'users'">
+        <UsersIndex />
       </div>
-      <div v-else-if="activeTab === 'vehicle-listings'">
-        <VehicleListings />
+      <div v-else-if="activeTab === 'admins'">
+        <AdminsIndex />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import JobPostings from '@/pages/jobs/JobPostings.vue';
-import VehicleListings from '@/pages/vehicle-listings/index.vue';
+import UsersIndex from '@/pages/users/index.vue';
+import AdminsIndex from '@/pages/admins/index.vue';
 
 export default {
-  components: { JobPostings, VehicleListings },
+  components: { UsersIndex, AdminsIndex },
   data() {
     return {
-      activeTab: 'jobs',
+      activeTab: 'users',
       tabs: [
-        { key: 'jobs', label: 'Service Listing' },
-        { key: 'vehicle-listings', label: 'Vehicle Listings' },
+        { key: 'users', label: 'Users' },
+        { key: 'admins', label: 'Admins' },
       ],
     };
   },
   mounted() {
-    const tab = this.$route.query.tab || 'jobs';
+    const tab = this.$route.query.tab || 'users';
     if (this.tabs.some(t => t.key === tab)) {
       this.activeTab = tab;
     }
