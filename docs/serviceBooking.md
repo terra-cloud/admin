@@ -102,7 +102,13 @@ Sections:
 - **Finance** — Escrow Amount, Accepted Price, Payment Status in bordered cards
 - **Activity Timeline** — 5 timeline events (Created, Accepted, Started, Delivered, Completed) with completion state based on booking status
 - **Sidebar Actions** — Message Employer, Message Terran, Release Escrow, Mark Completed (contextual based on status)
-- **Map Placeholder** — Location display with map placeholder
+- **Location Card** — Comprehensive location display in the right sidebar with:
+  - OpenStreetMap embed iframe (when lat/lng available)
+  - Address line
+  - Details grid (street, barangay, city, province, region, postal code, country)
+  - Coordinates display
+  - Location type badge
+  - Location data sourced from `listing.location` with support for both `details.latitude/longitude` and `coordinates` string format
 
 Workflow states:
 ```
