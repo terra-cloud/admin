@@ -24,7 +24,7 @@
       </div>
       <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-emerald-500 hover:shadow-lifted transition-shadow">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Active Now</span>
+          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Active</span>
           <span class="material-symbols-outlined text-emerald-500 text-xl">check_circle</span>
         </div>
         <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.active) }}</p>

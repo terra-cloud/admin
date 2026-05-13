@@ -613,6 +613,8 @@
 <script>
 import VehicleListingsDataService from '@/services/VehicleListingsDataService';
 import { formatText } from '@/utils/format.js';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/firebase';
 import Toast from '@/components/Toast.vue';
 import DeleteConfirmModal from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
@@ -665,6 +667,8 @@ export default {
       showDeleteConfirm: false,
       deleteTargetId: null,
       deleteMessage: 'Are you sure you want to delete this listing? This action cannot be undone.',
+      // Details data
+      detailsMap: {},
       // Firestore listeners
       unsubscribe: null
     };
@@ -759,6 +763,20 @@ export default {
           if (loc !== this.filters.province) return false;
         }
         if (this.filters.vehicleBrand && (l.vehicleBrand || '') !== this.filters.vehicleBrand) return false;
+        if (this.filters.fuelType || this.filters.transmission || this.filters.seatingCapacity) {
+          const details = this.detailsMap[l.id];
+          const fuelType = (details?.info?.fuelType || details?.fuelType || '').toLowerCase();
+          const transmission = (details?.info?.transmission || details?.transmission || '').toLowerCase();
+          const seatingCapacity = details?.info?.seatingCapacity ?? details?.seatingCapacity;
+          if (this.filters.fuelType && fuelType !== this.filters.fuelType.toLowerCase()) return false;
+          if (this.filters.transmission && transmission !== this.filters.transmission.toLowerCase()) return false;
+          if (this.filters.seatingCapacity) {
+            const cap = Number(this.filters.seatingCapacity);
+            if (this.filters.seatingCapacity === '8+') {
+              if (seatingCapacity < 8) return false;
+            } else if (Number(seatingCapacity) !== cap) return false;
+          }
+        }
         if (this.filters.availability) {
           if (this.filters.availability === 'available' && !l.isAvailable) return false;
           if (this.filters.availability === 'unavailable' && l.isAvailable) return false;
@@ -887,6 +905,7 @@ export default {
       this.unsubscribe = VehicleListingsDataService.getAll(
         (listings) => {
           this.listings = listings.filter(l => l.id);
+          this.fetchDetails();
           this.loading = false;
         },
         (error) => {
@@ -894,6 +913,19 @@ export default {
           this.loading = false;
         }
       );
+    },
+
+    async fetchDetails() {
+      try {
+        const snapshot = await getDocs(collection(db, 'vehicle-listing-details'));
+        const map = {};
+        snapshot.docs.forEach(doc => {
+          map[doc.id] = doc.data();
+        });
+        this.detailsMap = map;
+      } catch (err) {
+        console.error('Error fetching vehicle listing details:', err);
+      }
     },
 
     // Selection
