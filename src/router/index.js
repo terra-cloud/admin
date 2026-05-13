@@ -9,6 +9,7 @@ import admins from './admins';
 import jobs from './jobs';
 import news from './news';
 import profile from './profile';
+import vehicleListings from './vehicleListings';
 const routes = [
     ...auth,
     ...dashboard,
@@ -16,7 +17,8 @@ const routes = [
     ...admins,
     ...jobs,
     ...news,
-    ...profile
+    ...profile,
+    ...vehicleListings
 ]
 
 const router = createRouter({

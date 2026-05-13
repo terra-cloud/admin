@@ -3,104 +3,114 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+        <h1 class="text-2xl sm:text-3xl font-bold text-text-light tracking-tight">
           Service List
         </h1>
         <p class="text-sm text-text-muted-light mt-1 max-w-2xl leading-relaxed">
           Manage and monitor all professional service listings across the Terra PH marketplace ecosystem.
         </p>
       </div>
-
     </div>
 
     <!-- Stats Bar -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-      <div class="relative overflow-hidden rounded-xl p-4 border border-gray-200 bg-white/70 backdrop-blur-sm hover:shadow-soft transition-shadow">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-            <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">list_alt</span>
-          </div>
-          <div class="min-w-0">
-            <p class="text-xs text-text-muted-light font-medium">Total Services</p>
-            <p class="text-xl font-bold text-text-light tabular-nums">{{ totalServices }}</p>
-          </div>
+      <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-primary hover:shadow-lifted transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Total Services</span>
+          <span class="material-symbols-outlined text-text-muted-light text-xl">list_alt</span>
         </div>
+        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(totalServices) }}</p>
+        <p class="text-xs text-text-muted-light mt-1">All listed services</p>
       </div>
-      <div class="relative overflow-hidden rounded-xl p-4 border border-gray-200 bg-white/70 backdrop-blur-sm hover:shadow-soft transition-shadow">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-            <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-          </div>
-          <div class="min-w-0">
-            <p class="text-xs text-text-muted-light font-medium">Active Now</p>
-            <p class="text-xl font-bold text-text-light tabular-nums">{{ statusCounts.active }}</p>
-          </div>
+      <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-emerald-500 hover:shadow-lifted transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Active Now</span>
+          <span class="material-symbols-outlined text-emerald-500 text-xl">check_circle</span>
         </div>
+        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.active) }}</p>
+        <p class="text-xs text-text-muted-light mt-1">{{ activePercent }}% of total</p>
       </div>
-      <div class="relative overflow-hidden rounded-xl p-4 border border-gray-200 bg-white/70 backdrop-blur-sm hover:shadow-soft transition-shadow">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-            <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">pending</span>
-          </div>
-          <div class="min-w-0">
-            <p class="text-xs text-text-muted-light font-medium">Pending Drafts</p>
-            <p class="text-xl font-bold text-text-light tabular-nums">{{ statusCounts.draft + statusCounts.pending }}</p>
-          </div>
+      <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-amber-400 hover:shadow-lifted transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Pending Drafts</span>
+          <span class="material-symbols-outlined text-amber-400 text-xl">pending</span>
         </div>
+        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.draft + statusCounts.pending) }}</p>
+        <p class="text-xs text-text-muted-light mt-1">Requires attention</p>
       </div>
-      <div class="relative overflow-hidden rounded-xl p-4 border border-gray-200 bg-white/70 backdrop-blur-sm hover:shadow-soft transition-shadow">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center text-red-500 shrink-0">
-            <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">block</span>
-          </div>
-          <div class="min-w-0">
-            <p class="text-xs text-text-muted-light font-medium">Closed/Flagged</p>
-            <p class="text-xl font-bold text-text-light tabular-nums">{{ statusCounts.closed + statusCounts.flagged }}</p>
-          </div>
+      <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-red-500 hover:shadow-lifted transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Closed/Flagged</span>
+          <span class="material-symbols-outlined text-red-500 text-xl">block</span>
         </div>
+        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ formatNumber(statusCounts.closed + statusCounts.flagged) }}</p>
+        <p class="text-xs text-text-muted-light mt-1">Inactive listings</p>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-wrap items-center gap-3">
-      <select
-        v-model="filterCategory"
-        class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-medium text-text-muted-light focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
-      >
-        <option value="">All Categories</option>
-        <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-      </select>
-      <select
-        v-model="filterStatus"
-        class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-medium text-text-muted-light focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
-      >
-        <option value="">Status: All</option>
-        <option value="active">Active</option>
-        <option value="draft">Draft</option>
-        <option value="closed">Closed</option>
-        <option value="pending">Pending</option>
-        <option value="flagged">Flagged</option>
-      </select>
-      <div class="ml-auto relative min-w-[200px] max-w-[280px] hidden sm:block">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-muted-light">search</span>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search services..."
-          class="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium placeholder:text-text-muted-light focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
-        />
+    <div class="bg-white rounded-xl shadow-soft p-4 space-y-4">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1 min-w-0">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-muted-light">search</span>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by title, owner, description, or keywords..."
+            class="w-full pl-9 pr-3 py-2.5 bg-input-light border-none rounded-lg text-sm placeholder:text-text-muted-light focus:ring-2 focus:ring-primary/30 outline-none"
+          />
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <select
+            v-model="filterCategory"
+            class="px-3 py-2.5 bg-input-light border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/30 text-text-muted-light"
+          >
+            <option value="">All Categories</option>
+            <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+          </select>
+          <select
+            v-model="filterStatus"
+            class="px-3 py-2.5 bg-input-light border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/30 text-text-muted-light"
+          >
+            <option value="">Status: All</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="closed">Closed</option>
+            <option value="pending">Pending</option>
+            <option value="flagged">Flagged</option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Mobile Search -->
-    <div class="sm:hidden relative">
-      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-muted-light">search</span>
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Search services..."
-        class="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium placeholder:text-text-muted-light focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all"
-      />
+      <!-- Active Filters Pills -->
+      <div v-if="activeFilterCount > 0" class="flex flex-wrap items-center gap-2">
+        <span class="text-xs text-text-muted-light font-medium">Active filters:</span>
+        <span
+          v-if="filterCategory"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/5 text-primary border border-primary/10"
+        >
+          Category: {{ filterCategory }}
+          <button class="hover:text-primary/70" @click="filterCategory = ''">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </span>
+        <span
+          v-if="filterStatus"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/5 text-primary border border-primary/10"
+        >
+          Status: {{ filterStatus }}
+          <button class="hover:text-primary/70" @click="filterStatus = ''">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </span>
+        <button
+          v-if="filterCategory || filterStatus"
+          class="text-xs text-text-muted-light hover:text-text-light underline"
+          @click="filterCategory = ''; filterStatus = ''"
+        >
+          Clear all
+        </button>
+      </div>
     </div>
 
     <!-- Loading Skeletons -->
@@ -122,8 +132,25 @@
       </div>
     </div>
 
+    <!-- No Services / Empty State -->
+    <div v-else-if="services.length === 0" class="bg-white rounded-xl shadow-soft p-12 text-center">
+      <span class="material-symbols-outlined text-5xl text-gray-300 mb-4">handyman</span>
+      <h3 class="text-lg font-semibold text-text-light mb-2">No Services Yet</h3>
+      <p class="text-sm text-text-muted-light max-w-md mx-auto">There are no service listings in the system.</p>
+    </div>
+
+    <!-- No Results State -->
+    <div v-else-if="filteredServices.length === 0" class="bg-white rounded-xl shadow-soft p-12 text-center">
+      <span class="material-symbols-outlined text-5xl text-gray-300 mb-4">search_off</span>
+      <h3 class="text-lg font-semibold text-text-light mb-2">No Results Found</h3>
+      <p class="text-sm text-text-muted-light max-w-md mx-auto">Try adjusting your filters or search query to find what you're looking for.</p>
+      <button class="text-sm text-primary hover:text-primary/80 font-medium mt-2" @click="filterCategory = ''; filterStatus = ''; searchQuery = ''">
+        Clear all filters
+      </button>
+    </div>
+
     <!-- Service Cards Grid -->
-    <div v-else-if="paginatedServices.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       <div
         v-for="service in paginatedServices"
         :key="service.id"
@@ -137,6 +164,7 @@
             :src="service.images[0]"
             :alt="service.title"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
             <span class="material-symbols-outlined text-4xl text-gray-200">image</span>
@@ -182,6 +210,7 @@
               :src="service.author.photo_url"
               :alt="service.author.display_name"
               class="w-5 h-5 rounded-full object-cover ring-1 ring-gray-200"
+              loading="lazy"
             />
             <div v-else class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-semibold">
               {{ getInitials(service.author) }}
@@ -202,7 +231,6 @@
               <span class="text-[10px] text-text-muted-light">{{ paymentLabel(service.paymentType) }}</span>
             </div>
             <div class="flex items-center gap-2">
-              <!-- Escrow Badge -->
               <span
                 v-if="service.escrowAmount > 0"
                 class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50"
@@ -210,7 +238,6 @@
                 <span class="material-symbols-outlined text-[10px]">verified</span>
                 Escrow
               </span>
-              <!-- Offer Count -->
               <span
                 v-if="service.offers_count > 0"
                 class="text-[11px] font-medium text-text-muted-light"
@@ -226,38 +253,68 @@
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div v-else class="flex flex-col items-center justify-center py-20 text-center">
-      <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
-        <span class="material-symbols-outlined text-3xl text-gray-300">search_off</span>
-      </div>
-      <h3 class="text-base font-semibold text-text-light mb-1">No services found</h3>
-      <p class="text-sm text-text-muted-light max-w-xs">Try adjusting your filters or search query to find what you're looking for.</p>
-    </div>
-
     <!-- Pagination -->
-    <Pagination
-      v-if="totalPages > 1"
-      :currentPage="currentPage"
-      :totalPages="totalPages"
-      :tableData="tableData"
-      @setPage="setPage"
-      @prevPage="prevPage"
-      @nextPage="nextPage"
-      @firstPage="setPage(1)"
-      @lastPage="setPage(totalPages)"
-    />
+    <div
+      v-if="!loading && services.length > 0"
+      class="flex flex-col sm:flex-row items-center justify-between gap-4"
+    >
+      <p class="text-sm text-text-muted-light">
+        Showing
+        <span class="font-semibold text-text-light">{{ tableData.from }}</span>
+        to
+        <span class="font-semibold text-text-light">{{ tableData.to }}</span>
+        of
+        <span class="font-semibold text-text-light">{{ tableData.totalItems }}</span>
+        services
+      </p>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 mr-2">
+          <label class="text-xs text-text-muted-light">Rows:</label>
+          <select
+            v-model="servicesPerPage"
+            class="px-2 py-1.5 bg-input-light border-none rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary/30"
+          >
+            <option :value="12">12</option>
+            <option :value="24">24</option>
+            <option :value="48">48</option>
+          </select>
+        </div>
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-text-muted-light hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          <span class="material-symbols-outlined text-lg">chevron_left</span>
+        </button>
+        <template v-for="page in visiblePages" :key="page">
+          <span v-if="page === '...'" class="px-1 text-text-muted-light text-sm">...</span>
+          <button
+            v-else
+            class="min-w-[32px] h-8 px-2 rounded-lg text-sm font-medium transition-colors"
+            :class="page === currentPage ? 'bg-primary text-white' : 'text-text-muted-light hover:bg-gray-50'"
+            @click="setPage(page)"
+          >
+            {{ page }}
+          </button>
+        </template>
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-text-muted-light hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          <span class="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { db } from '@/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import Pagination from '@/components/Pagination.vue';
 import { formatText } from '@/utils/format.js';
 
 export default {
-  components: { Pagination },
   data() {
     return {
       services: [],
@@ -265,14 +322,8 @@ export default {
       searchQuery: '',
       filterCategory: '',
       filterStatus: '',
-      activeFilterTab: 'all',
-      filterTabs: [
-        { key: 'all', label: 'All Services' },
-        { key: 'mine', label: 'Mine' },
-        { key: 'archived', label: 'Archived' },
-      ],
       currentPage: 1,
-      servicesPerPage: 20,
+      servicesPerPage: 12,
       favorites: new Set(),
     };
   },
@@ -284,6 +335,16 @@ export default {
     },
     totalServices() {
       return this.services.length;
+    },
+    activePercent() {
+      if (this.totalServices === 0) return '0.0';
+      return ((this.statusCounts.active / this.totalServices) * 100).toFixed(1);
+    },
+    activeFilterCount() {
+      let count = 0;
+      if (this.filterCategory) count++;
+      if (this.filterStatus) count++;
+      return count;
     },
     statusCounts() {
       const counts = { active: 0, draft: 0, pending: 0, closed: 0, flagged: 0, unknown: 0 };
@@ -307,14 +368,7 @@ export default {
         const matchesCategory = !this.filterCategory || s.category === this.filterCategory;
         const matchesStatus = !this.filterStatus || (s.status || '').toLowerCase() === this.filterStatus;
 
-        let matchesTab = true;
-        if (this.activeFilterTab === 'mine') {
-          matchesTab = s.assignedEmployerId === this.currentUserId;
-        } else if (this.activeFilterTab === 'archived') {
-          matchesTab = s.status === 'closed' || s.status === 'flagged';
-        }
-
-        return matchesSearch && matchesCategory && matchesStatus && matchesTab;
+        return matchesSearch && matchesCategory && matchesStatus;
       });
     },
     paginatedServices() {
@@ -325,16 +379,34 @@ export default {
       return Math.ceil(this.filteredServices.length / this.servicesPerPage);
     },
     tableData() {
-      const from = this.filteredServices.length === 0 ? 0 : (this.currentPage - 1) * this.servicesPerPage + 1;
-      const to = Math.min(from + this.paginatedServices.length - 1, this.filteredServices.length);
-      return { from, to, totalItems: this.filteredServices.length };
+      const total = this.filteredServices.length;
+      const from = total === 0 ? 0 : (this.currentPage - 1) * this.servicesPerPage + 1;
+      const to = Math.min(from + this.paginatedServices.length - 1, total);
+      return { from, to, totalItems: total };
     },
-    currentUserId() {
-      return this.$store?.state?.auth?.user?.uid || null;
+    visiblePages() {
+      const total = this.totalPages;
+      const current = this.currentPage;
+      if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
+      const pages = [];
+      pages.push(1);
+      if (current > 3) pages.push('...');
+      const start = Math.max(2, current - 1);
+      const end = Math.min(total - 1, current + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (current < total - 2) pages.push('...');
+      pages.push(total);
+      return pages;
     },
   },
   methods: {
     formatText,
+    formatNumber(n) {
+      if (n == null) return '0';
+      return Number(n).toLocaleString();
+    },
     fetchServices() {
       this.loading = true;
       const q = query(collection(db, 'service-listings'), orderBy('createdAt', 'desc'));
@@ -395,13 +467,6 @@ export default {
       if (!author || !author.display_name) return '?';
       return author.display_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     },
-    favoriteStyle(id) {
-      return this.favorites.has(id) ? { fontVariationSettings: "'FILL' 1" } : {};
-    },
-    toggleFavorite(id) {
-      if (this.favorites.has(id)) this.favorites.delete(id);
-      else this.favorites.add(id);
-    },
     setPage(page) {
       if (page >= 1 && page <= this.totalPages) this.currentPage = page;
     },
@@ -416,7 +481,6 @@ export default {
     searchQuery() { this.currentPage = 1; },
     filterCategory() { this.currentPage = 1; },
     filterStatus() { this.currentPage = 1; },
-    activeFilterTab() { this.currentPage = 1; },
   },
   mounted() {
     this.fetchServices();
