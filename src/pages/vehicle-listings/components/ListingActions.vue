@@ -20,13 +20,6 @@
         <span class="material-symbols-outlined text-lg text-text-muted-light">visibility</span>
         View Listing
       </button>
-      <button
-        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-light hover:bg-gray-50 transition-colors text-left"
-        @click="emitAction('edit')"
-      >
-        <span class="material-symbols-outlined text-lg text-text-muted-light">edit</span>
-        Edit Listing
-      </button>
       <div class="h-px bg-gray-100 my-1"></div>
       <button
         v-if="canApprove"
@@ -75,13 +68,6 @@
       >
         <span class="material-symbols-outlined text-lg text-text-muted-light">person</span>
         View Owner
-      </button>
-      <button
-        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-light hover:bg-gray-50 transition-colors text-left"
-        @click="emitAction('copyId')"
-      >
-        <span class="material-symbols-outlined text-lg text-text-muted-light">content_copy</span>
-        Copy Listing ID
       </button>
     </div>
   </div>
