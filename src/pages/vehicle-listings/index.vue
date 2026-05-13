@@ -421,7 +421,7 @@
                       <div class="min-w-0">
                         <p class="text-sm font-medium text-text-light truncate max-w-[200px]">{{ listing.title || 'Untitled' }}</p>
                         <div class="flex items-center gap-1.5 mt-0.5">
-                          <span class="text-xs text-text-muted-light">{{ listing.plateNumber || detailsMap[listing.id]?.plateNumber || 'No Plate' }}</span>
+                          <span class="text-xs text-text-muted-light">{{ listing.plateNumber || 'No Plate' }}</span>
                           <span v-if="listing.vehicleBrand" class="text-xs text-text-muted-light">· {{ listing.vehicleBrand }}</span>
                         </div>
                       </div>
@@ -662,14 +662,6 @@
       @close="closeDeleteConfirm"
     />
 
-    <!-- Details Drawer -->
-    <ListingDetailsDrawer
-      :isOpen="showDetailsDrawer"
-      :listing="selectedListing"
-      :details="selectedDetails"
-      :loading="detailsLoading"
-      @close="closeDetailsDrawer"
-    />
   </div>
 </template>
 
@@ -680,20 +672,18 @@ import Toast from '@/components/Toast.vue';
 import DeleteConfirmModal from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
 import ListingActions from '@/pages/vehicle-listings/components/ListingActions.vue';
-import ListingDetailsDrawer from '@/pages/vehicle-listings/components/ListingDetailsDrawer.vue';
+
 
 export default {
   components: {
     Toast,
     DeleteConfirmModal,
     Pagination,
-    ListingActions,
-    ListingDetailsDrawer
+    ListingActions
   },
   data() {
     return {
       listings: [],
-      detailsCache: {},
       loading: true,
       error: null,
       searchQuery: '',
@@ -730,11 +720,6 @@ export default {
       showDeleteConfirm: false,
       deleteTargetId: null,
       deleteMessage: 'Are you sure you want to delete this listing? This action cannot be undone.',
-      // Details drawer
-      showDetailsDrawer: false,
-      selectedListing: null,
-      selectedDetails: null,
-      detailsLoading: false,
       // Firestore listeners
       unsubscribe: null
     };
@@ -768,9 +753,6 @@ export default {
     },
     uniqueBrands() {
       return [...new Set(this.listings.map(l => l.vehicleBrand).filter(Boolean))].sort();
-    },
-    detailsMap() {
-      return this.detailsCache;
     },
     activeFilterCount() {
       let count = 0;
@@ -814,7 +796,7 @@ export default {
             l.author?.display_name,
             l.vehicleBrand,
             l.id,
-            l.plateNumber || this.detailsMap[l.id]?.plateNumber,
+            l.plateNumber,
             l.location?.details,
             l.location?.stringified_address
           ].filter(Boolean).join(' ').toLowerCase();
@@ -969,20 +951,6 @@ export default {
       );
     },
 
-    async fetchDetails(listingId) {
-      if (this.detailsCache[listingId]) return this.detailsCache[listingId];
-      try {
-        const details = await VehicleListingsDataService.getDetails(listingId);
-        if (details) {
-          this.detailsCache = { ...this.detailsCache, [listingId]: details };
-        }
-        return details;
-      } catch (err) {
-        console.error('Error fetching details:', err);
-        return null;
-      }
-    },
-
     // Selection
     toggleSelect(id) {
       const idx = this.selectedIds.indexOf(id);
@@ -1030,7 +998,7 @@ export default {
       this.currentPage = 1;
       switch (action) {
         case 'view':
-          this.openDetails(listing);
+          this.$router.push(`/vehicle-listings/${listing.id}`);
           break;
         case 'edit':
           this.openEdit(listing);
@@ -1160,22 +1128,6 @@ export default {
       });
     },
 
-    // Details Drawer
-    async openDetails(listing) {
-      this.selectedListing = listing;
-      this.selectedDetails = null;
-      this.showDetailsDrawer = true;
-      this.detailsLoading = true;
-      const details = await this.fetchDetails(listing.id);
-      this.selectedDetails = details;
-      this.detailsLoading = false;
-    },
-    closeDetailsDrawer() {
-      this.showDetailsDrawer = false;
-      this.selectedListing = null;
-      this.selectedDetails = null;
-    },
-
     // Create Listing
     openCreateModal() {
       this.$router.push('/vehicle-listings/create');
@@ -1275,7 +1227,7 @@ export default {
           `"${(l.title || '').replace(/"/g, '""')}"`,
           l.category || '',
           l.vehicleBrand || '',
-          (l.plateNumber || this.detailsMap[l.id]?.plateNumber || ''),
+          (l.plateNumber || ''),
           `"${(l.author?.display_name || '').replace(/"/g, '""')}"`,
           l.author?.email || '',
           l.price || l.pricing?.dailyRate || 0,

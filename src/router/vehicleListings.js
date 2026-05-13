@@ -8,4 +8,13 @@ export default[
             requiresAuth:true
         }
     },
+    {
+        path:'/vehicle-listings/:id',
+        component: () => import('@/pages/vehicle-listings/_id.vue'),
+        name:'vehicleListingDetails',
+        meta: {
+            layout: 'LayoutDefault',
+            requiresAuth:true
+        }
+    },
 ]
