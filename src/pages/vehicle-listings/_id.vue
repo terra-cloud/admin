@@ -159,15 +159,6 @@
             <p class="text-sm text-text-light leading-relaxed whitespace-pre-wrap">{{ listing.description }}</p>
           </div>
 
-          <!-- Location -->
-          <div v-if="listing.location" class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h4 class="text-sm font-semibold text-text-light uppercase tracking-wider flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-lg">location_on</span>
-              Location
-            </h4>
-            <p class="text-sm text-text-light">{{ listing.location.details || listing.location.stringified_address || 'N/A' }}</p>
-          </div>
-
           <!-- Booking Settings -->
           <div v-if="details?.pricing || details?.inclusions" class="bg-gray-50 rounded-xl p-4 space-y-3">
             <h4 class="text-sm font-semibold text-text-light uppercase tracking-wider">Booking Settings</h4>
@@ -215,6 +206,67 @@
                 <p class="text-sm font-semibold text-text-light">{{ listing.author.display_name || 'Unknown' }}</p>
                 <p class="text-xs text-text-muted-light">{{ listing.author.account_type || 'User' }}</p>
               </div>
+            </div>
+          </div>
+
+          <!-- Location Card -->
+          <div v-if="listing.location" class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+            <h3 class="text-xs font-bold text-text-muted-light uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">location_on</span>
+              Location
+            </h3>
+
+            <div v-if="locationLat && locationLng" class="rounded-lg overflow-hidden border border-gray-200 h-48">
+              <iframe
+                :src="`https://www.openstreetmap.org/export/embed.html?bbox=${locationLng - 0.01},${locationLat - 0.01},${locationLng + 0.01},${locationLat + 0.01}&amp;layer=mapnik&amp;marker=${locationLat},${locationLng}`"
+                class="w-full h-full"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
+            </div>
+
+            <p class="text-sm text-text-light">{{ locationAddress }}</p>
+
+            <div v-if="locationDetailsObj" class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+              <div v-if="locationDetailsObj.street" class="col-span-2">
+                <span class="text-text-muted-light">Street</span>
+                <p class="text-text-light font-medium">{{ locationDetailsObj.street }}</p>
+              </div>
+              <div v-if="locationDetailsObj.barangay">
+                <span class="text-text-muted-light">Barangay</span>
+                <p class="text-text-light font-medium">{{ locationDetailsObj.barangay }}</p>
+              </div>
+              <div v-if="locationDetailsObj.city || locationDetailsObj.city_municipality">
+                <span class="text-text-muted-light">City</span>
+                <p class="text-text-light font-medium">{{ locationDetailsObj.city || locationDetailsObj.city_municipality }}</p>
+              </div>
+              <div v-if="locationDetailsObj.province">
+                <span class="text-text-muted-light">Province</span>
+                <p class="text-text-light font-medium">{{ locationDetailsObj.province }}</p>
+              </div>
+              <div v-if="locationDetailsObj.region">
+                <span class="text-text-muted-light">Region</span>
+                <p class="text-text-light font-medium">{{ locationDetailsObj.region }}</p>
+              </div>
+              <div v-if="locationDetailsObj.postalCode || locationDetailsObj.zip_code">
+                <span class="text-text-muted-light">Postal Code</span>
+                <p class="text-text-light font-medium">{{ locationDetailsObj.postalCode || locationDetailsObj.zip_code }}</p>
+              </div>
+              <div v-if="locationDetailsObj.country" class="col-span-2">
+                <span class="text-text-muted-light">Country</span>
+                <p class="text-text-light font-medium">{{ locationDetailsObj.country }}</p>
+              </div>
+            </div>
+
+            <div v-if="locationLat && locationLng" class="flex items-center gap-1.5 text-xs text-text-muted-light">
+              <span class="material-symbols-outlined text-[14px]">pin_drop</span>
+              <span>{{ locationLat }}, {{ locationLng }}</span>
+            </div>
+
+            <div v-if="listing.location.type" class="flex gap-2">
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                {{ listing.location.type }}
+              </span>
             </div>
           </div>
 
@@ -295,6 +347,44 @@ export default {
         archived: 'bg-gray-500/80 text-white'
       };
       return map[s] || 'bg-gray-500/80 text-white';
+    },
+    locationDetailsObj() {
+      const loc = this.listing?.location;
+      if (!loc) return null;
+      if (typeof loc.details === 'object' && loc.details !== null) return loc.details;
+      return null;
+    },
+    locationLat() {
+      const loc = this.listing?.location;
+      if (!loc) return null;
+      if (loc.coordinates) {
+        const parts = loc.coordinates.split(',');
+        return parts[0] ? parseFloat(parts[0].trim()) : null;
+      }
+      if (loc.lat != null) return parseFloat(loc.lat);
+      if (loc.latitude != null) return parseFloat(loc.latitude);
+      if (this.locationDetailsObj?.latitude != null) return parseFloat(this.locationDetailsObj.latitude);
+      return null;
+    },
+    locationLng() {
+      const loc = this.listing?.location;
+      if (!loc) return null;
+      if (loc.coordinates) {
+        const parts = loc.coordinates.split(',');
+        return parts[1] ? parseFloat(parts[1].trim()) : null;
+      }
+      if (loc.lng != null) return parseFloat(loc.lng);
+      if (loc.longitude != null) return parseFloat(loc.longitude);
+      if (this.locationDetailsObj?.longitude != null) return parseFloat(this.locationDetailsObj.longitude);
+      return null;
+    },
+    locationAddress() {
+      const loc = this.listing?.location;
+      if (!loc) return '';
+      if (typeof loc.details === 'string') return loc.details;
+      if (loc.stringified_address) return loc.stringified_address;
+      if (this.locationDetailsObj?.address) return this.locationDetailsObj.address;
+      return 'No address provided';
     }
   },
   methods: {
