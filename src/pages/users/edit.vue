@@ -1,9 +1,9 @@
 <template>
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
     <div class="py-6">
-      <router-link to="/users" class="inline-flex items-center gap-2 text-text-muted-light hover:text-text-light mb-6">
-        <i class="fas fa-arrow-left"></i> Back to Users
-      </router-link>
+      <button @click="$router.back()" class="inline-flex items-center gap-2 text-text-muted-light hover:text-text-light mb-6">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
 
       <div v-if="loading" class="text-center py-12">
         <p class="text-text-muted-light">Loading user...</p>
@@ -82,6 +82,11 @@ export default {
       saved: false,
       saveError: null,
     };
+  },
+  computed: {
+    previousRoute() {
+      return this.$store.state.previousRoute;
+    },
   },
   async mounted() {
     await this.fetchUser();

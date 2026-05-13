@@ -1111,8 +1111,9 @@ export default {
     },
 
     viewOwner(listing) {
-      if (listing.ownerId) {
-        this.$router.push(`/users`);
+      const ownerId = listing.ownerId || listing.author?.id;
+      if (ownerId) {
+        this.$router.push(`/users/${ownerId}/edit`);
       } else {
         this.showToast('Owner information not available', 'error');
       }
