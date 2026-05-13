@@ -113,21 +113,18 @@
       </div>
     </div>
 
-    <!-- Loading Skeletons -->
-    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <div v-for="n in 6" :key="n" class="rounded-xl bg-white border border-gray-100 overflow-hidden">
-        <div class="aspect-[16/10] bg-gray-100 animate-pulse"></div>
-        <div class="p-4 space-y-3">
-          <div class="h-3 w-20 bg-gray-100 rounded-full animate-pulse"></div>
-          <div class="h-5 w-4/5 bg-gray-100 rounded-lg animate-pulse"></div>
-          <div class="flex items-center gap-2">
-            <div class="w-6 h-6 rounded-full bg-gray-100 animate-pulse"></div>
-            <div class="h-3 w-24 bg-gray-100 rounded animate-pulse"></div>
+    <!-- Loading Skeleton -->
+    <div v-if="loading" class="bg-white rounded-xl shadow-soft overflow-hidden">
+      <div class="p-6 space-y-4">
+        <div v-for="n in 5" :key="n" class="flex items-center gap-4 animate-pulse">
+          <div class="w-14 h-11 bg-gray-100 rounded-lg"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 w-48 bg-gray-100 rounded"></div>
+            <div class="h-3 w-24 bg-gray-100 rounded"></div>
           </div>
-          <div class="flex items-center justify-between pt-1">
-            <div class="h-5 w-20 bg-gray-100 rounded animate-pulse"></div>
-            <div class="h-6 w-16 bg-gray-100 rounded-full animate-pulse"></div>
-          </div>
+          <div class="h-4 w-16 bg-gray-100 rounded"></div>
+          <div class="h-6 w-16 bg-gray-100 rounded-full"></div>
+          <div class="h-4 w-16 bg-gray-100 rounded"></div>
         </div>
       </div>
     </div>
@@ -149,109 +146,213 @@
       </button>
     </div>
 
-    <!-- Service Cards Grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <div
-        v-for="service in paginatedServices"
-        :key="service.id"
-        @click="$router.push(`/jobs/${service.id}`)"
-        class="group relative bg-white rounded-xl border border-gray-100 shadow-soft hover:shadow-lifted hover:border-primary/20 transition-all duration-300 overflow-hidden cursor-pointer"
-      >
-        <!-- Thumbnail -->
-        <div class="relative aspect-[16/10] overflow-hidden bg-gray-50">
-          <img
-            v-if="service.images && service.images.length"
-            :src="service.images[0]"
-            :alt="service.title"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <span class="material-symbols-outlined text-4xl text-gray-200">image</span>
-          </div>
-
-          <!-- Category Badge -->
-          <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/90 backdrop-blur-sm text-text-light shadow-sm">
-            {{ service.category ? formatText(service.category) : 'Uncategorized' }}
-          </span>
-
-          <!-- Availability Indicator -->
-          <span
-            v-if="service.isAvailable !== undefined"
-            class="absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold backdrop-blur-sm"
-            :class="service.isAvailable ? 'bg-emerald-500/90 text-white' : 'bg-gray-500/80 text-white'"
-          >
-            <span class="w-1.5 h-1.5 rounded-full" :class="service.isAvailable ? 'bg-white animate-pulse' : 'bg-gray-300'"></span>
-            {{ service.isAvailable ? 'Available' : 'Unavailable' }}
-          </span>
+    <!-- Data Table (Desktop) -->
+    <template v-else>
+      <div class="bg-white rounded-xl shadow-soft overflow-hidden hidden lg:block">
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="border-b border-gray-100 bg-gray-50/50">
+                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider min-w-[200px]">Service</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider">Category</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider min-w-[180px]">Author</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider whitespace-nowrap">Price</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider">Status</th>
+                <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider">Avail.</th>
+                <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider">Offers</th>
+                <th class="px-3 py-3 text-right text-xs font-semibold text-text-muted-light uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+              <tr
+                v-for="service in paginatedServices"
+                :key="service.id"
+                class="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                @click="$router.push(`/jobs/${service.id}`)"
+              >
+                <!-- Service Column -->
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-14 h-11 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                      <img
+                        v-if="service.images && service.images.length"
+                        :src="service.images[0]"
+                        :alt="service.title"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div v-else class="w-full h-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg text-gray-300">image</span>
+                      </div>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-text-light truncate max-w-[200px] group-hover:text-primary transition-colors">{{ service.title || 'Untitled Service' }}</p>
+                      <p class="text-xs text-text-muted-light truncate max-w-[200px]">{{ service.description ? $filters.truncate(service.description, 60) : 'No description' }}</p>
+                    </div>
+                  </div>
+                </td>
+                <!-- Category -->
+                <td class="px-3 py-3">
+                  <span class="text-sm text-text-light">{{ formatText(service.category) || 'N/A' }}</span>
+                </td>
+                <!-- Author -->
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-2">
+                    <img
+                      v-if="service.author?.photo_url"
+                      :src="service.author.photo_url"
+                      :alt="service.author.display_name"
+                      class="w-7 h-7 rounded-full object-cover shrink-0"
+                      loading="lazy"
+                    />
+                    <div
+                      v-else
+                      class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold shrink-0"
+                    >
+                      {{ getInitials(service.author) }}
+                    </div>
+                    <span class="text-sm text-text-light truncate max-w-[120px]">{{ service.author?.display_name || 'Unknown' }}</span>
+                  </div>
+                </td>
+                <!-- Price -->
+                <td class="px-3 py-3">
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-sm font-semibold text-text-light tabular-nums">₱{{ formatPrice(service.price) }}</span>
+                    <span class="text-xs text-text-muted-light">{{ paymentLabel(service.paymentType) }}</span>
+                  </div>
+                  <span
+                    v-if="service.escrowAmount > 0"
+                    class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50 mt-0.5"
+                  >
+                    <span class="material-symbols-outlined text-[10px]">verified</span>
+                    Escrow
+                  </span>
+                </td>
+                <!-- Status -->
+                <td class="px-3 py-3">
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+                    :class="statusClasses(service.status)"
+                  >
+                    {{ displayStatus(service.status) }}
+                  </span>
+                </td>
+                <!-- Availability -->
+                <td class="px-3 py-3 text-center">
+                  <span
+                    class="inline-flex items-center justify-center w-7 h-7 rounded-full"
+                    :class="service.isAvailable ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'"
+                    :title="service.isAvailable ? 'Available' : 'Unavailable'"
+                  >
+                    <span class="material-symbols-outlined text-sm">{{ service.isAvailable ? 'check' : 'close' }}</span>
+                  </span>
+                </td>
+                <!-- Offers -->
+                <td class="px-3 py-3 text-center">
+                  <span class="text-sm text-text-muted-light tabular-nums">{{ service.offers_count ?? '-' }}</span>
+                </td>
+                <!-- Action -->
+                <td class="px-3 py-3 text-right">
+                  <button
+                    class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-text-muted-light hover:text-text-light"
+                    @click.stop="$router.push(`/jobs/${service.id}`)"
+                    aria-label="View details"
+                  >
+                    <span class="material-symbols-outlined text-lg">chevron_right</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        <!-- Card Body -->
-        <div class="p-4">
-          <!-- Status Badge -->
-          <div class="flex items-center justify-between mb-2">
-            <span
-              class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase"
-              :class="statusClasses(service.status)"
-            >
-              {{ displayStatus(service.status) }}
-            </span>
-          </div>
-
-          <!-- Title -->
-          <h3 class="font-semibold text-sm text-text-light group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-2">
-            {{ service.title || 'Untitled Service' }}
-          </h3>
-
-          <!-- Author -->
-          <div class="flex items-center gap-2 mb-2.5">
+      <!-- Mobile Card Layout -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+        <div
+          v-for="service in paginatedServices"
+          :key="service.id"
+          @click="$router.push(`/jobs/${service.id}`)"
+          class="group relative bg-white rounded-xl border border-gray-100 shadow-soft hover:shadow-lifted hover:border-primary/20 transition-all duration-300 overflow-hidden cursor-pointer"
+        >
+          <div class="relative aspect-[16/10] overflow-hidden bg-gray-50">
             <img
-              v-if="service.author?.photo_url"
-              :src="service.author.photo_url"
-              :alt="service.author.display_name"
-              class="w-5 h-5 rounded-full object-cover ring-1 ring-gray-200"
+              v-if="service.images && service.images.length"
+              :src="service.images[0]"
+              :alt="service.title"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
-            <div v-else class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-semibold">
-              {{ getInitials(service.author) }}
+            <div v-else class="w-full h-full flex items-center justify-center">
+              <span class="material-symbols-outlined text-4xl text-gray-200">image</span>
             </div>
-            <span class="text-xs text-text-muted-light truncate">{{ service.author?.display_name || 'Unknown' }}</span>
+            <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/90 backdrop-blur-sm text-text-light shadow-sm">
+              {{ service.category ? formatText(service.category) : 'Uncategorized' }}
+            </span>
+            <span
+              v-if="service.isAvailable !== undefined"
+              class="absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold backdrop-blur-sm"
+              :class="service.isAvailable ? 'bg-emerald-500/90 text-white' : 'bg-gray-500/80 text-white'"
+            >
+              <span class="w-1.5 h-1.5 rounded-full" :class="service.isAvailable ? 'bg-white animate-pulse' : 'bg-gray-300'"></span>
+              {{ service.isAvailable ? 'Available' : 'Unavailable' }}
+            </span>
           </div>
-
-          <!-- Location -->
-          <div v-if="service.location?.stringified_address" class="flex items-center gap-1.5 mb-2.5">
-            <span class="material-symbols-outlined text-[14px] text-text-muted-light">location_on</span>
-            <span class="text-[11px] text-text-muted-light truncate">{{ service.location.stringified_address }}</span>
-          </div>
-
-          <!-- Price & Meta Row -->
-          <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div class="flex items-baseline gap-1">
-              <span class="text-sm font-bold text-primary">₱{{ formatPrice(service.price) }}</span>
-              <span class="text-[10px] text-text-muted-light">{{ paymentLabel(service.paymentType) }}</span>
-            </div>
-            <div class="flex items-center gap-2">
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-2">
               <span
-                v-if="service.escrowAmount > 0"
-                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50"
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase"
+                :class="statusClasses(service.status)"
               >
-                <span class="material-symbols-outlined text-[10px]">verified</span>
-                Escrow
-              </span>
-              <span
-                v-if="service.offers_count > 0"
-                class="text-[11px] font-medium text-text-muted-light"
-              >
-                {{ service.offers_count }} {{ service.offers_count === 1 ? 'offer' : 'offers' }}
+                {{ displayStatus(service.status) }}
               </span>
             </div>
+            <h3 class="font-semibold text-sm text-text-light group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-2">
+              {{ service.title || 'Untitled Service' }}
+            </h3>
+            <div class="flex items-center gap-2 mb-2.5">
+              <img
+                v-if="service.author?.photo_url"
+                :src="service.author.photo_url"
+                :alt="service.author.display_name"
+                class="w-5 h-5 rounded-full object-cover ring-1 ring-gray-200"
+                loading="lazy"
+              />
+              <div v-else class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-semibold">
+                {{ getInitials(service.author) }}
+              </div>
+              <span class="text-xs text-text-muted-light truncate">{{ service.author?.display_name || 'Unknown' }}</span>
+            </div>
+            <div v-if="service.location?.stringified_address" class="flex items-center gap-1.5 mb-2.5">
+              <span class="material-symbols-outlined text-[14px] text-text-muted-light">location_on</span>
+              <span class="text-[11px] text-text-muted-light truncate">{{ service.location.stringified_address }}</span>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+              <div class="flex items-baseline gap-1">
+                <span class="text-sm font-bold text-primary">₱{{ formatPrice(service.price) }}</span>
+                <span class="text-[10px] text-text-muted-light">{{ paymentLabel(service.paymentType) }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  v-if="service.escrowAmount > 0"
+                  class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50"
+                >
+                  <span class="material-symbols-outlined text-[10px]">verified</span>
+                  Escrow
+                </span>
+                <span
+                  v-if="service.offers_count > 0"
+                  class="text-[11px] font-medium text-text-muted-light"
+                >
+                  {{ service.offers_count }} {{ service.offers_count === 1 ? 'offer' : 'offers' }}
+                </span>
+              </div>
+            </div>
           </div>
+          <div class="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary/0 group-hover:ring-primary/20 transition-all duration-300 pointer-events-none"></div>
         </div>
-
-        <!-- Hover Glow -->
-        <div class="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary/0 group-hover:ring-primary/20 transition-all duration-300 pointer-events-none"></div>
       </div>
-    </div>
+    </template>
 
     <!-- Pagination -->
     <Pagination
@@ -287,7 +388,6 @@ export default {
       filterStatus: '',
       currentPage: 1,
       servicesPerPage: 12,
-      favorites: new Set(),
     };
   },
   computed: {
@@ -437,12 +537,4 @@ export default {
 
 <style scoped>
 @reference "tailwindcss";
-
-@media (prefers-reduced-motion: reduce) {
-  .group,
-  .group * {
-    transition: none !important;
-    animation: none !important;
-  }
-}
 </style>
