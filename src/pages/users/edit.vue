@@ -77,14 +77,6 @@ export default {
   data() {
     return {
       user: {},
-      tabs: [
-        { key: 'overview', label: 'Overview' },
-        { key: 'account', label: 'Account' },
-        { key: 'verification', label: 'Verification' },
-        { key: 'employer', label: 'Employer' },
-        { key: 'terran', label: 'Terran' },
-        { key: 'preferences', label: 'Preferences' },
-      ],
       loading: true,
       error: null,
       saved: false,
@@ -93,6 +85,23 @@ export default {
   },
   async mounted() {
     await this.fetchUser();
+  },
+  computed: {
+    tabs() {
+      const allTabs = [
+        { key: 'overview', label: 'Overview' },
+        { key: 'account', label: 'Account' },
+        { key: 'verification', label: 'Verification' },
+        { key: 'employer', label: 'Employer' },
+        { key: 'terran', label: 'Terran' },
+        { key: 'preferences', label: 'Preferences' },
+      ];
+      return allTabs.filter(tab => {
+        if (tab.key === 'employer') return this.user.account_type === 2;
+        if (tab.key === 'terran') return this.user.account_type === 1;
+        return true;
+      });
+    },
   },
   methods: {
     async fetchUser() {

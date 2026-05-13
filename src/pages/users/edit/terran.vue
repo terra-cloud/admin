@@ -30,7 +30,7 @@
       </div>
       <div v-if="td.skills?.length" class="flex justify-between py-3 border-b border-gray-100">
         <span class="text-sm text-text-muted-light">Skills</span>
-        <span class="text-sm font-medium text-text-primary text-right">{{ td.skills.join(', ') }}</span>
+        <span class="text-sm font-medium text-text-primary text-right">{{ td.skills.map(formatText).join(', ') }}</span>
       </div>
       <div v-if="td.certifications?.length" class="flex justify-between py-3">
         <span class="text-sm text-text-muted-light">Certifications</span>
@@ -41,6 +41,8 @@
 </template>
 
 <script>
+import { formatText } from '@/utils/format';
+
 export default {
   props: {
     user: { type: Object, required: true },
@@ -51,6 +53,7 @@ export default {
     },
   },
   methods: {
+    formatText,
     formatCurrency(amount) {
       if (!amount && amount !== 0) return '—';
       return amount === 0 ? '—' : `₱${amount}`;
