@@ -106,7 +106,7 @@
               <span class="material-symbols-outlined text-text-muted-light">directions_car</span>
               <div>
                 <p class="text-xs text-text-muted-light">Vehicle Brand</p>
-                <p class="text-sm font-medium text-text-light">{{ listing.vehicleBrand || 'N/A' }}</p>
+                <p class="text-sm font-medium text-text-light">{{ details?.info?.brand || listing.vehicleBrand || 'N/A' }}</p>
               </div>
             </div>
             <div class="flex items-center gap-2.5">
@@ -123,33 +123,55 @@
             <h4 class="text-sm font-semibold text-text-light uppercase tracking-wider">Vehicle Specifications</h4>
             <div class="grid grid-cols-2 gap-3">
               <div>
+                <p class="text-xs text-text-muted-light">Model</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.model || 'N/A' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-text-muted-light">Type</p>
+                <p class="text-sm font-medium text-text-light">{{ formatText(details.info?.type) || 'N/A' }}  </p>
+              </div>
+              <div>
                 <p class="text-xs text-text-muted-light">Transmission</p>
-                <p class="text-sm font-medium text-text-light">{{ details.transmission || 'N/A' }}</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.transmission || 'N/A' }}</p>
               </div>
               <div>
                 <p class="text-xs text-text-muted-light">Fuel Type</p>
-                <p class="text-sm font-medium text-text-light">{{ details.fuelType || 'N/A' }}</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.fuelType || 'N/A' }}</p>
               </div>
               <div>
                 <p class="text-xs text-text-muted-light">Seating Capacity</p>
-                <p class="text-sm font-medium text-text-light">{{ details.seatingCapacity || 'N/A' }}</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.seatingCapacity || 'N/A' }}</p>
               </div>
               <div>
                 <p class="text-xs text-text-muted-light">Engine Capacity</p>
-                <p class="text-sm font-medium text-text-light">{{ details.engineCapacity || 'N/A' }}</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.engineCapacity || 'N/A' }}</p>
               </div>
               <div>
                 <p class="text-xs text-text-muted-light">Year</p>
-                <p class="text-sm font-medium text-text-light">{{ details.year || 'N/A' }}</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.year || 'N/A' }}</p>
               </div>
               <div>
                 <p class="text-xs text-text-muted-light">Plate Number</p>
-                <p class="text-sm font-medium text-text-light">{{ details.plateNumber || 'N/A' }}</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.plateNumber || 'N/A' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-text-muted-light">Odometer</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.odoMeter != null ? formatNumber(details.info?.odoMeter) + ' km' : 'N/A' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-text-muted-light">Reservable</p>
+                <p class="text-sm font-medium text-text-light">{{ details.info?.isReservable ? 'Yes' : 'No' }}</p>
               </div>
             </div>
-            <div v-if="details.drive_types">
-              <p class="text-xs text-text-muted-light">Drive Type</p>
-              <p class="text-sm font-medium text-text-light">{{ details.drive_types }}</p>
+            <div v-if="details.drive_types?.length" class="flex items-center gap-2">
+              <p class="text-xs text-text-muted-light">Drive Types:</p>
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="(dt, i) in details.drive_types"
+                  :key="i"
+                  class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                >{{ formatText(dt) }}</span>
+              </div>
             </div>
           </div>
 
@@ -180,9 +202,28 @@
                 <p class="text-sm font-medium text-text-light">₱{{ formatPrice(details.reservationFee) }}</p>
               </div>
             </div>
-            <div v-if="details.inclusions">
-              <p class="text-xs text-text-muted-light mb-1">Inclusions</p>
-              <p class="text-sm text-text-light">{{ details.inclusions }}</p>
+            <div v-if="parsedInclusions">
+              <p class="text-xs text-text-muted-light mb-1.5">Inclusions</p>
+              <div class="space-y-1.5">
+                <div
+                  v-for="(value, key) in parsedInclusions"
+                  :key="key"
+                  class="flex items-center gap-2"
+                >
+                  <span v-if="typeof value === 'boolean'" class="text-sm" :class="value ? 'text-emerald-600' : 'text-red-400'">
+                    <span class="material-symbols-outlined text-sm">{{ value ? 'check_circle' : 'cancel' }}</span>
+                  </span>
+                  <span v-else-if="Array.isArray(value)" class="flex flex-wrap gap-1">
+                    <span
+                      v-for="(item, i) in value"
+                      :key="i"
+                      class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                    >{{ formatText(item) }}</span>
+                  </span>
+                  <span v-else class="text-sm text-text-light">{{ formatText(value) }}</span>
+                  <span class="text-xs text-text-muted-light capitalize">{{ formatLabel(key) }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -385,6 +426,15 @@ export default {
       if (loc.stringified_address) return loc.stringified_address;
       if (this.locationDetailsObj?.address) return this.locationDetailsObj.address;
       return 'No address provided';
+    },
+    parsedInclusions() {
+      if (!this.details?.inclusions) return null;
+      if (typeof this.details.inclusions === 'object') return this.details.inclusions;
+      try {
+        return JSON.parse(this.details.inclusions);
+      } catch {
+        return null;
+      }
     }
   },
   methods: {
@@ -392,6 +442,10 @@ export default {
     formatPrice(price) {
       if (price == null) return '0';
       return Number(price).toLocaleString();
+    },
+    formatNumber(n) {
+      if (n == null) return '0';
+      return Number(n).toLocaleString();
     },
     formatTimestamp(ts) {
       if (!ts) return 'N/A';
@@ -407,6 +461,11 @@ export default {
     getInitials(author) {
       if (!author || !author.display_name) return '?';
       return author.display_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    },
+    formatLabel(key) {
+      return key
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
     },
     prevImage() {
       if (!this.listing?.images?.length) return;
