@@ -86,7 +86,7 @@
         </div>
 
         <!-- Advanced Filters -->
-        <div v-if="showAdvancedFilters" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div v-if="showAdvancedFilters" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-medium text-text-muted-light mb-1.5">Category</label>
             <select
@@ -110,7 +110,7 @@
               <option value="archived">Archived</option>
             </select>
           </div>
-          <div>
+          <!-- <div>
             <label class="block text-xs font-medium text-text-muted-light mb-1.5">Province</label>
             <select
               v-model="filters.province"
@@ -119,7 +119,7 @@
               <option value="">All Provinces</option>
               <option v-for="prov in uniqueProvinces" :key="prov" :value="prov">{{ prov }}</option>
             </select>
-          </div>
+          </div> -->
           <div>
             <label class="block text-xs font-medium text-text-muted-light mb-1.5">Vehicle Brand</label>
             <select
@@ -168,44 +168,6 @@
               <option value="7">7 Seats</option>
               <option value="8">8+ Seats</option>
             </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-text-muted-light mb-1.5">Availability</label>
-            <select
-              v-model="filters.availability"
-              class="w-full px-3 py-2 bg-input-light border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              <option value="">All</option>
-              <option value="available">Available</option>
-              <option value="unavailable">Unavailable</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-text-muted-light mb-1.5">KYC Verified</label>
-            <select
-              v-model="filters.kycVerified"
-              class="w-full px-3 py-2 bg-input-light border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              <option value="">All Owners</option>
-              <option value="verified">KYC Verified</option>
-              <option value="unverified">KYC Unverified</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-text-muted-light mb-1.5">Date Range</label>
-            <div class="flex items-center gap-1">
-              <input
-                v-model="filters.dateFrom"
-                type="date"
-                class="flex-1 min-w-0 px-2 py-2 bg-input-light border-none rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary/30"
-              />
-              <span class="text-text-muted-light text-xs">to</span>
-              <input
-                v-model="filters.dateTo"
-                type="date"
-                class="flex-1 min-w-0 px-2 py-2 bg-input-light border-none rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
           </div>
         </div>
 
