@@ -583,59 +583,18 @@
       </div>
 
       <!-- Pagination -->
-      <div
+      <Pagination
         v-if="!loading && !error && listings.length > 0"
-        class="flex flex-col sm:flex-row items-center justify-between gap-4"
-      >
-        <p class="text-sm text-text-muted-light">
-          Showing
-          <span class="font-semibold text-text-light">{{ tableData.from }}</span>
-          to
-          <span class="font-semibold text-text-light">{{ tableData.to }}</span>
-          of
-          <span class="font-semibold text-text-light">{{ tableData.totalItems }}</span>
-          listings
-        </p>
-        <div class="flex items-center gap-2">
-          <div class="flex items-center gap-1.5 mr-2">
-            <label class="text-xs text-text-muted-light">Rows:</label>
-            <select
-              v-model="rowsPerPage"
-              class="px-2 py-1.5 bg-input-light border-none rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              <option :value="10">10</option>
-              <option :value="20">20</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-            </select>
-          </div>
-          <button
-            class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-text-muted-light hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            :disabled="currentPage === 1"
-            @click="prevPage"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </button>
-          <template v-for="page in visiblePages" :key="page">
-            <span v-if="page === '...'" class="px-1 text-text-muted-light text-sm">...</span>
-            <button
-              v-else
-              class="min-w-[32px] h-8 px-2 rounded-lg text-sm font-medium transition-colors"
-              :class="page === currentPage ? 'bg-primary text-white' : 'text-text-muted-light hover:bg-gray-50'"
-              @click="setPage(page)"
-            >
-              {{ page }}
-            </button>
-          </template>
-          <button
-            class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-text-muted-light hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            :disabled="currentPage === totalPages"
-            @click="nextPage"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </button>
-        </div>
-      </div>
+        :currentPage="currentPage"
+        :totalPages="totalPages"
+        :tableData="tableData"
+        :rowsPerPage="rowsPerPage"
+        :itemLabel="'listings'"
+        @setPage="setPage"
+        @prevPage="prevPage"
+        @nextPage="nextPage"
+        @update:rowsPerPage="rowsPerPage = $event"
+      />
     </div>
 
     <!-- Suspend Modal -->
@@ -727,6 +686,7 @@ import VehicleListingsDataService from '@/services/VehicleListingsDataService';
 import { formatText } from '@/utils/format.js';
 import Toast from '@/components/Toast.vue';
 import DeleteConfirmModal from '@/components/ConfirmDialog.vue';
+import Pagination from '@/components/Pagination.vue';
 import ListingActions from '@/pages/vehicle-listings/components/ListingActions.vue';
 import ListingDetailsDrawer from '@/pages/vehicle-listings/components/ListingDetailsDrawer.vue';
 
@@ -734,6 +694,7 @@ export default {
   components: {
     Toast,
     DeleteConfirmModal,
+    Pagination,
     ListingActions,
     ListingDetailsDrawer
   },
@@ -942,22 +903,6 @@ export default {
       const from = total === 0 ? 0 : (this.currentPage - 1) * this.rowsPerPage + 1;
       const to = Math.min(from + this.paginatedListings.length - 1, total);
       return { from, to, totalItems: total };
-    },
-    visiblePages() {
-      const total = this.totalPages;
-      const current = this.currentPage;
-      if (total <= 7) {
-        return Array.from({ length: total }, (_, i) => i + 1);
-      }
-      const pages = [];
-      pages.push(1);
-      if (current > 3) pages.push('...');
-      const start = Math.max(2, current - 1);
-      const end = Math.min(total - 1, current + 1);
-      for (let i = start; i <= end; i++) pages.push(i);
-      if (current < total - 2) pages.push('...');
-      pages.push(total);
-      return pages;
     },
     isAllSelected() {
       return this.paginatedListings.length > 0 && this.paginatedListings.every(l => this.selectedIds.includes(l.id));
