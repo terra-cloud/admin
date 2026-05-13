@@ -362,150 +362,141 @@
         </button>
       </div>
 
-      <!-- Data Table (Desktop) -->
-      <div v-else class="bg-white rounded-xl shadow-soft overflow-hidden hidden lg:block">
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="border-b border-gray-100 bg-gray-50/50">
-                <th class="px-3 py-3 w-10">
-                  <input
-                    type="checkbox"
-                    class="rounded border-gray-300 text-primary focus:ring-primary/30"
-                    :checked="isAllSelected"
-                    @change="toggleSelectAll"
-                  />
-                </th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider min-w-[200px]">Vehicle</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider">Category</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider min-w-[180px]">Owner</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider whitespace-nowrap">Daily Rate</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider whitespace-nowrap">Date Created</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider">Status</th>
-                <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider">Avail.</th>
-                <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider">Views</th>
-                <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider">Reviews</th>
-                <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider w-16">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-              <tr
-                v-for="listing in paginatedListings"
-                :key="listing.id"
-                class="hover:bg-gray-50/50 transition-colors"
-                :class="{ 'bg-primary/[0.02]': selectedIds.includes(listing.id) }"
-              >
-                <!-- Checkbox -->
-                <td class="px-3 py-3">
-                  <input
-                    type="checkbox"
-                    class="rounded border-gray-300 text-primary focus:ring-primary/30"
-                    :checked="selectedIds.includes(listing.id)"
-                    @change="toggleSelect(listing.id)"
-                  />
-                </td>
-                <!-- Vehicle Column -->
-                <td class="px-3 py-3">
-                  <div class="flex items-center gap-3">
-                    <div class="w-14 h-11 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                      <img
-                        v-if="listing.images && listing.images.length"
-                        :src="listing.images[0]"
-                        :alt="listing.title"
-                        class="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      <div v-else class="w-full h-full flex items-center justify-center">
-                        <span class="material-symbols-outlined text-lg text-gray-300">directions_car</span>
-                      </div>
-                    </div>
-                    <div class="min-w-0">
-                      <p class="text-sm font-medium text-text-light truncate max-w-[200px]">{{ listing.title || 'Untitled' }}</p>
-                      <div class="flex items-center gap-1.5 mt-0.5">
-                        <span class="text-xs text-text-muted-light">{{ listing.plateNumber || detailsMap[listing.id]?.plateNumber || 'No Plate' }}</span>
-                        <span v-if="listing.vehicleBrand" class="text-xs text-text-muted-light">· {{ listing.vehicleBrand }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <!-- Category -->
-                <td class="px-3 py-3">
-                  <span class="text-sm text-text-light">{{ formatText(listing.category) || 'N/A' }}</span>
-                </td>
-                <!-- Owner -->
-                <td class="px-3 py-3">
-                  <div class="flex items-center gap-2">
-                    <img
-                      v-if="listing.author?.photo_url"
-                      :src="listing.author.photo_url"
-                      :alt="listing.author.display_name"
-                      class="w-7 h-7 rounded-full object-cover shrink-0"
+      <template v-else>
+        <!-- Data Table (Desktop) -->
+        <div class="bg-white rounded-xl shadow-soft overflow-hidden hidden lg:block">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/50">
+                  <th class="px-3 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      class="rounded border-gray-300 text-primary focus:ring-primary/30"
+                      :checked="isAllSelected"
+                      @change="toggleSelectAll"
                     />
-                    <div
-                      v-else
-                      class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold shrink-0"
-                    >
-                      {{ getInitials(listing.author) }}
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1">
-                        <span class="text-sm text-text-light truncate max-w-[100px]">{{ listing.author?.display_name || 'Unknown' }}</span>
-                        <span v-if="listing.author?.kyc_validated === 1 || listing.author?.kyc_validated === 'Approved'" class="material-symbols-outlined text-xs text-primary" title="KYC Verified">verified</span>
+                  </th>
+                  <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider min-w-[200px]">Vehicle</th>
+                  <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider">Category</th>
+                  <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider min-w-[180px]">Owner</th>
+                  <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider whitespace-nowrap">Daily Rate</th>
+                  <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider whitespace-nowrap">Date Created</th>
+                  <th class="px-3 py-3 text-left text-xs font-semibold text-text-muted-light uppercase tracking-wider">Status</th>
+                  <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider">Avail.</th>
+                  <th class="px-3 py-3 text-center text-xs font-semibold text-text-muted-light uppercase tracking-wider w-16">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr
+                  v-for="listing in paginatedListings"
+                  :key="listing.id"
+                  class="hover:bg-gray-50/50 transition-colors"
+                  :class="{ 'bg-primary/[0.02]': selectedIds.includes(listing.id) }"
+                >
+                  <!-- Checkbox -->
+                  <td class="px-3 py-3">
+                    <input
+                      type="checkbox"
+                      class="rounded border-gray-300 text-primary focus:ring-primary/30"
+                      :checked="selectedIds.includes(listing.id)"
+                      @change="toggleSelect(listing.id)"
+                    />
+                  </td>
+                  <!-- Vehicle Column -->
+                  <td class="px-3 py-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-14 h-11 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                        <img
+                          v-if="listing.images && listing.images.length"
+                          :src="listing.images[0]"
+                          :alt="listing.title"
+                          class="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        <div v-else class="w-full h-full flex items-center justify-center">
+                          <span class="material-symbols-outlined text-lg text-gray-300">directions_car</span>
+                        </div>
                       </div>
-                      <p class="text-xs text-text-muted-light">{{ listing.author?.account_type || 'User' }}</p>
+                      <div class="min-w-0">
+                        <p class="text-sm font-medium text-text-light truncate max-w-[200px]">{{ listing.title || 'Untitled' }}</p>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                          <span class="text-xs text-text-muted-light">{{ listing.plateNumber || detailsMap[listing.id]?.plateNumber || 'No Plate' }}</span>
+                          <span v-if="listing.vehicleBrand" class="text-xs text-text-muted-light">· {{ listing.vehicleBrand }}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <!-- Daily Rate -->
-                <td class="px-3 py-3">
-                  <span class="text-sm font-semibold text-text-light tabular-nums">₱{{ formatPrice(listing.price || listing.pricing?.dailyRate || 0) }}</span>
-                </td>
-                <!-- Date Created -->
-                <td class="px-3 py-3">
-                  <span class="text-sm text-text-muted-light whitespace-nowrap">{{ formatDate(listing.createdAt) }}</span>
-                </td>
-                <!-- Status -->
-                <td class="px-3 py-3">
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                    :class="statusBadgeClass(listing)"
-                  >
-                    {{ displayStatus(listing) }}
-                  </span>
-                </td>
-                <!-- Availability -->
-                <td class="px-3 py-3 text-center">
-                  <span
-                    class="inline-flex items-center justify-center w-7 h-7 rounded-full"
-                    :class="listing.isAvailable ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'"
-                    :title="listing.isAvailable ? 'Available' : 'Unavailable'"
-                  >
-                    <span class="material-symbols-outlined text-sm">{{ listing.isAvailable ? 'check' : 'close' }}</span>
-                  </span>
-                </td>
-                <!-- Views -->
-                <td class="px-3 py-3 text-center">
-                  <span class="text-sm text-text-muted-light tabular-nums">{{ listing.totalViews ?? '-' }}</span>
-                </td>
-                <!-- Reviews -->
-                <td class="px-3 py-3 text-center">
-                  <span class="text-sm text-text-muted-light tabular-nums">{{ listing.totalReviews ?? '-' }}</span>
-                </td>
-                <!-- Actions -->
-                <td class="px-3 py-3 text-center">
-                  <ListingActions
-                    :listing="listing"
-                    @action="handleAction"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  </td>
+                  <!-- Category -->
+                  <td class="px-3 py-3">
+                    <span class="text-sm text-text-light">{{ formatText(listing.category) || 'N/A' }}</span>
+                  </td>
+                  <!-- Owner -->
+                  <td class="px-3 py-3">
+                    <div class="flex items-center gap-2">
+                      <img
+                        v-if="listing.author?.photo_url"
+                        :src="listing.author.photo_url"
+                        :alt="listing.author.display_name"
+                        class="w-7 h-7 rounded-full object-cover shrink-0"
+                      />
+                      <div
+                        v-else
+                        class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold shrink-0"
+                      >
+                        {{ getInitials(listing.author) }}
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1">
+                          <span class="text-sm text-text-light truncate max-w-[100px]">{{ listing.author?.display_name || 'Unknown' }}</span>
+                          <span v-if="listing.author?.kyc_validated === 1 || listing.author?.kyc_validated === 'Approved'" class="material-symbols-outlined text-xs text-primary" title="KYC Verified">verified</span>
+                        </div>
+                        <p class="text-xs text-text-muted-light">{{ listing.author?.account_type || 'User' }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <!-- Daily Rate -->
+                  <td class="px-3 py-3">
+                    <span class="text-sm font-semibold text-text-light tabular-nums">₱{{ formatPrice(listing.price || listing.pricing?.dailyRate || 0) }}</span>
+                  </td>
+                  <!-- Date Created -->
+                  <td class="px-3 py-3">
+                    <span class="text-sm text-text-muted-light whitespace-nowrap">{{ formatDate(listing.createdAt) }}</span>
+                  </td>
+                  <!-- Status -->
+                  <td class="px-3 py-3">
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+                      :class="statusBadgeClass(listing)"
+                    >
+                      {{ displayStatus(listing) }}
+                    </span>
+                  </td>
+                  <!-- Availability -->
+                  <td class="px-3 py-3 text-center">
+                    <span
+                      class="inline-flex items-center justify-center w-7 h-7 rounded-full"
+                      :class="listing.isAvailable ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'"
+                      :title="listing.isAvailable ? 'Available' : 'Unavailable'"
+                    >
+                      <span class="material-symbols-outlined text-sm">{{ listing.isAvailable ? 'check' : 'close' }}</span>
+                    </span>
+                  </td>
+                  <!-- Actions -->
+                  <td class="px-3 py-3 text-center">
+                    <ListingActions
+                      :listing="listing"
+                      @action="handleAction"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <!-- Mobile Card Layout -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+        <!-- Mobile Card Layout -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
         <div
           v-for="listing in paginatedListings"
           :key="listing.id"
@@ -581,6 +572,7 @@
           </div>
         </div>
       </div>
+      </template>
 
       <!-- Pagination -->
       <Pagination

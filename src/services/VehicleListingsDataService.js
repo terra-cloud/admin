@@ -7,6 +7,7 @@ const detailsCollection = collection(db, 'vehicle-listing-details');
 class VehicleListingsDataService {
   getAll(callback, errorCallback) {
     const q = query(listingsCollection, orderBy('createdAt', 'desc'));
+    let fallback = false;
     return onSnapshot(q, (snapshot) => {
       const listings = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -14,6 +15,20 @@ class VehicleListingsDataService {
       }));
       callback(listings);
     }, (error) => {
+      if (!fallback && error.code === 'failed-precondition') {
+        fallback = true;
+        const fbq = query(listingsCollection);
+        return onSnapshot(fbq, (snapshot) => {
+          const listings = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          callback(listings);
+        }, (fbError) => {
+          console.error('Error fetching vehicle listings (fallback):', fbError);
+          if (errorCallback) errorCallback(fbError);
+        });
+      }
       console.error('Error fetching vehicle listings:', error);
       if (errorCallback) errorCallback(error);
     });
