@@ -32,7 +32,7 @@
         active-class="bg-primary/10 text-primary hover:text-primary"
       >
         <i class="fas fa-briefcase w-5 text-center"></i>
-        <span v-show="sidebarOpen" class="whitespace-nowrap">Job Posting</span>
+        <span v-show="sidebarOpen" class="whitespace-nowrap">Listings</span>
       </router-link>
       <router-link
         to="/users"

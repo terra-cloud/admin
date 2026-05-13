@@ -10,11 +10,13 @@ import jobs from './jobs';
 import news from './news';
 import profile from './profile';
 import vehicleListings from './vehicleListings';
+import listings from './listings';
 const routes = [
     ...auth,
     ...dashboard,
     ...users,
     ...admins,
+    ...listings,
     ...jobs,
     ...news,
     ...profile,
