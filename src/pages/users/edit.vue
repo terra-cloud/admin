@@ -85,18 +85,14 @@ export default {
   },
   computed: {
     previousRoute() {
-      return this.$store.state.previousRoute;
+      return this.$store?.state?.previousRoute;
     },
-  },
-  async mounted() {
-    await this.fetchUser();
-  },
-  computed: {
     tabs() {
       const allTabs = [
         { key: 'overview', label: 'Overview' },
         { key: 'account', label: 'Account' },
         { key: 'verification', label: 'Verification' },
+        { key: 'payments', label: 'Payments' },
         { key: 'employer', label: 'Employer' },
         { key: 'terran', label: 'Terran' },
         { key: 'preferences', label: 'Preferences' },
@@ -107,6 +103,9 @@ export default {
         return true;
       });
     },
+  },
+  async mounted() {
+    await this.fetchUser();
   },
   methods: {
     async fetchUser() {

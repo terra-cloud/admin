@@ -35,6 +35,11 @@ export default[
                 component: () => import('@/pages/users/edit/terran.vue'),
             },
             {
+                path: 'payments',
+                name: 'userEditPayments',
+                component: () => import('@/pages/users/edit/payments.vue'),
+            },
+            {
                 path: 'preferences',
                 name: 'userEditPreferences',
                 component: () => import('@/pages/users/edit/preferences.vue'),

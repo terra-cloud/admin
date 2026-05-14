@@ -76,6 +76,17 @@ class WorkbitsPaymentsDataService {
     }
   }
 
+  getByUserId(userId, callback, errorCallback) {
+    const q = query(paymentsCollection, where('userID', '==', userId), orderBy('createdAt', 'desc'));
+    return onSnapshot(q, (snapshot) => {
+      const payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(payments);
+    }, (error) => {
+      console.error('Error fetching user payments:', error);
+      if (errorCallback) errorCallback(error);
+    });
+  }
+
   async getFilteredCount(filters = {}) {
     try {
       const constraints = [];
