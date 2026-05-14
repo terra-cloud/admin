@@ -7,10 +7,6 @@
           Overview of all platform activity across Terra PH.
         </p>
       </div>
-      <div class="flex items-center gap-3 text-sm text-text-muted-light">
-        <span class="material-symbols-outlined text-lg">sync</span>
-        <span>Last updated: {{ lastUpdated }}</span>
-      </div>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
