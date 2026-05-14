@@ -14,6 +14,7 @@ import listings from './listings';
 import userManagement from './userManagement';
 import serviceBookings from './serviceBookings';
 import vehicleBookings from './vehicleBookings';
+import bookings from './bookings';
 const routes = [
     ...auth,
     ...dashboard,
@@ -26,7 +27,8 @@ const routes = [
     ...profile,
     ...vehicleListings,
     ...serviceBookings,
-    ...vehicleBookings
+    ...vehicleBookings,
+    ...bookings
 ]
 
 const router = createRouter({
