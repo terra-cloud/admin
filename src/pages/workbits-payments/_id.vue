@@ -1,9 +1,9 @@
 <template>
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-    <router-link to="/workbits-payments" class="inline-flex items-center gap-2 text-text-muted-light hover:text-text-light mb-6 transition-colors">
+    <button @click="$router.back()" class="inline-flex items-center gap-2 text-text-muted-light hover:text-text-light mb-6 transition-colors">
       <span class="material-symbols-outlined text-lg">arrow_back</span>
-      Back to Payments
-    </router-link>
+      Back
+    </button>
 
     <div v-if="loading" class="space-y-4">
       <div class="bg-white rounded-xl shadow-soft p-6 animate-pulse space-y-4">
