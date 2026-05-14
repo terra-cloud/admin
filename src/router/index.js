@@ -15,6 +15,7 @@ import userManagement from './userManagement';
 import serviceBookings from './serviceBookings';
 import vehicleBookings from './vehicleBookings';
 import bookings from './bookings';
+import workbitsPayments from './workbitsPayments';
 const routes = [
     ...auth,
     ...dashboard,
@@ -28,7 +29,8 @@ const routes = [
     ...vehicleListings,
     ...serviceBookings,
     ...vehicleBookings,
-    ...bookings
+    ...bookings,
+    ...workbitsPayments
 ]
 
 const router = createRouter({
