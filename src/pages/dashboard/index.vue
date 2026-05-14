@@ -59,7 +59,7 @@
           <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Revenue</span>
           <span class="material-symbols-outlined text-rose-500 text-xl">payments</span>
         </div>
-        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">${{ formatRevenue(stats.payments.totalRevenue) }}</p>
+        <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">₱{{ formatRevenue(stats.payments.totalRevenue) }}</p>
         <p class="text-xs text-text-muted-light mt-1">{{ stats.payments.paid }} paid &middot; {{ stats.payments.pending }} pending</p>
       </div>
     </div>
@@ -154,8 +154,8 @@
               <span class="material-symbols-outlined text-amber-500 text-lg">directions_car</span>
             </span>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-text-light truncate">{{ booking.renterName || booking.renter_name || 'N/A' }}</p>
-              <p class="text-xs text-text-muted-light truncate">{{ booking.rentalName || booking.rental_name || 'Unknown Vehicle' }}</p>
+              <p class="text-sm font-medium text-text-light truncate">{{ booking.lessee?.name + ' ' + booking.lessee?.lastName }}</p>
+              <p class="text-xs text-text-muted-light truncate">{{ booking.rental_details.info?.plateNumber }} {{ booking.rental_details.info?.model + ' ' + booking.rental_details.info?.year }}</p>
             </div>
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" :class="statusClass(booking.status)">
               {{ booking.status }}
@@ -176,11 +176,11 @@
               <span class="material-symbols-outlined text-rose-500 text-lg">receipt</span>
             </span>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-text-light truncate">${{ formatRevenue(payment.paymentData?.amount) }}</p>
-              <p class="text-xs text-text-muted-light truncate">{{ payment.paymentData?.paymentMethod || payment.paymentData?.payment_method || 'N/A' }}</p>
+              <p class="text-sm font-medium text-text-light truncate">₱{{ formatRevenue(payment.paymentData?.amount) }}</p>
+              <p class="text-xs text-text-muted-light truncate">{{ formatDate(payment.paymentData?.date) }}</p>
             </div>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" :class="paymentStatusClass(payment.paymentData?.status)">
-              {{ payment.paymentData?.status || 'unknown' }}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" :class="paymentStatusClass(payment?.status)">
+              {{ payment?.status || 'unknown' }}
             </span>
           </div>
           <div v-if="recentPayments.length === 0" class="text-center py-6 text-sm text-text-muted-light">No recent payments</div>
@@ -226,6 +226,11 @@ export default {
     },
   },
   methods: {
+    formatDate(date) {
+      if (!date) return '—';
+      const d = date.toDate ? date.toDate() : new Date(date);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
     formatNumber(n) {
       n = Number(n) || 0
       if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
