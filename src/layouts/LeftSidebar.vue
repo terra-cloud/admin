@@ -35,6 +35,14 @@
         <span v-show="sidebarOpen" class="whitespace-nowrap">Listings</span>
       </router-link>
       <router-link
+        to="/vehicle-bookings"
+        class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors mx-2 rounded-lg"
+        active-class="bg-primary/10 text-primary hover:text-primary"
+      >
+        <i class="fas fa-car w-5 text-center"></i>
+        <span v-show="sidebarOpen" class="whitespace-nowrap">Vehicle Bookings</span>
+      </router-link>
+      <router-link
         to="/service-bookings"
         class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors mx-2 rounded-lg"
         active-class="bg-primary/10 text-primary hover:text-primary"
