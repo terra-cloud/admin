@@ -205,17 +205,7 @@
             <div class="bg-white rounded-2xl shadow-soft p-5 border border-gray-100/50">
               <h3 class="text-sm font-semibold text-text-light mb-3">Manage Booking</h3>
               <div class="space-y-2">
-                <button class="w-full flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-sm font-medium text-text-light">
-                  <span class="material-symbols-outlined text-primary">chat</span>
-                  Message Employer
-                </button>
-                <button
-                  v-if="booking.terran"
-                  class="w-full flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-sm font-medium text-text-light"
-                >
-                  <span class="material-symbols-outlined text-purple-600">chat_bubble</span>
-                  Message Terran
-                </button>
+
                 <div class="h-px bg-gray-100 my-2"></div>
                 <button
                   v-if="booking.status === 'onGoing'"
