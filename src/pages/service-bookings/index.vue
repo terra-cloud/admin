@@ -26,7 +26,7 @@
             <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">Pending</span>
             <span class="material-symbols-outlined text-amber-400 text-xl">hourglass_empty</span>
           </div>
-          <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ stats.pendingAcceptance }}</p>
+          <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ stats.pendingacceptance }}</p>
           <p class="text-xs text-text-muted-light mt-1">Awaiting response</p>
         </div>
         <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-blue-500 hover:shadow-lifted transition-shadow">
@@ -42,7 +42,7 @@
             <span class="text-xs font-medium text-text-muted-light uppercase tracking-wider">On Going</span>
             <span class="material-symbols-outlined text-primary text-xl">pending_actions</span>
           </div>
-          <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ stats.onGoing }}</p>
+          <p class="text-2xl sm:text-3xl font-bold text-text-light tabular-nums">{{ stats.ongoing }}</p>
           <p class="text-xs text-text-muted-light mt-1">In progress</p>
         </div>
         <div class="bg-white rounded-xl shadow-soft p-4 sm:p-5 border-l-4 border-green-500 hover:shadow-lifted transition-shadow">
@@ -336,10 +336,11 @@ export default {
       );
     },
     updateStats() {
-      const counts = { total: this.bookings.length, pendingAcceptance: 0, accepted: 0, onGoing: 0, delivered: 0, completed: 0, cancelled: 0 };
+      let counts = { total: this.bookings.length, pendingacceptance: 0, accepted: 0, ongoing: 0, delivered: 0, completed: 0, cancelled: 0 };
       this.bookings.forEach(b => {
         const s = (b.status || '').toLowerCase();
-        if (s in counts) counts[s]++;
+        counts[s]++;
+        console.log(counts[s], 'this.bookings')
       });
       this.stats = counts;
     },
