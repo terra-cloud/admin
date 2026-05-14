@@ -40,6 +40,11 @@ export default[
                 component: () => import('@/pages/users/edit/payments.vue'),
             },
             {
+                path: 'workbits',
+                name: 'userEditWorkbits',
+                component: () => import('@/pages/users/edit/workbits.vue'),
+            },
+            {
                 path: 'preferences',
                 name: 'userEditPreferences',
                 component: () => import('@/pages/users/edit/preferences.vue'),

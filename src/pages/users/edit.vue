@@ -93,6 +93,7 @@ export default {
         { key: 'account', label: 'Account' },
         { key: 'verification', label: 'Verification' },
         { key: 'payments', label: 'Payments' },
+        { key: 'workbits', label: 'WorkBits' },
         { key: 'employer', label: 'Employer' },
         { key: 'terran', label: 'Terran' },
         { key: 'preferences', label: 'Preferences' },
