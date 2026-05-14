@@ -24,15 +24,6 @@
           </h1>
           <BookingStatusBadge :status="booking.status" />
         </div>
-        <div class="flex items-center gap-2">
-          <button
-            class="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-text-light hover:bg-gray-50 transition-colors"
-            @click="shareBooking"
-          >
-            <span class="material-symbols-outlined text-lg">share</span>
-            Share
-          </button>
-        </div>
       </div>
 
       <div class="bg-white rounded-2xl shadow-soft p-6 mb-6 relative overflow-hidden">
