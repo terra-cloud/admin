@@ -148,8 +148,8 @@
                         <span class="material-symbols-outlined text-gray-300 text-lg">work</span>
                       </div>
                       <div class="min-w-0">
-                        <p class="text-sm font-medium text-text-light truncate max-w-[180px]">{{ serviceListings[booking.job_id]?.title || 'Unknown Service' }}</p>
-                        <p class="text-xs text-text-muted-light">{{ serviceListings[booking.job_id]?.category || '' }}</p>
+                        <p class="text-sm font-medium text-text-light truncate max-w-[180px]">{{ serviceListings[booking.job_id]?.title ? formatText(serviceListings[booking.job_id]?.title) : 'Unknown Service' }}</p>
+                        <p class="text-xs text-text-muted-light">{{ serviceListings[booking.job_id]?.category ? formatText(serviceListings[booking.job_id]?.category) : '' }}</p>
                       </div>
                     </div>
                   </td>
@@ -162,9 +162,9 @@
                         alt=""
                       />
                       <div v-else class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
-                        {{ getInitials(serviceListings[booking.job_id]?.author) }}
+                        {{ getInitials(serviceListings[booking.job_id]?.author) }} 
                       </div>
-                      <span class="text-sm text-text-light truncate max-w-[100px]">{{ serviceListings[booking.job_id]?.author?.display_name || '—' }}</span>
+                      <span class="text-sm text-text-light truncate max-w-[180px]">{{ displayName(serviceListings[booking.job_id]?.author) }}</span>
                     </div>
                   </td>
                   <td class="px-4 py-4">
@@ -221,6 +221,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
 import BookingStatusBadge from '@/pages/service-bookings/components/BookingStatusBadge.vue';
 import Pagination from '@/components/Pagination.vue';
+import { displayName, formatText } from '@/utils/format';
 
 export default {
   components: { BookingStatusBadge, Pagination },
@@ -277,6 +278,8 @@ export default {
     }
   },
   methods: {
+    formatText,
+    displayName,
     formatPrice(n) {
       if (n == null) return '0';
       return Number(n).toLocaleString();

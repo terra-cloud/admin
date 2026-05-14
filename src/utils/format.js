@@ -10,3 +10,10 @@ export const formatText = (raw) => {
 
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
+
+export const displayName = (author) => {
+  if (!author) return '—';
+  if (author?.account_type == 2) return formatText(author?.name + ' ' + author?.last_name);
+  else return formatText(author?.display_name);
+
+}
