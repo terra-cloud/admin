@@ -23,6 +23,16 @@
           >
             <i class="fas fa-shield-alt mr-2"></i> Security
           </router-link>
+          <router-link
+            v-if="isSuperadmin"
+            :to="{ name: 'profileFirebaseConfig' }"
+            class="pb-3 text-sm font-medium border-b-2 transition-colors inline-flex items-center"
+            :class="$route.name === 'profileFirebaseConfig'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-text-muted-light hover:text-text-light hover:border-gray-300'"
+          >
+            <i class="fas fa-fire mr-2"></i> Firebase Config
+          </router-link>
         </nav>
       </div>
 
@@ -32,7 +42,14 @@
 </template>
 
 <script>
+import { state } from '@/stores/auth';
+
 export default {
   name: 'Profile',
+  computed: {
+    isSuperadmin() {
+      return state.admin?.type === 'superadmin';
+    },
+  },
 };
 </script>

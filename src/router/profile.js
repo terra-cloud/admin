@@ -26,6 +26,15 @@ export default [
                     layout: 'LayoutDefault',
                     requiresAuth: true
                 }
+            },
+            {
+                path: 'firebase-config',
+                component: () => import('@/pages/profile/firebase-config.vue'),
+                name: 'profileFirebaseConfig',
+                meta: {
+                    layout: 'LayoutDefault',
+                    requiresAuth: true
+                }
             }
         ]
     },
